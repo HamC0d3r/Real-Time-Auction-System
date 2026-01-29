@@ -22,12 +22,12 @@ jobs:
 
     #Restore, Build, Test Steps
     - name: Restore dependencies
-      run: dotnet restore MyGradProject.sln
+      run: dotnet restore Real-Time-Auction-System.sln
 
 
     - name: Build
-      run: dotnet build MyGradProject.sln --no-restore --configuration Release
+      run: dotnet build Real-Time-Auction-System.sln --no-restore --configuration Release
 
 
     - name: Test
-      run: dotnet test MyGradProject.sln --no-build --verbosity normal
+      run: dotnet test Real-Time-Auction-System.sln --no-build --verbosity normal
