@@ -1,0 +1,29 @@
+# --- Visual Studio & .NET ---
+.vs/
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# --- VS Code ---
+.vscode/
+
+# --- Dependency Directories ---
+node_modules/
+jspm_packages/
+packages/
+
+# --- OS Generated Files ---
+.DS_Store
+Thumbs.db
+
+# --- Environment Variables & Secrets (CRITICAL) ---
+
+# --- Test Results ---
+TestResults/
+*.trx
+
+# --- Log Files ---
+*.log
