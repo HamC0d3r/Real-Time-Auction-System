@@ -1,0 +1,33 @@
+name: Build and Test
+
+#where to trigger the workflow
+on:
+  push:
+    branches: [ "main" ]       # when code is pushed to main
+  pull_request:
+    branches: [ "main" ]       # when a PR is created against main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest    
+
+    steps:
+    - uses: actions/checkout@v4
+
+    # Setup .NET environment
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x 
+
+    #Restore, Build, Test Steps
+    - name: Restore dependencies
+      run: dotnet restore MyGradProject.sln
+
+
+    - name: Build
+      run: dotnet build MyGradProject.sln --no-restore --configuration Release
+
+
+    - name: Test
+      run: dotnet test MyGradProject.sln --no-build --verbosity normal
