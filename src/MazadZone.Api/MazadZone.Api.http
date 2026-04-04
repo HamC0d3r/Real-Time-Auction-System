@@ -1,0 +1,6 @@
+@MazadZone.Api_HostAddress = http://localhost:5108
+
+GET {{MazadZone.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
