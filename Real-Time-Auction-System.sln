@@ -5,13 +5,13 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72D-47B6-A68D-7590B98EB39B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuctionSystem.Domain", "src\AuctionSystem.Domain\AuctionSystem.Domain.csproj", "{CB88C2C3-D153-40C4-AA0F-56416677844F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MazadZone.Domain", "src\MazadZone.Domain\MazadZone.Domain.csproj", "{CB88C2C3-D153-40C4-AA0F-56416677844F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuctionSystem.Application", "src\AuctionSystem.Application\AuctionSystem.Application.csproj", "{933C58C6-3D5B-4F25-98BB-01EFC7C1887D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MazadZone.Application", "src\MazadZone.Application\MazadZone.Application.csproj", "{933C58C6-3D5B-4F25-98BB-01EFC7C1887D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuctionSystem.Infrastructure", "src\AuctionSystem.Infrastructure\AuctionSystem.Infrastructure.csproj", "{C55E4961-5418-497B-BB4F-666DD46BC5DE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MazadZone.Infrastructure", "src\MazadZone.Infrastructure\MazadZone.Infrastructure.csproj", "{C55E4961-5418-497B-BB4F-666DD46BC5DE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuctionSystem.Api", "src\AuctionSystem.Api\AuctionSystem.Api.csproj", "{09A399CE-16A3-4606-A01D-6A3FD65D12B4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MazadZone.Api", "src\MazadZone.Api\MazadZone.Api.csproj", "{09A399CE-16A3-4606-A01D-6A3FD65D12B4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
