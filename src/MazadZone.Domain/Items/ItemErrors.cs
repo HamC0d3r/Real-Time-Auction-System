@@ -1,4 +1,4 @@
-using MazadZone.Domain.Auctions;
+using MazadZone.Domain.Items;
 
 namespace MazadZone.Domain.Items;
 
@@ -16,7 +16,7 @@ public static class ItemErrors
 {
     public static readonly Error TooManyImages = Error.Conflict(
         ItemErrorCodes.TooManyImages,
-        $"An item cannot have more than {AuctionConstants.MaxImagesPerItem} images."
+        $"An item cannot have more than {ItemConstants.MaxImagesPerItem} images."
     );
 
     public static readonly Error EmptyImagePath = Error.Validation(
@@ -36,11 +36,11 @@ public static class ItemErrors
 
 public static readonly Error InvalidTitle = Error.Validation(
         ItemErrorCodes.InvalidTitle,
-        $"The item title cannot be empty and must not exceed {AuctionConstants.MaxTitleLength} characters."
+        $"The item title cannot be empty and must not exceed {ItemConstants.MaxTitleLength} characters."
     );
 
     public static readonly Error InvalidDescription = Error.Validation(
         ItemErrorCodes.InvalidDescription,
-        $"The item description cannot be empty and must not exceed {AuctionConstants.MaxDescriptionLength} characters."
+        $"The item description cannot be empty and must not exceed {ItemConstants.MaxDescriptionLength} characters."
     );
 }

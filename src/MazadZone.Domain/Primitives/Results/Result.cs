@@ -49,6 +49,7 @@ public class Result
 
     public static Result<TValue> Create<TValue>(TValue? value) => value is not null ? Success(value) : Failure<TValue>(Error.NullValue);
 
+    public static Result Updated() => Success();
     /// <summary>
     /// Checks a list of Results. Returns the first failure found. 
     /// If all match, returns Success.

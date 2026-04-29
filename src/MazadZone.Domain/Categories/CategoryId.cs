@@ -1,5 +1,5 @@
 
-namespace MazadZone.Domain.Auctions;
+namespace MazadZone.Domain.Categories;
 
 public readonly record struct CategoryId(Guid Value);
 

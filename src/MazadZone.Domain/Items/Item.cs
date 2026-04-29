@@ -1,7 +1,9 @@
-namespace MazadZone.Domain.Auctions;
+namespace MazadZone.Domain.Items;
 
+using MazadZone.Domain.Categories;
 using MazadZone.Domain.Items;
 using MazadZone.Domain.Primitives;
+using MazadZone.Domain.Users;
 
 public sealed class Item : AggregateRoot<ItemId>
 {
@@ -33,16 +35,16 @@ public sealed class Item : AggregateRoot<ItemId>
 
     // --- Factory Method ---
     public static Result <Item> Create(
-        SellerId sellerId,
+        UserId sellerId,
         CategoryId categoryId,
         string title,
         string description
     )
     {
-        if (string.IsNullOrWhiteSpace(title) || title.Length > AuctionConstants.MaxTitleLength)
+        if (string.IsNullOrWhiteSpace(title) || title.Length > ItemConstants.MaxTitleLength)
             return ItemErrors.InvalidTitle;
 
-            if (string.IsNullOrWhiteSpace(description) || description.Length > AuctionConstants.MaxDescriptionLength)
+            if (string.IsNullOrWhiteSpace(description) || description.Length > ItemConstants.MaxDescriptionLength)
             return ItemErrors.InvalidDescription;
 
 
@@ -56,7 +58,7 @@ public sealed class Item : AggregateRoot<ItemId>
 public Result AddImage(Image image)
     {
         // 1. Check max limits
-        if (_images.Count >= AuctionConstants.MaxImagesPerItem)
+        if (_images.Count >= ItemConstants.MaxImagesPerItem)
             return Result.Failure(ItemErrors.TooManyImages);
 
         // 2. Prevent duplicate paths
@@ -70,7 +72,7 @@ public Result AddImage(Image image)
 
     public Result AddImages(IEnumerable<Image> images)
     {
-        if (_images.Count + images.Count() > AuctionConstants.MaxDescriptionLength)
+        if (_images.Count + images.Count() > ItemConstants.MaxImagesPerItem)
             return ItemErrors.TooManyImages;
 
 
@@ -119,10 +121,10 @@ public Result AddImage(Image image)
 
     public Result UpdateDetails(string newTitle, string newDescription)
     {
-        if (string.IsNullOrWhiteSpace(newTitle) || newTitle.Length > AuctionConstants.MaxTitleLength)
+        if (string.IsNullOrWhiteSpace(newTitle) || newTitle.Length > ItemConstants.MaxTitleLength)
             return ItemErrors.InvalidTitle;
 
-        if (string.IsNullOrWhiteSpace(newDescription) || newDescription.Length > AuctionConstants.MaxDescriptionLength)
+        if (string.IsNullOrWhiteSpace(newDescription) || newDescription.Length > ItemConstants.MaxDescriptionLength)
             return ItemErrors.InvalidDescription;
 
         Title = newTitle;

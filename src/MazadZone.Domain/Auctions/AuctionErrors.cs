@@ -27,6 +27,8 @@ public const string Forbidden = "Auction.Forbidden";
 
 public static class AuctionErrors
 {
+    public static Error PlaceBidFailed =>
+        Error.Conflict(AuctionErrorCodes.BidTooLow, "Place bid failed.");
     public static Error AlreadyEnded =>
         Error.Conflict(AuctionErrorCodes.AlreadyEnded, "This auction has already ended and cannot accept new bids.");
 
