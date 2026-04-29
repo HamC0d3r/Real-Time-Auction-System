@@ -1,7 +1,7 @@
 using MazadZone.Domain.Shared.Errors;
 using MazadZone.Domain.ValueObjects;
 
-namespace MazadZone.Domain.Orders;
+namespace MazadZone.Domain.ValueObjects;
 
 public sealed record Money : IComparable<Money>
 {

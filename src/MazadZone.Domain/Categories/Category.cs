@@ -1,6 +1,7 @@
 namespace MazadZone.Domain.Entities.Categories;
 
 using MazadZone.Domain.Auctions;
+using MazadZone.Domain.Categories;
 using MazadZone.Domain.Primitives;
 
 public sealed class Category : AggregateRoot<CategoryId>
@@ -37,7 +38,7 @@ public sealed class Category : AggregateRoot<CategoryId>
         // Prevent a category from being its own parent
         if (newParentId.HasValue && newParentId.Value == this.Id)
         {
-            return Result.Failure(new Error("Category.SelfReference", "A category cannot be its own parent."));
+            return Result.Failure(CategoryErrors.InvalidParentCategory);
         }
 
         ParentCategoryId = newParentId;

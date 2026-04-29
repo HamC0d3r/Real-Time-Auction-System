@@ -2,6 +2,8 @@ using System.ComponentModel;
 using System.Runtime.InteropServices;
 using MazadZone.Domain.Auctions.Events;
 using MazadZone.Domain.Items;
+using MazadZone.Domain.Shared;
+using MazadZone.Domain.Users;
 using MazadZone.Domain.ValueObjects;
 
 namespace MazadZone.Domain.Auctions;
@@ -17,7 +19,7 @@ public sealed class Auction : AggregateRoot<AuctionId>, IAuditableEntity
     private Auction(
         AuctionId id,
         ItemId itemId,
-        SellerId sellerId,
+        UserId sellerId,
         AddressId shippingAddressId,
         Money startBidAmount,
         Money minBidAmount,
@@ -39,7 +41,9 @@ public sealed class Auction : AggregateRoot<AuctionId>, IAuditableEntity
     }
 
     public ItemId ItemId { get; private set; }
-    public SellerId SellerId { get; private set; }
+    public Item Item { get; private set; } // Navigation Property
+    public UserId SellerId { get; private set; }
+    // public Seller Seller { get; private set; } // Navigation Property
     public AddressId ShippingAddressId { get; private set; }
 
     public Money StartBidAmount { get; private set; }
@@ -52,6 +56,7 @@ public sealed class Auction : AggregateRoot<AuctionId>, IAuditableEntity
     public DateTime CreatedOnUtc { get; set ; }
     public DateTime? ModifiedOnUtc { get ; set ; }
     private readonly List<Bid> _bids = new();
+
 
     // --- Calculated Properties ---
     public Bid? CurrentLeadingBid => _bids.FirstOrDefault(b => b.Status == BidStatus.Leading);
@@ -69,10 +74,14 @@ public sealed class Auction : AggregateRoot<AuctionId>, IAuditableEntity
 
     public bool IsPending => Status == AuctionStatus.Pending || StartTime > DateTime.UtcNow;
 
+    public bool IsLeadingBid(UserId bidderId)
+         =>  _bids.Any(b => b.BidderId == bidderId);
+
+
     // --- Factory Method ---
     public static Result<Auction> Create(
         ItemId itemId,
-        SellerId sellerId,
+        UserId sellerId,
         AddressId shippingAddressId,
         decimal startBidAmount,
         decimal minBidAmount,
@@ -167,39 +176,46 @@ return  new Auction(
         return Result.Success();
     }
 
-    // --- Bidding Logic ---
 
-    public Result PlaceBid(BidderId bidderId, decimal amount, decimal depositAmount, string authHoldId)
+    // --- Bidding Logic ---
+// 1. Omar
+//2. Hamaza
+//2. Omar
+
+    public Result<Bid> PlaceBid(UserId bidderId, decimal amount)
     {
         if (!IsActive) return AuctionErrors.AlreadyEnded;
 
         var amountResult = Money.Create(amount, Currency.Jod);
         if (amountResult.IsFailure) return BidErrors.InvalidAmount;
 
-        var depositAmountResult = Money.Create(depositAmount, Currency.Jod);
+        var depositAmountResult = Money.Create(amount * DomainSettings.BidDepositPercentage, Currency.Jod);
         if (depositAmountResult.IsFailure) return AuctionErrors.DepositTooLow;
 
         // Business Rule: Deposit must meet the minimum requirement
         // Business Rule: Bid must meet the minimum next bid threshold
         if (amountResult.Value < MinNextBidAmount) return AuctionErrors.BidTooLow;
 
+ 
+      
         // Mark the old leading bid as Outbid
         var previousLeadingBid = CurrentLeadingBid;
         if (previousLeadingBid is not null)
         {
             var outbidResult = previousLeadingBid.SetAsOutbid();
-            if (outbidResult.IsFailure) return outbidResult;
+            if (outbidResult.IsFailure) return outbidResult.TopError;
 
             RaiseDomainEvent(new BidderOutbidDomainEvent(Id, previousLeadingBid.Id, previousLeadingBid.AuthorizationHoldId));
         }
 
-        // Create and add the new bid
-        var newBid = Bid.Create(this.Id, bidderId, amountResult.Value, depositAmountResult.Value, authHoldId);
+        
+
+        var newBid = Bid.Create(this.Id, bidderId, amountResult.Value, depositAmountResult.Value);
         _bids.Add(newBid);
 
-        RaiseDomainEvent(new BidPlacedDomainEvent(Id, newBid.Id, amountResult.Value));
+        RaiseDomainEvent(new BidPlacedDomainEvent(this.Id, newBid.Id, bidderId, amountResult.Value));
 
-        return Result.Success();
+        return Result.Success(newBid);
     }
 
 

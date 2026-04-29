@@ -26,4 +26,6 @@ public sealed record Currency
     }
 
     public override string ToString() => Code;
+    
+
 }
