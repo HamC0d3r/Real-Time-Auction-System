@@ -6,5 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Vogen" Version="8.0.5" />
+  </ItemGroup>
+
   
 </Project>

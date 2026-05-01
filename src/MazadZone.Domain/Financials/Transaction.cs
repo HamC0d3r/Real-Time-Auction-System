@@ -4,10 +4,14 @@ namespace MazadZone.Domain.Financials;
 
 public sealed class Transaction : AggregateRoot<TransactionId>
 {
+    #pragma warning disable CS8618 
+    #pragma warning disable CS0519
     private Transaction() { }
+    #pragma warning restore CS8618
+
 
     private Transaction(
-        TransactionId id, OrderId orderId, UserId sellerId, TransactionType type, Money amount, string gatewayReferenceId) 
+        TransactionId id, OrderId orderId, SellerId sellerId, TransactionType type, Money amount, string gatewayReferenceId) 
         : base(id)
     {
         OrderId = orderId;
@@ -20,7 +24,7 @@ public sealed class Transaction : AggregateRoot<TransactionId>
     }
 
     public OrderId OrderId { get; private init; }
-    public UserId SellerId { get; private init; }
+    public SellerId SellerId { get; private init; }
     public TransactionType Type { get; private init; }
     public Money Amount { get; private init; }
     public string GatewayReferenceId { get; private init; }
@@ -30,9 +34,9 @@ public sealed class Transaction : AggregateRoot<TransactionId>
     public DateTime? ProcessedAtUtc { get; private set; }
     public string? FailureReason { get; private set; }
 
-    public static Transaction Create(OrderId orderId, UserId sellerId, TransactionType type, Money amount, string gatewayReferenceId)
+    public static Transaction Create(OrderId orderId, SellerId sellerId, TransactionType type, Money amount, string gatewayReferenceId)
     {
-        return new Transaction(new TransactionId(Guid.NewGuid()), orderId, sellerId, type, amount, gatewayReferenceId);
+        return new Transaction(TransactionId.New(), orderId, sellerId, type, amount, gatewayReferenceId);
     }
 
     public Result SetAsSucceeded()
