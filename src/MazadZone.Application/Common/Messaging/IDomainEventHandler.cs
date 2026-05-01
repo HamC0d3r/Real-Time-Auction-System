@@ -1,6 +1,15 @@
-﻿// namespace MazadZone.Application.Common.Messaging;
+﻿namespace MazadZone.Application.Common.Messaging;
 
-// public interface IDomainEventHandler<TEvent> : INotificationHandler<TEvent>
-//     where TEvent : IDomainEvent
-// {
-// }
+using MediatR;
+using MazadZone.Domain.Primitives;
+
+public sealed class DomainEventNotification<TDomainEvent> : INotification
+    where TDomainEvent : IDomainEvent
+{
+    public DomainEventNotification(TDomainEvent domainEvent)
+    {
+        DomainEvent = domainEvent;
+    }
+
+    public TDomainEvent DomainEvent { get; }
+}

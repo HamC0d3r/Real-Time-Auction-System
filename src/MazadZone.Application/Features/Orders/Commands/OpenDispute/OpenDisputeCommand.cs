@@ -1,7 +1,3 @@
-using System;
-using MediatR;
-using CSharpFunctionalExtensions;
+namespace MazadZone.Application.Features.Orders.Commands.OpenDispute;
 
-namespace MazadZone.Application.Orders.OpenDispute;
-
-public record OpenDisputeCommand(Guid OrderId, string Reason) : IRequest<Result>;
+public record OpenDisputeCommand(OrderId OrderId, string Reason) : ICommand<Unit>;
