@@ -1,3 +1,4 @@
+using MazadZone.Domain.Auctions;
 using MazadZone.Domain.Orders;
 using MazadZone.Domain.Primitives;
 
@@ -7,7 +8,11 @@ public readonly record struct PaymentId(Guid Value);
 
 public sealed class Payment : AggregateRoot<PaymentId>
 {
+    #pragma warning disable CS8618 
+    #pragma warning disable CS0519
     private Payment() { }
+    #pragma warning restore CS8618
+
 
     private Payment(
         PaymentId id, OrderId orderId, UserId userId, PaymentType type, Money amount, string paymentIntentId) 
@@ -40,8 +45,7 @@ public sealed class Payment : AggregateRoot<PaymentId>
 
     public Result SetAsCompleted()
     {
-        if (Status != PaymentStatus.Pending)
-            return Result.Failure(new Error("Payment.InvalidState", "Only pending payments can be completed."));
+        if (Status != PaymentStatus.Pending) return PaymentErrors.InvalidState;
 
         Status = PaymentStatus.Completed;
         CompletedAtUtc = DateTime.UtcNow;
@@ -52,8 +56,7 @@ public sealed class Payment : AggregateRoot<PaymentId>
 
     public Result SetAsFailed(string reason)
     {
-        if (Status != PaymentStatus.Pending)
-            return Result.Failure(new Error("Payment.InvalidState", "Only pending payments can be marked as failed."));
+        if (Status != PaymentStatus.Pending) return PaymentErrors.AlreadyProcessed(Status);
 
         Status = PaymentStatus.Failed;
         FailureReason = reason;

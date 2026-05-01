@@ -23,7 +23,7 @@ public sealed record Money : IComparable<Money>
     }
 
     // --- Factory Methods ---
-    public static Money Zero(Currency currency) => new(0, currency);
+    public static Money Zero() => new(0, Currency.Jod);
     
     // --- Business Behaviors ---
     public bool IsZero() => Amount == 0;

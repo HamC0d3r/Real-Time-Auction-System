@@ -1,4 +1,6 @@
 using MazadZone.Domain.Auctions;
+using MazadZone.Domain.Entities.Users;
+using MazadZone.Domain.Orders.Events;
 using MazadZone.Domain.ValueObjects;
 
 namespace MazadZone.Domain.Orders;
@@ -8,21 +10,24 @@ namespace MazadZone.Domain.Orders;
 /// Represents the Order Aggregate Root, managing the lifecycle of a post-auction transaction 
 /// between a bidder and a seller, including shipping, feedback, and disputes.
 /// </summary>
-public sealed class Order : AggregateRoot<OrderId>
+public sealed class Order : AggregateRoot<OrderId>, IAuditableEntity
 {
+    #pragma warning disable CS8618 
+    #pragma warning disable CS0519
     private Order() { }
+    #pragma warning restore CS8618
 
     private Order(
         OrderId id,
         BidderId bidderId,
         BidId winningBidId,
-        AddressId receiptAddressId,
+        Address receiptAddressId,
         Money totalAmount,
         string depositCaptureTransactionId) : base(id)
     {
         BidderId = bidderId;
         WinningBidId = winningBidId;
-        ReceiptAddressId = receiptAddressId;
+        ReceiptAddress = receiptAddressId;
         TotalAmount = totalAmount;
         DepositCaptureTransactionId = depositCaptureTransactionId;
         Status = OrderStatus.Pending;
@@ -37,16 +42,16 @@ public sealed class Order : AggregateRoot<OrderId>
     public BidId WinningBidId { get; private init; }
 
     /// <summary>Gets the delivery address identifier for the order.</summary>
-    public AddressId ReceiptAddressId { get; private set; }
+    public Address ReceiptAddress { get; private set; }
 
     /// <summary>Gets the current status in the order's state machine.</summary>
     public OrderStatus Status { get; private set; }
 
     /// <summary>Gets the total monetary amount of the order.</summary>
-    public Money TotalAmount { get; private init; }
+    public Money TotalAmount { get; private set; }
 
     /// <summary>Gets the transaction ID for the captured security deposit.</summary>
-    public string DepositCaptureTransactionId { get; private init; }
+    public string DepositCaptureTransactionId { get; private set; }
 
     /// <summary>Gets the transaction ID for the remaining balance payment, if applicable.</summary>
     public string? RemainingBalanceTransactionId { get; private set; }
@@ -63,6 +68,17 @@ public sealed class Order : AggregateRoot<OrderId>
     /// <summary>Gets the feedback entity associated with this order.</summary>
     public Feedback? Feedback { get; private set; }
 
+    public DateTime CreatedOnUtc { get; set ; }
+    public DateTime? ModifiedOnUtc { get ; set ; }
+
+
+    public bool IsDisputable => DisputeId is null && (Status == OrderStatus.Delivered || Status == OrderStatus.Shipped);
+
+    public bool CanLeaveFeedback => FeedbackId is null && Status == OrderStatus.Delivered;
+
+    public bool HasActiveDispute => DisputeId is not null && Dispute?.IsResolved == false;
+
+    
     // --- Static Factory Method ---
 
     /// <summary>
@@ -77,7 +93,7 @@ public sealed class Order : AggregateRoot<OrderId>
     public static Result<Order> Create(
         BidderId bidderId,
         BidId winningBidId,
-        AddressId receiptAddressId,
+        Address receiptAddress,
         decimal totalAmount,
         string depositCaptureTransactionId)
     {
@@ -85,12 +101,14 @@ public sealed class Order : AggregateRoot<OrderId>
         if (totalAmountResult.IsFailure) return OrderErrors.TotalAmountTooLow;
 
         var order = new Order(
-            new OrderId(Guid.NewGuid()),
+            OrderId.New(),
             bidderId,
             winningBidId,
-            receiptAddressId,
+            receiptAddress,
             totalAmountResult.Value,
             depositCaptureTransactionId);
+
+        order.RaiseDomainEvent(new OrderCreatedDomainEvent(order.Id, order.BidderId));
 
         return order;
     }
@@ -99,37 +117,41 @@ public sealed class Order : AggregateRoot<OrderId>
 
     /// <summary>Transitions the order status to Shipped.</summary>
     /// <returns>A success result or a failure if the order is not in a Confirmed state.</returns>
-    public Result SetAsShipped()
+    public Result Ship()
     {
         if (Status != OrderStatus.Confirmed) return OrderErrors.CannotShipped;
         Status = OrderStatus.Shipped;
+        RaiseDomainEvent(new OrderShippedDomainEvent(Id));
         return Result.Success();
     }
 
     /// <summary>Transitions the order status to Confirmed (payment verified).</summary>
     /// <returns>A success result or a failure if the order is not currently Pending.</returns>
-    public Result SetAsConfirmed()
+    public Result Confirm()
     {
         if (Status != OrderStatus.Pending) return OrderErrors.CannotConfirm;
         Status = OrderStatus.Confirmed;
+        RaiseDomainEvent(new OrderConfirmedDomainEvent(Id));
         return Result.Success();
     }
 
     /// <summary>Transitions the order status to Delivered.</summary>
     /// <returns>A success result or a failure if the order was not previously Shipped.</returns>
-    public Result SetAsDelivered()
+    public Result Deliver()
     {
         if (Status != OrderStatus.Shipped) return OrderErrors.CannotDeliver;
         Status = OrderStatus.Delivered;
+        RaiseDomainEvent(new OrderDeliveredDomainEvent(Id));
         return Result.Success();
     }
 
     /// <summary>Transitions the order status to Cancelled.</summary>
     /// <returns>A success result or a failure if the order has already moved past the Pending state.</returns>
-    public Result SetAsCancelled()
+    public Result Cancel()
     {
         if (Status != OrderStatus.Pending) return OrderErrors.CannotCancel;
-        Status = OrderStatus.Cancelled;
+        Status = OrderStatus.Canceled;
+        RaiseDomainEvent(new OrderCancelledDomainEvent(Id));
         return Result.Success();
     }
 
@@ -151,6 +173,7 @@ public sealed class Order : AggregateRoot<OrderId>
 
         Feedback = feedbackResult.Value;
         FeedbackId = feedbackResult.Value.Id;
+        RaiseDomainEvent(new FeedbackLeftDomainEvent(Id, feedbackResult.Value.Id));
         return Result.Success();
     }
 
@@ -169,19 +192,20 @@ public sealed class Order : AggregateRoot<OrderId>
 
         Dispute = disputeResult.Value;
         DisputeId = disputeResult.Value.Id;
+        RaiseDomainEvent(new DisputeOpenedDomainEvent(Id, disputeResult.Value.Id));
         return Result.Success();
     }
 
     /// <summary>
     /// Resolves an existing dispute by delegating the logic to the <see cref="Dispute"/> entity.
     /// </summary>
-    public Result ResolveDispute()
+    public Result ResolveDispute(string resolutionText)
     {
         if (Dispute is null) return OrderErrors.NoDispute;
 
-        var resolutionResult = Dispute.Resolve();
+        var resolutionResult = Dispute.Resolve(resolutionText);
         if (resolutionResult.IsFailure) return resolutionResult.TopError;
-
+        RaiseDomainEvent(new DisputeResolvedDomainEvent(Id, Dispute.Id));
         return Result.Success();
     }
 
@@ -195,6 +219,8 @@ public sealed class Order : AggregateRoot<OrderId>
 
         var replyResult = Feedback.AddReply(replyText);
         if (replyResult.IsFailure) return replyResult.TopError;
+
+        RaiseDomainEvent(new FeedbackRepliedDomainEvent(Id, Feedback.Id));
 
         return Result.Success();
     }

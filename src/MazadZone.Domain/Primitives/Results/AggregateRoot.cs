@@ -1,15 +1,15 @@
 ﻿namespace MazadZone.Domain.Primitives;
 
-public abstract class AggregateRoot<TId> : Entity<TId>
+public abstract class AggregateRoot<TId> : Entity<TId>, IHasDomainEvents
     where TId : notnull
 {
     private readonly List<IDomainEvent> _domainEvents = new();
 
+    public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+
     protected AggregateRoot(TId id) : base(id) { }
 
     protected AggregateRoot() { }
-
-    public IReadOnlyCollection<IDomainEvent> GetDomainEvents() => _domainEvents.ToList();
 
     public void ClearDomainEvents() => _domainEvents.Clear();
 

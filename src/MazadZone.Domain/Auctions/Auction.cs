@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using MazadZone.Domain.Auctions.Events;
+using MazadZone.Domain.Entities.Users;
 using MazadZone.Domain.Items;
 using MazadZone.Domain.ValueObjects;
 
@@ -18,7 +19,7 @@ public sealed class Auction : AggregateRoot<AuctionId>, IAuditableEntity
         AuctionId id,
         ItemId itemId,
         SellerId sellerId,
-        AddressId shippingAddressId,
+        Address shippingAddress,
         Money startBidAmount,
         Money minBidAmount,
         DateTime startTime,
@@ -27,7 +28,7 @@ public sealed class Auction : AggregateRoot<AuctionId>, IAuditableEntity
 
         SellerId = sellerId;
         ItemId = itemId;
-        ShippingAddressId = shippingAddressId;
+        ShippingAddress = shippingAddress;
         StartBidAmount = startBidAmount;
         MinBidAmount = minBidAmount;
         StartTime = startTime;
@@ -40,7 +41,7 @@ public sealed class Auction : AggregateRoot<AuctionId>, IAuditableEntity
 
     public ItemId ItemId { get; private set; }
     public SellerId SellerId { get; private set; }
-    public AddressId ShippingAddressId { get; private set; }
+    public Address ShippingAddress   { get; private set; }
 
     public Money StartBidAmount { get; private set; }
     public Money MinBidAmount { get; private set; } // Acts as the minimum increment
@@ -73,31 +74,31 @@ public sealed class Auction : AggregateRoot<AuctionId>, IAuditableEntity
     public static Result<Auction> Create(
         ItemId itemId,
         SellerId sellerId,
-        AddressId shippingAddressId,
+        Address shippingAddress,
         decimal startBidAmount,
         decimal minBidAmount,
         Currency currency,
         DateTime startTime,
         DateTime endTime)
     {
-if (startTime >= endTime) return AuctionErrors.InvalidTimeFrame;
+        if (startTime >= endTime) return AuctionErrors.InvalidTimeFrame;
 
-var minBidResult = Money.Create(minBidAmount, currency);
+        var minBidResult = Money.Create(minBidAmount, currency);
         if (minBidResult.IsFailure) return AuctionErrors.MinBidTooLow;
 
-var startBidResult = Money.Create(startBidAmount, currency);
-if (startBidResult.IsFailure) return AuctionErrors.StartBidTooLow;
+        var startBidResult = Money.Create(startBidAmount, currency);
+        if (startBidResult.IsFailure) return AuctionErrors.StartBidTooLow;
 
 
-return  new Auction(
-            new AuctionId(Guid.NewGuid()),
-            itemId,
-            sellerId,
-            shippingAddressId,
-            startBidResult.Value,
-            minBidResult.Value,
-            startTime,
-            endTime);
+        return new Auction(
+                AuctionId.New(),
+                itemId,
+                sellerId,
+                shippingAddress,
+                startBidResult.Value,
+                minBidResult.Value,
+                startTime,
+                endTime);
     }
 
     // --- Operations (State Machine) ---
@@ -169,14 +170,16 @@ return  new Auction(
 
     // --- Bidding Logic ---
 
-    public Result PlaceBid(BidderId bidderId, decimal amount, decimal depositAmount, string authHoldId)
+    public Result<Bid> PlaceBid(BidderId bidderId, decimal amount)
     {
+
         if (!IsActive) return AuctionErrors.AlreadyEnded;
 
         var amountResult = Money.Create(amount, Currency.Jod);
         if (amountResult.IsFailure) return BidErrors.InvalidAmount;
+        
 
-        var depositAmountResult = Money.Create(depositAmount, Currency.Jod);
+        var depositAmountResult = Money.Create(amount * AuctionConstants.BidDepositPercentage, Currency.Jod);
         if (depositAmountResult.IsFailure) return AuctionErrors.DepositTooLow;
 
         // Business Rule: Deposit must meet the minimum requirement
@@ -188,18 +191,18 @@ return  new Auction(
         if (previousLeadingBid is not null)
         {
             var outbidResult = previousLeadingBid.SetAsOutbid();
-            if (outbidResult.IsFailure) return outbidResult;
+            if (outbidResult.IsFailure) return outbidResult.TopError;
 
-            RaiseDomainEvent(new BidderOutbidDomainEvent(Id, previousLeadingBid.Id, previousLeadingBid.AuthorizationHoldId));
+            RaiseDomainEvent(new BidderOutbidDomainEvent(Id, previousLeadingBid.Id));
         }
 
         // Create and add the new bid
-        var newBid = Bid.Create(this.Id, bidderId, amountResult.Value, depositAmountResult.Value, authHoldId);
+        var newBid = Bid.Create(this.Id, bidderId, amountResult.Value, depositAmountResult.Value);
         _bids.Add(newBid);
 
-        RaiseDomainEvent(new BidPlacedDomainEvent(Id, newBid.Id, amountResult.Value));
+        RaiseDomainEvent(new BidPlacedDomainEvent(Id, newBid.Id));
 
-        return Result.Success();
+        return newBid;
     }
 
 

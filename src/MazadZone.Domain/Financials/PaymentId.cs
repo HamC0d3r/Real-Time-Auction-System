@@ -1,6 +1,8 @@
-
 namespace MazadZone.Domain.Auctions;
 
-public readonly record struct PaymentId(Guid Value);
-
+[ValueObject<Guid>(conversions: Conversions.SystemTextJson | Conversions.TypeConverter)]
+public partial struct PaymentId
+{
+    public static PaymentId New() => From(Guid.CreateVersion7());
+}
 
