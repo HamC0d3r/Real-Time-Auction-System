@@ -1,28 +1,37 @@
-using System.Threading;
-using System.Threading.Tasks;
-using MediatR;
-using CSharpFunctionalExtensions;
-using MazadZone.Domain.Entities.Orders;
-using MazadZone.Application.Orders.Queries.DTOs;
+using MazadZone.Application.Common.Logging;
+using MazadZone.Application.Features.Orders.Queries.DTOs;
+using MazadZone.Application.Services;
+using Microsoft.Extensions.Logging;
 
-namespace MazadZone.Application.Orders.Queries.GetOrderDetails;
+namespace MazadZone.Application.Features.Orders.Queries.GetOrderDetails;
 
-public class GetOrderDetailsHandler : IRequestHandler<GetOrderDetailsQuery, Result<OrderDetailsDto>>
+public class GetOrderDetailsQueryHandler 
+    : IQueryHandler<GetOrderDetailsQuery, OrderDetailsDto>
 {
-    private readonly IOrderRepository _orderRepository;
+    private readonly IOrderQueries _orderQueries;
+    private readonly ILogger<GetOrderDetailsQueryHandler> _logger;
 
-    public GetOrderDetailsHandler(IOrderRepository orderRepository)
+    public GetOrderDetailsQueryHandler(
+        IOrderQueries orderQueries,
+        ILogger<GetOrderDetailsQueryHandler> logger
+    )
     {
-        _orderRepository = orderRepository;
+        _orderQueries = orderQueries;
+        _logger = logger;
     }
 
-    public async Task<Result<OrderDetailsDto>> Handle(GetOrderDetailsQuery request, CancellationToken cancellationToken)
+    async Task<Result<OrderDetailsDto>> IRequestHandler<GetOrderDetailsQuery, Result<OrderDetailsDto>>.Handle(GetOrderDetailsQuery request, CancellationToken cancellationToken)
     {
-        var orderDetails = await _orderRepository.GetOrderDetailsAsync(request.OrderId, cancellationToken);
+        _logger.LogFetchingOrderDetails(request.OrderId.Value);
 
-        if (orderDetails is null)
-            return Result.Failure<OrderDetailsDto>(OrderErrors.NotFound);
+        var orderDetailsDto = await _orderQueries.GetOrderDetailsAsync(request.OrderId, cancellationToken);
 
-        return Result.Success(orderDetails);
+        if (orderDetailsDto is null)
+        {
+            _logger.LogOrderNotFound(request.OrderId);
+            return OrderErrors.NotFound;
+        }
+
+        return orderDetailsDto;
     }
 }

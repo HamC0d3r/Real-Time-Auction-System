@@ -1,32 +1,52 @@
-using System.Threading;
-using System.Threading.Tasks;
-using MediatR;
-using CSharpFunctionalExtensions;
+using Microsoft.Extensions.Logging;
+using MazadZone.Application.Common.Logging;
 using MazadZone.Domain.Entities.Orders;
+using MazadZone.Domain.Orders;
 
-namespace MazadZone.Application.Orders.DeliverOrder;
+namespace MazadZone.Application.Features.Orders.Commands.DeliverOrder;
 
-public class DeliverOrderHandler : IRequestHandler<DeliverOrderCommand, Result>
+public class DeliverOrderHandler : ICommandHandler<DeliverOrderCommand, Unit>
 {
     private readonly IOrderRepository _orderRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<DeliverOrderHandler> _logger;
 
-    public DeliverOrderHandler(IOrderRepository orderRepository, IUnitOfWork unitOfWork)
+    public DeliverOrderHandler(
+        IOrderRepository orderRepository, 
+        IUnitOfWork unitOfWork,
+        ILogger<DeliverOrderHandler> logger)
     {
         _orderRepository = orderRepository;
         _unitOfWork = unitOfWork;
+        _logger = logger;
     }
 
-    public async Task<Result> Handle(DeliverOrderCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Unit>> Handle(DeliverOrderCommand request, CancellationToken ct)
     {
-        var order = await _orderRepository.GetByIdAsync(new OrderId(request.OrderId), cancellationToken);
+        using var scope = _logger.BeginOrderScope(request.OrderId);
 
-        if (order is null)
-            return Result.Failure(OrderErrors.NotFound);
+        _logger.LogDeliverOrderAttempt(request.OrderId);
 
-        return await Result.Success(order)
-            .Ensure(o => o.CanDeliver(), OrderErrors.CannotDeliver)
-            .Tap(o => o.SetAsDelivered())
-            .Tap(async _ => await _unitOfWork.SaveChangesAsync(cancellationToken));
+        var order = await _orderRepository.GetByIdAsync(request.OrderId, ct);
+
+        if (order is null) 
+        {
+            _logger.LogOrderNotFound(request.OrderId);
+            return OrderErrors.NotFound;
+        }
+
+        var deliveryResult = order.Deliver();
+        
+        if (deliveryResult.IsFailure) 
+        {
+            _logger.LogDeliverOrderFailed(request.OrderId, deliveryResult.TopError.Message);
+            return deliveryResult.TopError;
+        }
+
+        await _unitOfWork.SaveChangesAsync(ct);
+
+        _logger.LogOrderDeliveredSuccessfully(request.OrderId);
+
+        return Unit.Value;
     }
 }

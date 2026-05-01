@@ -1,7 +1,5 @@
-using System;
-using MediatR;
-using CSharpFunctionalExtensions;
+using MazadZone.Domain.Orders;
 
-namespace MazadZone.Application.Orders.ConfirmOrder;
+namespace MazadZone.Application.Features.Orders.Commands.ConfirmOrder;
 
-public record ConfirmOrderCommand(Guid OrderId) : IRequest<Result>;
+public record ConfirmOrderCommand(OrderId OrderId) : ICommand<Unit>;

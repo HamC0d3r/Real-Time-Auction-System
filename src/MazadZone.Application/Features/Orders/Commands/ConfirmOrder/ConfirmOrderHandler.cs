@@ -1,32 +1,52 @@
-using System.Threading;
-using System.Threading.Tasks;
-using MediatR;
-using CSharpFunctionalExtensions;
+using Microsoft.Extensions.Logging;
+using MazadZone.Application.Common.Logging;
 using MazadZone.Domain.Entities.Orders;
+using MazadZone.Domain.Orders;
 
-namespace MazadZone.Application.Orders.ConfirmOrder;
+namespace MazadZone.Application.Features.Orders.Commands.ConfirmOrder;
 
-public class ConfirmOrderHandler : IRequestHandler<ConfirmOrderCommand, Result>
+public class ConfirmOrderHandler : ICommandHandler<ConfirmOrderCommand, Unit>
 {
     private readonly IOrderRepository _orderRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<ConfirmOrderHandler> _logger;
 
-    public ConfirmOrderHandler(IOrderRepository orderRepository, IUnitOfWork unitOfWork)
+    public ConfirmOrderHandler(
+        IOrderRepository orderRepository, 
+        IUnitOfWork unitOfWork,
+        ILogger<ConfirmOrderHandler> logger)
     {
         _orderRepository = orderRepository;
         _unitOfWork = unitOfWork;
+        _logger = logger;
     }
 
-    public async Task<Result> Handle(ConfirmOrderCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Unit>> Handle(ConfirmOrderCommand request, CancellationToken ct)
     {
-        var order = await _orderRepository.GetByIdAsync(new OrderId(request.OrderId), cancellationToken);
+        using var scope = _logger.BeginOrderScope(request.OrderId);
 
-        if (order is null)
-            return Result.Failure(OrderErrors.NotFound);
+        _logger.LogConfirmOrderAttempt(request.OrderId);
 
-        return await Result.Success(order)
-            .Ensure(o => o.CanConfirm(), OrderErrors.CannotConfirm)
-            .Tap(o => o.SetAsConfirmed())
-            .Tap(async _ => await _unitOfWork.SaveChangesAsync(cancellationToken));
+        var order = await _orderRepository.GetByIdAsync(request.OrderId, ct);
+
+        if (order is null) 
+        {
+            _logger.LogOrderNotFound(request.OrderId);
+            return OrderErrors.NotFound;
+        }
+
+        var confirmationResult = order.Confirm();
+        
+        if(confirmationResult.IsFailure) 
+        {
+            _logger.LogConfirmOrderFailed(request.OrderId, confirmationResult.TopError.Message);
+            return confirmationResult.TopError;
+        }
+
+        await _unitOfWork.SaveChangesAsync(ct);
+
+        _logger.LogOrderConfirmedSuccessfully(request.OrderId);
+
+        return Unit.Value;
     }
 }

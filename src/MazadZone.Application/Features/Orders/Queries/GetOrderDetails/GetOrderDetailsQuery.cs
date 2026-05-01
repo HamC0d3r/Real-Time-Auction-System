@@ -1,3 +1,5 @@
-namespace MazadZone.Application.Orders.Queries.GetOrderDetails;
+using MazadZone.Application.Features.Orders.Queries.DTOs;
 
-public record GetOrderDetailsQuery(Guid OrderId) : IRequest<Result<OrderDetailsDto>>;
+namespace MazadZone.Application.Features.Orders.Queries.GetOrderDetails;
+
+public record GetOrderDetailsQuery(OrderId OrderId) : IQuery<OrderDetailsDto>;

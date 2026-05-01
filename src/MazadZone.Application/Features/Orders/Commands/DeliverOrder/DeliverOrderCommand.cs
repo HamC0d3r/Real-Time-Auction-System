@@ -1,7 +1,5 @@
-using System;
-using MediatR;
-using CSharpFunctionalExtensions;
+using MazadZone.Domain.Orders;
 
-namespace MazadZone.Application.Orders.DeliverOrder;
+namespace MazadZone.Application.Features.Orders.Commands.DeliverOrder;
 
-public record DeliverOrderCommand(Guid OrderId) : IRequest<Result>;
+public record DeliverOrderCommand(OrderId OrderId) : ICommand<Unit>;

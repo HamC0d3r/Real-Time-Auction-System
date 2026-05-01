@@ -1,7 +1,3 @@
-using System;
-using MediatR;
-using CSharpFunctionalExtensions;
+namespace MazadZone.Application.Features.Orders.Commands.ResolveDispute;
 
-namespace MazadZone.Application.Orders.ResolveDispute;
-
-public record ResolveDisputeCommand(Guid OrderId, string Resolution) : IRequest<Result>;
+public record ResolveDisputeCommand(OrderId OrderId, string Resolution) : ICommand<Unit>;
