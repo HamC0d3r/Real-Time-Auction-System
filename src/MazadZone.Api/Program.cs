@@ -49,6 +49,8 @@ try
 
     app.UseHttpsRedirection();
 
+    // Map endpoints
+    app.MapNotificationEndpoints();
 
     app.Run();
 
