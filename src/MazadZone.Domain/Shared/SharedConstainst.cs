@@ -7,5 +7,8 @@ public static class SharedConstainst
     public const int MaxStreetLength = 150;
     public const int MaxBuildingLength = 50;
     public const int MaxLandmarkLength = 50;
+    public const int MaxReasonLength = 500;
+    public const int MinReasonLength = 10;
+
 
 }

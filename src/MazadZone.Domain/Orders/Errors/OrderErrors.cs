@@ -6,9 +6,6 @@ public static class OrderErrorCodes
     public const string DisputeCannotChangeReason = "Dispute.CannotChange";
     public const string DisputeAlreadyResolved = "Dispute.AlreadyResolved";
     
-    // Order State Errors
-    public const string InvalidStateTransition = "Order.InvalidStateTransition";
-    public const string CannotCancelCompleted = "Order.CannotCancelCompleted";
     
     // Order Dispute Errors
     public const string DisputeAlreadyExists = "Order.DisputeAlreadyExists";
@@ -25,7 +22,6 @@ public static class OrderErrorCodes
     public const string CannotShipped = "Order.CannotShipped";
     public const string CannotConfirm = "Order.CannotConfirm";
     public const string CannotDeliver = "Order.CannotDeliver";
-    public const string CannotComplete = "Order.CannotComplete";
     public const string CannotCancel = "Order.CannotCancel";
     public const string DisputeReasonEmpty = "Order.DisputeReasonEmpty";
     public const string TotalAmountTooLow = "Order.TotalAmountTooLow";
@@ -82,9 +78,6 @@ public static class OrderErrors
 
     public static Error FeedbackInvalidRating =>
         Error.Validation(OrderErrorCodes.FeedbackInvalidRating, "Rating must be between 1 and 5.");
-
-    public static Error DisputeReasonEmpty =>
-        Error.Validation(OrderErrorCodes.DisputeReasonEmpty, "Dispute reason cannot be empty.");
 
     public static Error TotalAmountTooLow =>
         Error.Validation(OrderErrorCodes.TotalAmountTooLow, "Total amount must be greater than zero.");

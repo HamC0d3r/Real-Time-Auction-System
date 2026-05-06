@@ -9,6 +9,7 @@ public static class UserConstants
     public const int PhoneNumberLength = 9;
     public const int UserNameMinLength = 3;
     public const int UserNameMaxLength = 20;
+    public const int RefreshTokenExpiresInDays = 7;
     public const string UserNameAllowedCharactersRegex = @"^[a-zA-Z0-9_]+$";
 
 }

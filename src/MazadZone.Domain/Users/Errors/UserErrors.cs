@@ -12,6 +12,19 @@ public static class UserErrorCodes
     public const string CannotSuspendBannedUser = "User.CannotSuspendBannedUser";
     public const string CannotActivateBannedUser = "User.CannotActivateBannedUser";
     public const string AlreadyActive = "User.AlreadyActive";
+public const string CannotAuthenticateBannedUser = "User.CannotAuthenticateBannedUser";
+    public const string UserIsSuspended = "User.UserIsSuspended";
+
+
+    // Password Validation
+    public const string IdRequired = "User.IdRequired";
+    public const string CurrentPasswordRequired = "User.CurrentPasswordRequired";
+    public const string NewPasswordRequired = "User.NewPasswordRequired";
+    public const string NewPasswordLength = "User.NewPasswordLength";
+    public const string NewPasswordFormat = "User.NewPasswordFormat";
+    public const string ConfirmPasswordRequired = "User.ConfirmPasswordRequired";
+    public const string PasswordsDoNotMatch = "User.PasswordsDoNotMatch";
+    public const string PasswordHashError = "Password.HashError";
 }
 
 public static class UserErrors
@@ -48,6 +61,14 @@ public static class UserErrors
     public static readonly Error AlreadyActive = Error.Conflict(
         UserErrorCodes.AlreadyActive,
         "The user account is already active.");
+
+    public static readonly Error CannotAuthenticateBannedUser = Error.Validation(
+            UserErrorCodes.CannotAuthenticateBannedUser,
+            "The user account is banned and cannot perform authentication actions.");
+
+public static readonly Error UserIsSuspended = Error.Validation(
+    UserErrorCodes.UserIsSuspended,
+    "The user account is currently suspended and cannot start a new session.");
 }
 
     
