@@ -27,8 +27,23 @@ public sealed record Money : IComparable<Money>
     
     // --- Business Behaviors ---
     public bool IsZero() => Amount == 0;
-    
+
     public bool IsNegative() => Amount < 0;
+
+    // --- The Add Implementation ---
+    public Money Add(Money other)
+    {
+        // Guard Clause: Ensure currencies match
+        if (Currency != other.Currency)
+        {
+            throw new InvalidOperationException(
+                $"Cannot add {other.Currency} to {Currency}. Currency conversion is required.");
+        }
+
+        // Return a NEW instance (Immutability)
+        return new Money(Amount + other.Amount, Currency);
+    }
+
 
     // --- Operator Overloads (The "Rich" part) ---
 
