@@ -4,10 +4,7 @@ using MazadZone.Domain.Primitives;
 
 public sealed class Feedback : Entity<FeedbackId>
 {
-    #pragma warning disable CS8618
-    #pragma warning disable CS0519
     private Feedback() { }
-    #pragma warning restore CS8618
 
 
     private Feedback(OrderId orderId, Rating rating, Comment comment) : base(FeedbackId.New()) // Placeholder ID, will be set by the factory method
@@ -22,7 +19,7 @@ public sealed class Feedback : Entity<FeedbackId>
     public OrderId OrderId { get; private init; }
     public Rating Rating { get; private init; }
     public Comment Comment { get; private init; }
-    public string? Reply { get; private set; } // Nullable because it happens later
+    public Comment? Reply { get; private set; } // Nullable because it happens later
     
     public DateTime CreatedAtUtc { get; private init; }
     public DateTime? RepliedAtUtc { get; private set; }
@@ -52,7 +49,10 @@ public sealed class Feedback : Entity<FeedbackId>
 
         if (Reply is not null) return FeedbackErrors.AlreadyReplied;
 
-        Reply = replyText;
+        var replayResult = Comment.Create(replyText);
+        if (replayResult.IsFailure) return replayResult.TopError;
+
+        Reply = replayResult.Value;
         RepliedAtUtc = DateTime.UtcNow;
 
         return Result.Success();

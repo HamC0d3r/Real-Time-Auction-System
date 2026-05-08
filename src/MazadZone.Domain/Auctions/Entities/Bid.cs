@@ -24,6 +24,7 @@ public sealed class Bid : Entity<BidId>
 
     // --- Properties ---
     public AuctionId AuctionId { get; private init; }
+    public Auction Auction { get; private init; }
     public BidderId BidderId { get; private init; }
     public Money Amount { get; private init; }
     public Money DepositAmount { get; private init; }

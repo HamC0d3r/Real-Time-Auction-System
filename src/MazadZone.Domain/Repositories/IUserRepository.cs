@@ -8,5 +8,7 @@ public interface IUserRepository : IGenericRepository<User>
      Task<bool> IsEmailInUseAsync(Email email, CancellationToken cancellationToken);
     Task<User?> GetByIdWithTokensAsync(UserId id, CancellationToken cancellationToken);
     Task<User?> GetByRefreshTokenAsync(string refreshToken, CancellationToken cancellationToken);
+    Task<bool> IsUserSellerAsync(UserId userId, CancellationToken cancellationToken);
+    Task<bool> IsBidderAsync(UserId userId, CancellationToken cancellationToken);
 
 }

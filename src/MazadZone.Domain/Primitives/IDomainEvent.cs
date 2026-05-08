@@ -1,6 +1,8 @@
-﻿namespace MazadZone.Domain.Primitives;
+﻿using MediatR;
 
-public interface IDomainEvent 
+namespace MazadZone.Domain.Primitives;
+
+public interface IDomainEvent : INotification
 {
     Guid Id { get; }
     DateTime OccurredOnUtc { get; }

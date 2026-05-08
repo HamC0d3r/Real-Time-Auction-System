@@ -4,7 +4,7 @@ using System;
 using MazadZone.Domain.Primitives;
 using MazadZone.Domain.Users.ValueObjects;
 
-public sealed record UserBannedDomainEvent(UserId UserId) : IDomainEvent
+public sealed record UserBannedDomainEvent(UserId UserId, string Reason,string Email) : IDomainEvent
 {
     public Guid Id => Guid.NewGuid();
 

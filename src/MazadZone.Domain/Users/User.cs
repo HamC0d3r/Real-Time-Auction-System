@@ -34,13 +34,17 @@ public class User : AggregateRoot<UserId>, IAuditableEntity
     public PasswordHash PasswordHash { get; private set; }
     public UserStatus Status { get; private set; } = UserStatus.Active; // Default status
     public HashSet<UserRole> Roles { get; private set; }
-    public Reason? BanReason { get; private set; } = null;
+    public Reason? EnforcementReason { get; private set; } = null;
     public DateTime? SuspensionUntil { get; private set; } = null;
 
     public DateTime CreatedOnUtc { get; set; }
     public DateTime? ModifiedOnUtc { get; set; }
 
     private readonly List<HashedRefreshToken> _hashedRefreshTokens = new();
+
+    public bool IsSeller => Roles.Contains(UserRole.Seller);
+    public bool IsBidder => Roles.Contains(UserRole.Bidder);
+    
 
     public static Result<User> Create(
         string email,
@@ -82,18 +86,23 @@ public class User : AggregateRoot<UserId>, IAuditableEntity
     {
         if (newEmail == Email) return;
 
+        var oldEmail = Email; // Capture the old state
         Email = newEmail;
+
+        RaiseDomainEvent(new UserEmailChangedDomainEvent(Id, oldEmail, newEmail));
     }
 
     public void ChangePassword(PasswordHash newPasswordHash)
     {
         PasswordHash = newPasswordHash;
+
+        RaiseDomainEvent(new UserPasswordChangedDomainEvent(Id, Email));
     }
 
     /// <summary>
     /// Temporarily deactivates the user. They can be restored later.
     /// </summary>
-    public Result Suspend(DateTime until)
+    public Result Suspend(Reason reason,DateTime until)
     {
         // Guard clauses to protect the state machine invariants
         if (Status == UserStatus.Banned) return UserErrors.CannotSuspendBannedUser;
@@ -101,11 +110,12 @@ public class User : AggregateRoot<UserId>, IAuditableEntity
         if (Status == UserStatus.Suspended) return UserErrors.AlreadySuspended;
 
         Status = UserStatus.Suspended;
+        EnforcementReason = reason;
         SuspensionUntil = until;
 
         RevokeAllRefreshTokens(); // Security rule enforced here!
 
-        RaiseDomainEvent(new UserSuspendedDomainEvent(this.Id));
+        RaiseDomainEvent(new UserSuspendedDomainEvent(this.Id,Email.Value, EnforcementReason.Text, SuspensionUntil));
 
         return Result.Success();
     }
@@ -118,11 +128,11 @@ public class User : AggregateRoot<UserId>, IAuditableEntity
         if (Status == UserStatus.Banned) return Result.Success();
 
         Status = UserStatus.Banned;
-        BanReason = reason;
+         EnforcementReason = reason;
 
         RevokeAllRefreshTokens();
 
-        RaiseDomainEvent(new UserBannedDomainEvent(this.Id));
+        RaiseDomainEvent(new UserBannedDomainEvent(this.Id, reason.Text, Email));
 
         return Result.Success();
     }
@@ -137,8 +147,9 @@ public class User : AggregateRoot<UserId>, IAuditableEntity
         if (Status == UserStatus.Active) return UserErrors.AlreadyActive;
 
         Status = UserStatus.Active;
+        SuspensionUntil = null;
 
-        RaiseDomainEvent(new UserActivatedDomainEvent(this.Id));
+        RaiseDomainEvent(new UserActivatedDomainEvent(this.Id, Email.Value));
 
         return Result.Success();
     }
@@ -157,9 +168,8 @@ public class User : AggregateRoot<UserId>, IAuditableEntity
                 return UserErrors.UserIsSuspended;
             }
 
-
-            Status = UserStatus.Active;
-            SuspensionUntil = null;
+            var result = Activate();
+            if(result.IsFailure) return result.TopError;
         }
 
         _hashedRefreshTokens.RemoveAll(r => r.IsExpired);
@@ -188,6 +198,7 @@ public class User : AggregateRoot<UserId>, IAuditableEntity
         // If not found, we don't error; the goal of invalidation is already met.
         token?.Revoke();
     }
+
     private void RevokeAllRefreshTokens()
     {
         foreach (var token in _hashedRefreshTokens.Where(t => t.IsActive))
@@ -215,7 +226,7 @@ public class User : AggregateRoot<UserId>, IAuditableEntity
         return newTokenResult.Value;
     }
 
-private void EnforceMaxActiveSessions()
+    private void EnforceMaxActiveSessions()
     {
         // Get all tokens that are currently active
         var activeTokens = _hashedRefreshTokens
@@ -227,13 +238,13 @@ private void EnforceMaxActiveSessions()
         if (activeTokens.Count > UserPolicies.MaxActiveTokens)
         {
             int tokensToRevoke = activeTokens.Count - UserPolicies.MaxActiveTokens;
-            
+
             for (int i = 0; i < tokensToRevoke; i++)
             {
                 activeTokens[i].Revoke();
             }
         }
-        
+
         // Optional Cleanup: Actually delete deeply expired tokens from the List to save DB space
         _hashedRefreshTokens.RemoveAll(t => t.IsExpired && t.ExpiresAt < DateTime.UtcNow.AddDays(-30));
     }

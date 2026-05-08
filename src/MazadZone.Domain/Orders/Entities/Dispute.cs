@@ -37,7 +37,7 @@ public sealed class Dispute : Entity<DisputeId>
     }
 
 
-    public Result ChangeReason(Reason newReason)
+    internal Result ChangeReason(Reason newReason)
     {
         if (Status == DisputeStatus.Resolved)
             return OrderErrors.DisputeCannotChangeReason;
@@ -46,7 +46,7 @@ public sealed class Dispute : Entity<DisputeId>
         return Result.Success();
     }
 
-    public Result Resolve(string resolutionText)
+    internal Result Resolve(string resolutionText)
     {
         if (Status == DisputeStatus.Resolved)
             return OrderErrors.DisputeAlreadyResolved;

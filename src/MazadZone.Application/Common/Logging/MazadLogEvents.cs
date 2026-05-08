@@ -22,6 +22,13 @@ public static partial class MazadLogEvents
         public const int BanDomainViolation = 4021;
         public const int BanSuccess = 4022;
 
+        //1150 - 1199: Ban Side Effects (Event Handlers)
+        public const int BanAuctionsCancelled = 1150;
+        public const int BanBidsRemoved = 1151;
+        public const int BanCacheInvalidated = 1152;
+        public const int BanNotificationSent = 1153;
+
+
         // Change Email: 4030 - 4039
         public const int ChangeEmailConflict = 4031;
         public const int ChangeEmailSuccess = 4032;
@@ -33,6 +40,12 @@ public static partial class MazadLogEvents
         // Suspend User: 4050 - 4059
         public const int SuspendDomainViolation = 4051;
         public const int SuspendSuccess = 4052;
+
+        //1250 - 1299: Suspend Side Effects (Event Handlers)
+       public const int SuspensionCacheInvalidated = 1250;
+        public const int SuspensionNotificationSent = 1251;
+        public const int SuspensionAuctionsCancelled = 1252;
+        public const int SuspensionBidsRemoved = 1253;
     }
 
     public static class Sellers

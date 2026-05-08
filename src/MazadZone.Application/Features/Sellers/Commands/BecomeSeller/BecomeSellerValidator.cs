@@ -1,5 +1,4 @@
 using MazadZone.Application.Common.Validation;
-using MazadZone.Application.Features.Bidders.Validation;
 using MazadZone.Application.Features.Sellers.Validation;
 
 namespace MazadZone.Application.Features.Sellers.Commands.BecomeSeller;

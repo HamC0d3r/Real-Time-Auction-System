@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using MazadZone.Domain.Payments.Enums;
 using MazadZone.Domain.Payments.Errors;
 using MazadZone.Domain.Payments.Events;
@@ -14,9 +11,7 @@ public sealed class Payment : AggregateRoot<PaymentId>
 {
     private readonly List<Transaction> _transactions = new();
 
-#pragma warning disable CS8618 
     private Payment() { }
-#pragma warning restore CS8618
 
     private Payment(
         PaymentId id, OrderId orderId, UserId userId, Money amount) 

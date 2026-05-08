@@ -1,3 +1,4 @@
+using MazadZone.Domain.Auctions;
 using MazadZone.Domain.Bidders;
 using MazadZone.Domain.Categories;
 using MazadZone.Domain.Orders;
@@ -25,6 +26,11 @@ public class AppDbContext : DbContext
     public DbSet<Category> Categories { get; set; } = null!;
     public DbSet<Bidder> Bidders { get; set; } = null!;
     public DbSet<Seller> Sellers { get; set; } = null!;
+    public DbSet<Auction> Auctions { get; set; } = null!;
+    public DbSet<Item> Items { get; set; } = null!;
+    public DbSet<Bid> Bids { get; set; } = null!;
+
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -1,5 +1,3 @@
-using MazadZone.Application.Common.Logging;
-
 namespace MazadZone.Application.Features.Bidders.Commands.Register;
 
 public static partial class RegisterBidderLogs

@@ -8,10 +8,7 @@ public sealed class Item : AggregateRoot<ItemId>
 {
     private readonly List<Image> _images = new();
 
-    #pragma warning disable CS8618
-    #pragma warning disable CS0519
     private Item() { }
-    #pragma warning restore CS8618
 
 
     private Item(

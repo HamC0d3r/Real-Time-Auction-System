@@ -2,6 +2,7 @@ using MazadZone.Application.Common.Interfaces;
 using MazadZone.Application.Services;
 using MazadZone.Domain.Entities.Orders;
 using MazadZone.Domain.Repositories;
+using MazadZone.Domain.Shared.Interfaces;
 using MazadZone.Infrastructure.Configuration;
 using MazadZone.Infrastructure.Outbox;
 using MazadZone.Infrastructure.Persistence;
@@ -24,7 +25,8 @@ public static class DependencyInjection
             .AddRepositories()
             .AddOutboxPattern(configuration)
             .AddPollyPolicies(configuration)
-            .AddExternalServices(configuration); // e.g., Email, Storage
+            .AddExternalServices(configuration)
+            .AddServiceScanning();
 
         return services;
     }
@@ -101,6 +103,27 @@ public static class DependencyInjection
 
     private static IServiceCollection AddExternalServices(this IServiceCollection services, IConfiguration configuration)
     {
+
+        return services;
+    }
+
+public static IServiceCollection AddServiceScanning(this IServiceCollection services)
+    {
+        services.Scan(scan => scan
+            .FromAssemblies(AppDomain.CurrentDomain.GetAssemblies())
+            // Register Scoped Services
+            .AddClasses(classes => classes.AssignableTo<IScopedService>())
+                .AsImplementedInterfaces()
+                .WithScopedLifetime()
+            // Register Transient Services
+            .AddClasses(classes => classes.AssignableTo<ITransientService>())
+                .AsImplementedInterfaces()
+                .WithTransientLifetime()
+            // Register Singleton Services
+            .AddClasses(classes => classes.AssignableTo<ISingletonService>())
+                .AsImplementedInterfaces()
+                .WithSingletonLifetime()
+        );
 
         return services;
     }

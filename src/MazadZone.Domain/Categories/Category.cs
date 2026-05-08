@@ -8,10 +8,7 @@ public sealed class Category : AggregateRoot<CategoryId>, ISoftDeletable
 {
     private readonly HashSet<Category> _subCategories = new();
 
-    #pragma warning disable CS8618 
-    #pragma warning disable CS0519
     private Category() { }
-    #pragma warning restore CS8618
 
 
     private Category(CategoryId id, Name name, Description description, CategoryId? parentCategoryId) : base(id)
@@ -100,7 +97,7 @@ public sealed class Category : AggregateRoot<CategoryId>, ISoftDeletable
         return Result.Success();
     }
 
-    public Result UpdateDetails(string newName, string newDescription)
+    public Result Update(string newName, string newDescription)
     {
         if (Name.Value == newName && Description.Value == newDescription) return Result.Success();
 

@@ -1,4 +1,3 @@
-using AuthService.Domain.Constants;
 using MazadZone.Application.Common.Validators;
 
 namespace MazadZone.Application.Features.Bidders.Commands.Register;

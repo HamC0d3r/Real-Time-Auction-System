@@ -54,6 +54,9 @@ public sealed class Auction : AggregateRoot<AuctionId>, IAuditableEntity
     public DateTime? ModifiedOnUtc { get ; set ; }
     private readonly List<Bid> _bids = new();
 
+    public Reason? CancellationReason { get; private set; } = null;
+    
+
     // --- Calculated Properties ---
     public Bid? CurrentLeadingBid => _bids.FirstOrDefault(b => b.Status == BidStatus.Leading);
 

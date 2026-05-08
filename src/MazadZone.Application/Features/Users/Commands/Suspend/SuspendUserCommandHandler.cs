@@ -28,7 +28,10 @@ public class SuspendUserCommandHandler : ICommandHandler<SuspendUserCommand, Uni
             return UserErrors.NotFound;
         }
 
-        var result = user.Suspend(request.Until);
+        var reasonResult = Reason.Create(request.Reason);
+        if (reasonResult.IsFailure) return reasonResult.TopError;
+
+        var result = user.Suspend(reasonResult.Value,request.Until);
         if (result.IsFailure)
         {
             SuspendUserLogs.LogDomainViolation(_logger, request.UserId, result.TopError.Code);
