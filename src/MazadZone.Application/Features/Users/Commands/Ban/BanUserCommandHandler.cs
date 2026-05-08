@@ -25,7 +25,7 @@ public class BanUserCommandHandler : ICommandHandler<BanUserCommand, Unit>
         var user = await _userRepo.GetByIdAsync(request.UserId.Value, ct);
         if (user is null)
         {
-            _logger.LogUserNotFound(UserErrorCodes.NotFound, request.UserId);
+            GlobalLogs.LogUserNotFound(_logger, request.UserId);
             return UserErrors.NotFound;
         }
 
@@ -35,14 +35,14 @@ public class BanUserCommandHandler : ICommandHandler<BanUserCommand, Unit>
         var result = user.Ban(reasonResult.Value);
         if (result.IsFailure)
         {
-            _logger.LogBanDomainError(request.UserId, result.TopError.Code);
+            BanUserLogs.LogDomainViolation(_logger, request.UserId, result.TopError.Code);
             return result.TopError;
         }
 
         _userRepo.Update(user);
         await _unitOfWork.SaveChangesAsync(ct);
-        
-        _logger.LogUserBanned(request.UserId, request.Reason);
+
+        BanUserLogs.LogSuccess(_logger, request.UserId, request.Reason);
         return Unit.Value;
     }
 }

@@ -24,21 +24,22 @@ public class SuspendUserCommandHandler : ICommandHandler<SuspendUserCommand, Uni
         var user = await _userRepo.GetByIdAsync(request.UserId.Value, ct);
         if (user is null)
         {
-            _logger.LogUserNotFound(UserErrorCodes.NotFound, request.UserId);
+            GlobalLogs.LogUserNotFound(_logger, request.UserId);
             return UserErrors.NotFound;
         }
 
         var result = user.Suspend(request.Until);
         if (result.IsFailure)
         {
-            _logger.LogSuspensionDomainError(request.UserId, result.TopError);
+            SuspendUserLogs.LogDomainViolation(_logger, request.UserId, result.TopError.Code);
             return result.TopError;
         }
 
         _userRepo.Update(user);
         await _unitOfWork.SaveChangesAsync(ct);
 
-        _logger.LogUserSuspended(user.Id, request.Until);
+        SuspendUserLogs.LogSuccess(_logger, user.Id, request.Until);
+
         return Unit.Value;
     }
 }

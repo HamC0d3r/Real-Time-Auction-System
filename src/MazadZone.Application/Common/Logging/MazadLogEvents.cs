@@ -12,6 +12,29 @@ public static partial class MazadLogEvents
 
     }
     
+    public static class Users
+    {
+        // Activate User: 4010 - 4019
+        public const int ActivateDomainViolation = 4011;
+        public const int ActivateSuccess = 4012;      
+
+        // Ban User: 4020 - 4029
+        public const int BanDomainViolation = 4021;
+        public const int BanSuccess = 4022;
+
+        // Change Email: 4030 - 4039
+        public const int ChangeEmailConflict = 4031;
+        public const int ChangeEmailSuccess = 4032;
+
+        // Change Password: 4040 - 4049
+        public const int ChangePasswordHashingError = 4041;
+        public const int ChangePasswordSuccess = 4042;
+
+        // Suspend User: 4050 - 4059
+        public const int SuspendDomainViolation = 4051;
+        public const int SuspendSuccess = 4052;
+    }
+
     public static class Sellers
     {
         public const int NotFound = 150;
@@ -52,6 +75,8 @@ public static partial class MazadLogEvents
         public const int LogoutSuccess = 2021;
         public const int LogoutFromAllDevices = 2022;
         public const int LogoutSessionNotFound = 2023;
+
+
 
 
     }

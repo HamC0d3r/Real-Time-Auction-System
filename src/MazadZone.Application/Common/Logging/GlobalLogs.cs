@@ -28,6 +28,12 @@ public static partial class GlobalLogs
         Message = "Resource missing: Order with ID {orderId} could not be found.")]
     public static partial void LogOrderNotFound(ILogger logger, OrderId orderId);
 
+    [LoggerMessage(
+        EventId = MazadLogEvents.Authentication.InvalidCredentials,
+        Level = LogLevel.Warning,
+        Message = "Login failed. Invalid password provided for User: {UserId}")]
+    public static partial void LogInvalidPassword(ILogger logger, UserId userId);
+
 
 
 

@@ -46,7 +46,7 @@ public class LoginCommandHandler : ICommandHandler<LoginCommand, TokenDto>
 
     if (!_passwordService.ValidatePassword(request.Password, user.PasswordHash.Value))
     {
-        LoginLogs.LogInvalidPassword(_logger, user.Id.Value);
+        GlobalLogs.LogInvalidPassword(_logger, user.Id);
         return UserErrors.InvalidCredentials;
     }
 

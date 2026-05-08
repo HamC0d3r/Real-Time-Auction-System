@@ -30,7 +30,7 @@ public class ChangeEmailCommandHandler : ICommandHandler<ChangeEmailCommand, Uni
 
         if (await _userRepository.IsEmailInUseAsync(newEmail, cancellationToken))
         {
-            _logger.LogEmailConflict(EmailErrorCodes.AlreadyInUse, newEmail.Value);
+            ChangeEmailLogs.LogConflict(_logger, newEmail.Value, EmailErrorCodes.AlreadyInUse);
             return EmailErrors.AlreadyInUse;
         }
 
@@ -38,7 +38,7 @@ public class ChangeEmailCommandHandler : ICommandHandler<ChangeEmailCommand, Uni
 
         if (user is null)
         {
-            _logger.LogUserNotFound(UserErrorCodes.NotFound, command.UserId);
+            GlobalLogs.LogUserNotFound(_logger, command.UserId);
             return UserErrors.NotFound;
         }
 
@@ -47,7 +47,7 @@ public class ChangeEmailCommandHandler : ICommandHandler<ChangeEmailCommand, Uni
         _userRepository.Update(user);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        _logger.LogEmailChangedSuccessfully(command.UserId, command.NewEmail);
+        ChangeEmailLogs.LogSuccess(_logger, command.UserId, command.NewEmail);
 
         return Unit.Value;
     }
