@@ -2,13 +2,11 @@
 using AutoMapper;
 using MazadZone.Application.Features.Authentication.DTOs;
 using MazadZone.Application.Features.Bidders.DTOs;
-using MazadZone.Application.Features.Users.DTOs;
 using MazadZone.Application.Services;
 using MazadZone.Domain.Bidders;
 using MazadZone.Domain.Entities.Users;
 using MazadZone.Domain.Repositories;
 using MazadZone.Domain.Users;
-using MazadZone.Features.Users.ChangeEmail;
 
 namespace MazadZone.Application.Features.Bidders.Commands.Register;
 
@@ -49,7 +47,7 @@ public class RegisterBidderCommandHandler : ICommandHandler<RegisterBidderComman
 
         if (await _userRepository.IsEmailInUseAsync(emailResult.Value, ct))
         {
-            _logger.LogEmailConflict(EmailErrorCodes.AlreadyInUse, request.Email);
+            // _logger.LogEmailConflict(EmailErrorCodes.AlreadyInUse, request.Email);
             return EmailErrors.AlreadyInUse;
         }
 

@@ -22,24 +22,24 @@ public class ActivateUserCommandHandler : ICommandHandler<ActivateUserCommand, U
     public async Task<Result<Unit>> Handle(ActivateUserCommand request, CancellationToken ct)
     {
         var user = await _userRepo.GetByIdAsync(request.UserId.Value, ct);
+
         if (user is null)
         {
-            _logger.LogUserNotFound(UserErrorCodes.NotFound, request.UserId);
+            GlobalLogs.LogUserNotFound(_logger, request.UserId);
             return UserErrors.NotFound;
         }
 
-        // Check if state transition is allowed
         var result = user.Activate();
         if (result.IsFailure)
         {
-            _logger.LogActivationDomainError(request.UserId, result.TopError.Code);
+            ActivateUserLogs.LogDomainViolation(_logger, request.UserId, result.TopError.Code);
             return result.TopError;
         }
 
         _userRepo.Update(user);
         await _unitOfWork.SaveChangesAsync(ct);
 
-        _logger.LogUserActivated(request.UserId);
+        ActivateUserLogs.LogSuccess(_logger, request.UserId);   
 
         return Unit.Value;
     }

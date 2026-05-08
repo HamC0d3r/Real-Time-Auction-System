@@ -2,16 +2,17 @@ using MazadZone.Domain.Users.ValueObjects;
 
 namespace MazadZone.Application.Features.Users.Commands.Activate;
 
-public static partial class ActivateUserLogs
+internal static partial class ActivateUserLogs
 {
     [LoggerMessage(
+        EventId = MazadLogEvents.Users.ActivateDomainViolation,
         Level = LogLevel.Warning,
-        EventId = 111,
         Message = "Activation Rejected: User {UserId} is in a state that cannot be activated (Error: {ErrorCode}).")]
-    public static partial void LogActivationDomainError(this ILogger logger, UserId userId, string errorCode);
+    public static partial void LogDomainViolation(ILogger logger, UserId userId, string errorCode);
 
-
-    [LoggerMessage(Level = LogLevel.Information, EventId = 112, Message = "User {UserId} activated successfully.")]
-    public static partial void LogUserActivated(this ILogger logger, UserId userId);
-
+    [LoggerMessage(
+        EventId = MazadLogEvents.Users.ActivateSuccess,
+        Level = LogLevel.Information, 
+        Message = "User {UserId} activated successfully.")]
+    public static partial void LogSuccess(ILogger logger, UserId userId);
 }

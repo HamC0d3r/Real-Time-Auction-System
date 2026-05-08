@@ -1,5 +1,4 @@
 ﻿using MazadZone.Application.Features.Bidders.DTOs;
-using MazadZone.Application.Features.Users.DTOs;
 
 namespace MazadZone.Application.Features.Bidders.Commands.Register;
 public record RegisterBidderCommand(

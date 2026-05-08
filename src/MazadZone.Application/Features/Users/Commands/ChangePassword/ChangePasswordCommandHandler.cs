@@ -1,4 +1,5 @@
 using AuthService.Application.Interfaces;
+using MazadZone.Application.Features.Authentication.Commands.Login;
 using MazadZone.Application.Features.Users.Commands.ChangePassword;
 using MazadZone.Domain.Repositories;
 using MazadZone.Domain.Users;
@@ -33,20 +34,20 @@ public class ChangePasswordCommandHandler : ICommandHandler<ChangePasswordComman
 
         if (user is null)
         {
-            _logger.LogUserNotFound(UserErrorCodes.NotFound, request.UserId);
+            GlobalLogs.LogUserNotFound(_logger, request.UserId);
             return UserErrors.NotFound;
         }
 
         if (!_passwordService.ValidatePassword(request.CurrentPassword, user.PasswordHash.Value))
         {
-            _logger.LogInvalidCurrentPassword(UserErrors.InvalidCredentials.Code, user.Id);
+            GlobalLogs.LogInvalidPassword(_logger, user.Id);
             return UserErrors.InvalidCredentials;
         }
 
         var hashNewPasswordResult = PasswordHash.Create(_passwordService.HashPassword(request.NewPassword));
         if (hashNewPasswordResult.IsFailure)
         {
-            _logger.LogPasswordHashingError(UserErrorCodes.PasswordHashError, user.Id);
+            ChangePasswordLogs.LogHashingError(_logger, request.UserId, hashNewPasswordResult.TopError.Code);
             return UserErrors.InvalidCredentials;
         }
 
@@ -55,7 +56,7 @@ public class ChangePasswordCommandHandler : ICommandHandler<ChangePasswordComman
 
         await _unitOfWork.SaveChangesAsync(ct);
 
-        _logger.LogPasswordChangedSuccessfully(user.Id);
+        ChangePasswordLogs.LogSuccess(_logger, request.UserId);
 
         return Unit.Value;
     }

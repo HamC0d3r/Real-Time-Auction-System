@@ -1,4 +1,4 @@
-using MazadZone.Domain.Users.Errors;
+using MazadZone.Application.Common.Validation;
 
 namespace MazadZone.Application.Features.Users.Commands.Activate;
 
@@ -6,6 +6,6 @@ public class ActivateUserCommandValidator : AbstractValidator<ActivateUserComman
 {
     public ActivateUserCommandValidator()
     {
-        RuleFor(x => x.UserId).NotEmpty().WithErrorCode(UserErrorCodes.IdRequired);
+        RuleFor(x => x.UserId).MustBeValidUserId();
     }
 }

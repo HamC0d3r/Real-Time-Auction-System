@@ -8,11 +8,7 @@ internal static partial class LoginLogs
         Message = "Login failed. No account found for email: {Email}")]
     public static partial void LogUserNotFound(ILogger logger, string email);
 
-    [LoggerMessage(
-        EventId = MazadLogEvents.Authentication.InvalidCredentials,
-        Level = LogLevel.Warning,
-        Message = "Login failed. Invalid password provided for User: {UserId}")]
-    public static partial void LogInvalidPassword(ILogger logger, Guid userId);
+
 
     [LoggerMessage(
         EventId = MazadLogEvents.Authentication.TokenRotationRejected,
