@@ -18,7 +18,7 @@ export interface NavItem {
 export const MAIN_NAV: NavItem[] = [
   { label: "Home", href: ROUTES.HOME },
   { label: "Auctions", href: ROUTES.AUCTIONS.LIST },
-  { label: "My Orders", href: ROUTES.ORDERS.LIST, roles: ["bidder"] },
+  { label: "My Orders", href: ROUTES.ORDERS.LIST, roles: ["bidder","seller"] },
 ];
 
 /**

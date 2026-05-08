@@ -57,7 +57,7 @@ export function RegisterForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 w-full max-w-[600px] mx-auto px-4 lg:px-8 py-8">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 w-full max-w-[600px] mx-auto px-4 lg:px-8 pt-20">
       <div>
         <h1 className="text-2xl font-bold text-foreground mb-6">Create Your Account</h1>
       </div>
@@ -189,7 +189,7 @@ export function RegisterForm() {
         />
         <label
           htmlFor="terms"
-          className="text-sm text-muted-foreground font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          className="text-sm text-muted-foreground font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 "
         >
           I agree to the <Link href="#" className="text-primary hover:underline">Terms</Link> and <Link href="#" className="text-primary hover:underline">Privacy Policy</Link>
         </label>
@@ -200,13 +200,13 @@ export function RegisterForm() {
       <Button
         type="submit"
         disabled={isLoading}
-        className="w-full rounded-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground text-[15px] font-semibold mt-4 transition-colors"
+        className="w-full rounded-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground text-[15px] font-semibold  transition-colors"
       >
         {isLoading ? "Signing up..." : "Sign up"}
       </Button>
 
       {/* Login Link */}
-      <div className="text-center mt-6">
+      <div className="text-center ">
         <p className="text-sm text-muted-foreground font-medium">
           Already have an account? <Link href={ROUTES.AUTH.LOGIN} className="text-primary hover:underline">Sign in</Link>
         </p>

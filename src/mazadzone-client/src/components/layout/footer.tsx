@@ -12,20 +12,37 @@ export function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-border/40 bg-background">
-      <div className="mx-auto flex max-w-7xl flex-col items-center gap-4 px-4 py-8 sm:flex-row sm:justify-between sm:px-6 lg:px-8">
-        <p className="text-sm text-muted-foreground">
-          &copy; {currentYear} {APP_CONFIG.name}. All rights reserved.
-        </p>
+    <footer className="bg-dark text-white border-t border-white/10">
+      <div className="mx-auto flex max-w-7xl flex-col items-center gap-4 px-4 py-10 sm:flex-row sm:justify-between sm:px-6 lg:px-8">
+        <div className="flex flex-col items-center sm:items-start gap-2">
+          <Link href={ROUTES.HOME} className="text-xl font-bold tracking-tight">
+            <span className="text-white">Mazad</span>
+            <span className="text-primary">Zone</span>
+          </Link>
+          <p className="text-xs text-gray-400">
+            &copy; {currentYear} MazadZone. All rights reserved.
+          </p>
+        </div>
 
-        <nav className="flex gap-4">
+        <nav className="flex gap-8">
           <Link
             href={ROUTES.AUCTIONS.LIST}
-            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+            className="text-sm text-gray-300 transition-colors hover:text-primary"
           >
-            Auctions
+            Browse Auctions
           </Link>
-          {/* TODO: Add more footer links */}
+          <Link
+            href={ROUTES.HOME}
+            className="text-sm text-gray-300 transition-colors hover:text-primary"
+          >
+            How it Works
+          </Link>
+          <Link
+            href={ROUTES.HOME}
+            className="text-sm text-gray-300 transition-colors hover:text-primary"
+          >
+            Support
+          </Link>
         </nav>
       </div>
     </footer>

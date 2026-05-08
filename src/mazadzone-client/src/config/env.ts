@@ -37,7 +37,7 @@ function createEnv() {
 
   if (!parsed.success) {
     console.error(
-      "❌ Invalid environment variables:",
+      "Invalid environment variables:",
       parsed.error.flatten().fieldErrors,
     );
 

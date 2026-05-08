@@ -36,8 +36,8 @@ export function AuthSplitLayout({ children }: AuthSplitLayoutProps) {
             <h2 className=" text-dark-foreground text-xl font-medium mb-6 mr-0 pr-0">
               Welcome to MAZADZONE!
             </h2>
-            <p className="text-dark-foreground text-sm leading-relaxed font-light max-w-xs mx-auto opacity-90 text-center">
-              Join today to start bidding on <br /> historical artifacts, luxury items, and unique <br /> collectibles with confidence and ease.
+            <p className="text-dark-foreground text-sm  font-light max-w-xs mx-auto opacity-90 text-center">
+              Join today to start bidding on <br /> historical artifacts, luxury items, and unique collectibles with confidence and ease.
             </p>
           </div>
 
