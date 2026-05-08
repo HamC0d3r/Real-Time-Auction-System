@@ -1,7 +1,10 @@
 namespace MazadZone.Application.Features.Orders.Queries.GetSellerStats;
 
-public static partial class GetSellerStatsLog
+internal static partial class GetSellerStatsLog
 {
-    [LoggerMessage(EventId = 94, Level = LogLevel.Information, Message = "Calculating statistics for Seller: {SellerId}")]
-    public static partial void LogCalculatingSellerStats(this ILogger logger, Guid sellerId);
+    [LoggerMessage(
+        EventId = MazadLogEvents.Orders.CalculatingSellerStats, 
+        Level = LogLevel.Information, 
+        Message = "Calculating statistics for Seller: {SellerId}")]
+    public static partial void LogCalculating(ILogger logger, Guid sellerId);
 }

@@ -25,7 +25,7 @@ internal sealed class BecomeSellerCommandHandler : ICommandHandler<BecomeSellerC
         var bidder = await _sellerRepository.GetByIdAsync(request.BidderId.Value);
         if(bidder is null)
         {
-            GlobalLogsh.LogBidderNotFound(_logger,request.BidderId);
+            GlobalLogs.LogBidderNotFound(_logger,request.BidderId);
             return BidderErrors.NotFound; ;
         }
 

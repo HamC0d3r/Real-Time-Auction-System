@@ -18,12 +18,27 @@ public static class GlobalValidationExtensions
             .NotEmpty()
             .WithMessage("Seller identifier is required.");
     }
-    
+
 
     public static IRuleBuilderOptions<T, UserId> MustBeValidUserId<T>(this IRuleBuilder<T, UserId> ruleBuilder)
     {
         return ruleBuilder
             .NotEmpty()
             .WithMessage("User identifier is required.");
+    }
+
+    public static IRuleBuilderOptions<T, BidId> MustBeValidBidId<T>(this IRuleBuilder<T, BidId> ruleBuilder)
+    {
+        return ruleBuilder
+            .NotEmpty()
+            .WithMessage("Bid ID is required and cannot be empty.");
+    }
+
+    // Extension for OrderId
+    public static IRuleBuilderOptions<T, OrderId> MustBeValidOrderId<T>(this IRuleBuilder<T, OrderId> ruleBuilder)
+    {
+        return ruleBuilder
+            .NotEmpty()
+            .WithMessage("Order ID is required and cannot be empty.");
     }
 }

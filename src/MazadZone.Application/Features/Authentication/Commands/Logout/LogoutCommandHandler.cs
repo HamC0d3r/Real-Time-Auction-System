@@ -31,7 +31,7 @@ public class LogoutCommandHandler : ICommandHandler<LogoutCommand, Unit>
     
     if (user is null)
     {
-        GlobalLogsh.LogUserNotFound(_logger, request.UserId);
+        GlobalLogs.LogUserNotFound(_logger, request.UserId);
         return UserErrors.NotFound;
     }
 

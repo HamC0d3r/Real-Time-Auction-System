@@ -1,7 +1,4 @@
-using Microsoft.Extensions.Logging;
-using MazadZone.Application.Common.Logging;
 using MazadZone.Domain.Entities.Orders;
-using MazadZone.Domain.Orders;
 using MazadZone.Application.Features.Orders.Commands.CreateOrder;
 
 namespace MazadZone.Application.Orders.CreateOrder;
@@ -24,20 +21,21 @@ public class CreateOrderHandler : ICommandHandler<CreateOrderCommand, OrderId>
 
     public async Task<Result<OrderId>> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
     {
-        _logger.LogCreateOrderAttempt(request.WinningBidId);
+        CreateOrderLogs.LogAttempt(_logger, request.WinningBidId);
+
 
         var orderResult = _CreateOrder(request);
 
         if (orderResult.IsFailure)
         {
-            _logger.LogCreateOrderFailed(orderResult.TopError.Message);
+            CreateOrderLogs.LogDomainViolation(_logger, orderResult.TopError.Message);
             return orderResult.TopError;
         }
 
          _orderRepository.Add(orderResult.Value);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        _logger.LogOrderCreatedSuccessfully(orderResult.Value.Id);
+        CreateOrderLogs.LogSuccess(_logger, orderResult.Value.Id);
 
         return orderResult.Value.Id;
     }

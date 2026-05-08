@@ -1,7 +1,4 @@
-using Microsoft.Extensions.Logging;
-using MazadZone.Application.Common.Logging;
 using MazadZone.Domain.Entities.Orders;
-using MazadZone.Domain.Orders;
 
 namespace MazadZone.Application.Features.Orders.Commands.ShipOrder;
 
@@ -23,15 +20,13 @@ public class ShipOrderHandler : ICommandHandler<ShipOrderCommand, Unit>
 
     public async Task<Result<Unit>> Handle(ShipOrderCommand request, CancellationToken ct)
     {
-        using var scope = _logger.BeginOrderScope(request.OrderId);
-
-        _logger.LogShipOrderAttempt(request.OrderId);
+        ShipOrderLogs.LogAttempt(_logger, request.OrderId);
 
         var order = await _orderRepository.GetByIdAsync(request.OrderId.Value, ct);
 
         if (order is null) 
         {
-            _logger.LogOrderNotFound(request.OrderId);
+            GlobalLogs.LogOrderNotFound(_logger, request.OrderId);
             return OrderErrors.NotFound;
         }
 
@@ -39,13 +34,13 @@ public class ShipOrderHandler : ICommandHandler<ShipOrderCommand, Unit>
         
         if (orderShippingResult.IsFailure) 
         {
-            _logger.LogShipOrderFailed(request.OrderId, orderShippingResult.TopError.Message);
+            ShipOrderLogs.LogDomainViolation(_logger, request.OrderId, orderShippingResult.TopError.Message);
             return orderShippingResult.TopError;
         }
 
         await _unitOfWork.SaveChangesAsync(ct);
 
-        _logger.LogOrderShippedSuccessfully(request.OrderId);
+        ShipOrderLogs.LogSuccess(_logger, request.OrderId);
 
         return Unit.Value;
     }

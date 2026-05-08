@@ -1,7 +1,4 @@
-using Microsoft.Extensions.Logging;
-using MazadZone.Application.Common.Logging;
 using MazadZone.Domain.Entities.Orders;
-using MazadZone.Domain.Orders;
 
 namespace MazadZone.Application.Features.Orders.Commands.ConfirmOrder;
 
@@ -23,15 +20,13 @@ public class ConfirmOrderHandler : ICommandHandler<ConfirmOrderCommand, Unit>
 
     public async Task<Result<Unit>> Handle(ConfirmOrderCommand request, CancellationToken ct)
     {
-        using var scope = _logger.BeginOrderScope(request.OrderId);
-
-        _logger.LogConfirmOrderAttempt(request.OrderId);
+        ConfirmOrderLogs.LogAttempt(_logger, request.OrderId);
 
         var order = await _orderRepository.GetByIdAsync(request.OrderId.Value, ct);
 
         if (order is null) 
         {
-            _logger.LogOrderNotFound(request.OrderId);
+            GlobalLogs.LogOrderNotFound(_logger, request.OrderId);
             return OrderErrors.NotFound;
         }
 
@@ -39,13 +34,13 @@ public class ConfirmOrderHandler : ICommandHandler<ConfirmOrderCommand, Unit>
         
         if(confirmationResult.IsFailure) 
         {
-            _logger.LogConfirmOrderFailed(request.OrderId, confirmationResult.TopError.Message);
+            ConfirmOrderLogs.LogDomainViolation(_logger, request.OrderId, confirmationResult.TopError.Message);
             return confirmationResult.TopError;
         }
 
         await _unitOfWork.SaveChangesAsync(ct);
 
-        _logger.LogOrderConfirmedSuccessfully(request.OrderId);
+        ConfirmOrderLogs.LogSuccess(_logger, request.OrderId);
 
         return Unit.Value;
     }

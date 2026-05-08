@@ -1,7 +1,5 @@
-using MazadZone.Application.Common.Logging;
 using MazadZone.Application.Features.Orders.Queries.DTOs;
 using MazadZone.Application.Services;
-using Microsoft.Extensions.Logging;
 
 namespace MazadZone.Application.Features.Orders.Queries.GetOrderDetails;
 
@@ -22,13 +20,13 @@ public class GetOrderDetailsQueryHandler
 
     async Task<Result<OrderDetailsDto>> IRequestHandler<GetOrderDetailsQuery, Result<OrderDetailsDto>>.Handle(GetOrderDetailsQuery request, CancellationToken cancellationToken)
     {
-        _logger.LogFetchingOrderDetails(request.OrderId.Value);
+        GetOrderDetailsLog.LogFetching(_logger, request.OrderId.Value);
 
         var orderDetailsDto = await _orderQueries.GetOrderDetailsAsync(request.OrderId, cancellationToken);
 
         if (orderDetailsDto is null)
         {
-            _logger.LogOrderNotFound(request.OrderId);
+            GlobalLogs.LogOrderNotFound(_logger, request.OrderId);
             return OrderErrors.NotFound;
         }
 

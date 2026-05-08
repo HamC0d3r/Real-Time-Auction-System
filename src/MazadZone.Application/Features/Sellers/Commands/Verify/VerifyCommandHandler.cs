@@ -26,7 +26,7 @@ internal sealed class VerifyCommandHandler : ICommandHandler<VerifyCommand, Unit
 
         if (seller is null)
         {
-            GlobalLogsh.LogSellerNotFound(_logger, request.SellerId);
+            GlobalLogs.LogSellerNotFound(_logger, request.SellerId);
             return SellerErrors.NotFound;
         }
 

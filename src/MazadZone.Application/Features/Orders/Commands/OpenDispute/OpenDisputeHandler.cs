@@ -1,7 +1,5 @@
-using Microsoft.Extensions.Logging;
 using MazadZone.Application.Common.Logging;
 using MazadZone.Domain.Entities.Orders;
-using MazadZone.Domain.Orders;
 
 namespace MazadZone.Application.Features.Orders.Commands.OpenDispute;
 
@@ -23,14 +21,13 @@ public class OpenDisputeHandler : ICommandHandler<OpenDisputeCommand, Unit>
 
     public async Task<Result<Unit>> Handle(OpenDisputeCommand request, CancellationToken ct)
     {
-        using var scope = _logger.BeginOrderScope(request.OrderId);
-
-        _logger.LogOpenDisputeAttempt(request.OrderId, request.Reason);
+        OpenDisputeLogs.LogAttempt(_logger, request.OrderId, request.Reason);
 
         var order = await _orderRepository.GetByIdAsync(request.OrderId.Value, ct);
 
         if (order is null) 
         {
+            GlobalLogs.LogOrderNotFound(_logger, request.OrderId);
             _logger.LogOrderNotFound(request.OrderId);
             return OrderErrors.NotFound;
         }
@@ -39,13 +36,13 @@ public class OpenDisputeHandler : ICommandHandler<OpenDisputeCommand, Unit>
         
         if (disputeResult.IsFailure) 
         {
-            _logger.LogOpenDisputeFailed(request.OrderId, disputeResult.TopError.Message);
+            OpenDisputeLogs.LogDomainViolation(_logger, request.OrderId, disputeResult.TopError.Message);
             return disputeResult.TopError;
         }
 
         await _unitOfWork.SaveChangesAsync(ct);
 
-        _logger.LogOrderDisputeOpenedSuccessfully(request.OrderId);
+        OpenDisputeLogs.LogSuccess(_logger, request.OrderId);
 
         return Unit.Value;
     }

@@ -20,7 +20,8 @@ public class GetSellerStatsQueryHandler
 
     async Task<Result<SellerOrderStatsDto>> IRequestHandler<GetSellerStatsQuery, Result<SellerOrderStatsDto>>.Handle(GetSellerStatsQuery request, CancellationToken cancellationToken)
     {
-        _logger.LogCalculatingSellerStats(request.SellerId.Value);
+        GetSellerStatsLog.LogCalculating(_logger, request.SellerId.Value);
+
         return await _orderQueries.GetSellerStatsAsync(request.SellerId, cancellationToken);
     }
 }

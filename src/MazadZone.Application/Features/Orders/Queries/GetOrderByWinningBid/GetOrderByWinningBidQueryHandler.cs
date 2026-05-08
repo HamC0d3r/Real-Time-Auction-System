@@ -17,16 +17,16 @@ public class GetOrderByWinningBidQueryHandler
 
     async Task<Result<OrderDetailsDto>> IRequestHandler<GetOrderByWinningBidQuery, Result<OrderDetailsDto>>.Handle(GetOrderByWinningBidQuery request, CancellationToken cancellationToken)
     {
-        _logger.LogResolvingOrderByBid(request.WinningBidId.Value);
+        GetOrderByWinningBidLog.LogResolving(_logger, request.WinningBidId);
+
         var orderDto =  await _orderQueries.GetOrderByWinningBidAsync(request.WinningBidId, cancellationToken);
+
         if(orderDto is null)
         {
-            _logger.LogOrderNotFoundForBid(request.WinningBidId.Value);
-
+            GetOrderByWinningBidLog.LogNotFound(_logger, request.WinningBidId);
             return OrderErrors.NotFound;
         }
 
         return orderDto;
-
     }
 }

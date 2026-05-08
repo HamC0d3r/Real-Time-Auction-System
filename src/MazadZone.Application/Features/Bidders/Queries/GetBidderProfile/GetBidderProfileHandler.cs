@@ -25,7 +25,7 @@ public class GetBidderProfileHandler : IQueryHandler<GetBidderProfileQuery, Bidd
 
         if (bidderDto is null)
         {
-            GlobalLogsh.LogBidderNotFound(_logger, request.BidderId);
+            GlobalLogs.LogBidderNotFound(_logger, request.BidderId);
             return BidderErrors.NotFound;
         }
 

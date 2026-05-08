@@ -1,4 +1,3 @@
-using FluentValidation;
 using MazadZone.Application.Features.Orders.Commands.CreateOrder;
 
 namespace MazadZone.Application.Orders.CreateOrder;

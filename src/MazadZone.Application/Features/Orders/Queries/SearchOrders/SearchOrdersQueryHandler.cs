@@ -21,7 +21,8 @@ public class SearchOrdersQueryHandler
 
     async Task<Result<PagedList<OrderSummaryDto>>> IRequestHandler<SearchOrdersQuery, Result<PagedList<OrderSummaryDto>>>.Handle(SearchOrdersQuery request, CancellationToken cancellationToken)
     {
-        _logger.LogSearchingOrders(request.Filter.PageNumber, request.Filter.PageSize);
+        SearchOrdersLog.LogSearching(_logger, request.Filter.PageNumber, request.Filter.PageSize);
+
         return await _orderQueries.SearchOrdersAsync(request.Filter, cancellationToken);
     }
 }

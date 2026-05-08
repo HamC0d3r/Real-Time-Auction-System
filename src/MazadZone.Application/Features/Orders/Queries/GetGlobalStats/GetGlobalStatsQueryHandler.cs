@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Logging;
 using MazadZone.Application.Features.Orders.Queries.DTOs;
 using MazadZone.Application.Services;
 
@@ -21,7 +20,7 @@ public class GetGlobalStatsQueryHandler
 
     public async Task<Result<AdminGlobalStatsDto>> Handle(GetGlobalStatsQuery request, CancellationToken cancellationToken)
     {
-        _logger.LogCompilingGlobalStats();
+        GetGlobalStatsLog.LogCompiling(_logger);
         return await _orderQueries.GetGlobalStatsAsync(cancellationToken);
 
     }

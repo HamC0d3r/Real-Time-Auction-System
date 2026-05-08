@@ -50,9 +50,67 @@ public static partial class MazadLogEvents
         public const int SessionInvalidated = 2020;
 
         public const int LogoutSuccess = 2021;
-    public const int LogoutFromAllDevices = 2022;
-    public const int LogoutSessionNotFound = 2023;
+        public const int LogoutFromAllDevices = 2022;
+        public const int LogoutSessionNotFound = 2023;
 
+
+    }
+
+    public static class Orders
+    {
+        public const int AddFeedbackAttempt = 3001;
+        public const int AddFeedbackDomainViolation = 3002;
+        public const int AddFeedbackSuccess = 3003;
+
+        public const int CancelAttempt = 3010;
+        public const int CancelDomainViolation = 3011;
+        public const int CancelSuccess = 3012;
+
+     // ConfirmOrder: 3020 - 3029
+        public const int ConfirmAttempt = 3020;
+        public const int ConfirmDomainViolation = 3021;
+        public const int ConfirmSuccess = 3022;
+
+        // CreateOrder: 3030 - 3039
+        public const int CreateAttempt = 3030;
+        public const int CreateDomainViolation = 3031;
+        public const int CreateSuccess = 3032;
+
+        // DeliverOrder: 3040 - 3049
+        public const int DeliverAttempt = 3040;
+        public const int DeliverDomainViolation = 3041;
+        public const int DeliverSuccess = 3042;
+
+        // OpenDispute: 3050 - 3059
+        public const int OpenDisputeAttempt = 3050;
+        public const int OpenDisputeDomainViolation = 3051;
+        public const int OpenDisputeSuccess = 3052;
+
+        // ResolveDispute: 3060 - 3069
+        public const int ResolveDisputeAttempt = 3060;
+        public const int ResolveDisputeDomainViolation = 3061;
+        public const int ResolveDisputeSuccess = 3062;
+
+        // ShipOrder: 3070 - 3079
+        public const int ShipAttempt = 3070;
+        public const int ShipDomainViolation = 3071;
+        public const int ShipSuccess = 3072;
+
+        // GetGlobalStats: 3080
+        public const int CompileGlobalStats = 3080;
+
+        // GetOrderByWinningBid: 3081 - 3082
+        public const int ResolvingOrderByBid = 3081;
+        public const int OrderNotFoundForBid = 3082;
+
+        // GetOrderDetails: 3083
+        public const int FetchingOrderDetails = 3083;
+
+        // GetSellerStats: 3084
+        public const int CalculatingSellerStats = 3084;
+
+        // SearchOrders: 3085
+        public const int SearchingOrders = 3085;
 
     }
 

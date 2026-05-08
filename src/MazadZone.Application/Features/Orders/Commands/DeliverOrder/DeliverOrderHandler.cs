@@ -1,7 +1,5 @@
-using Microsoft.Extensions.Logging;
 using MazadZone.Application.Common.Logging;
 using MazadZone.Domain.Entities.Orders;
-using MazadZone.Domain.Orders;
 
 namespace MazadZone.Application.Features.Orders.Commands.DeliverOrder;
 
@@ -25,12 +23,13 @@ public class DeliverOrderHandler : ICommandHandler<DeliverOrderCommand, Unit>
     {
         using var scope = _logger.BeginOrderScope(request.OrderId);
 
-        _logger.LogDeliverOrderAttempt(request.OrderId);
+        DeliverOrderLogs.LogAttempt(_logger, request.OrderId);
 
         var order = await _orderRepository.GetByIdAsync(request.OrderId.Value, ct);
 
         if (order is null) 
         {
+            GlobalLogs.LogOrderNotFound(_logger, request.OrderId);
             _logger.LogOrderNotFound(request.OrderId);
             return OrderErrors.NotFound;
         }
@@ -39,13 +38,13 @@ public class DeliverOrderHandler : ICommandHandler<DeliverOrderCommand, Unit>
         
         if (deliveryResult.IsFailure) 
         {
-            _logger.LogDeliverOrderFailed(request.OrderId, deliveryResult.TopError.Message);
+            DeliverOrderLogs.LogDomainViolation(_logger, request.OrderId, deliveryResult.TopError.Message);
             return deliveryResult.TopError;
         }
 
         await _unitOfWork.SaveChangesAsync(ct);
 
-        _logger.LogOrderDeliveredSuccessfully(request.OrderId);
+        DeliverOrderLogs.LogSuccess(_logger, request.OrderId);
 
         return Unit.Value;
     }
