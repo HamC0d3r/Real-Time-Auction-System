@@ -1,0 +1,15 @@
+root = true
+
+[*.cs]
+# Core C# settings
+indent_style = space
+indent_size = 4
+
+# Disable specific warnings (CS8618 is the big one for EF Core)
+dotnet_diagnostic.CS8618.severity = none
+
+# You can also disable other common "annoying" ones here:
+dotnet_diagnostic.CS8601.severity = none # Possible null reference assignment
+dotnet_diagnostic.CS8602.severity = none # Dereference of a possibly null reference
+dotnet_diagnostic.CS8603.severity = none # Possible null reference return
+dotnet_diagnostic.CS8604.severity = none # Possible null reference argument
