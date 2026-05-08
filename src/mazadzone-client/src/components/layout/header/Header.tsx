@@ -17,15 +17,15 @@ import { MobileHeader } from "./MobileHeader";
  */
 export function Header() {
   const router = useRouter();
-  
+
   // Auth state
   let { isAuthenticated, user, logout } = useAuthStore();
-  
+
   // NOTE: Hardcoded for testing by user.
   // In production, this should use user?.role and isAuthenticated from the store.
   isAuthenticated = true;
-  const role = "seller"; 
-  
+  const role = "seller";
+
   const { setCategory } = useAuctionFilterStore();
 
   // States
@@ -57,18 +57,18 @@ export function Header() {
   const isSeller = isAuthenticated && role === "seller";
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-dark text-white shadow-md">
+    <header className="sticky top-0 z-50 w-full bg-dark text-white shadow-md h-40">
       {/* Top Row Container */}
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 border-b border-white/10 relative">
-        
+      <div className="mx-auto flex h-16 max-w-[1408px] items-center  border-b border-white/10 relative mt-4 pb-4.5 ">
+
         {/* Logo (Shared) */}
-        <Link href={ROUTES.HOME} className="text-2xl font-bold tracking-tight flex items-center shrink-0">
+        <Link href={ROUTES.HOME} className="text-3xl font-bold tracking-tight flex items-center shrink-0">
           <span className="text-white">Mazad</span>
           <span className="text-primary">Zone</span>
         </Link>
 
         {/* Desktop View Components */}
-        <DesktopHeader 
+        <DesktopHeader
           isAuthenticated={isAuthenticated}
           user={user}
           role={role}
@@ -80,7 +80,7 @@ export function Header() {
         />
 
         {/* Mobile View Components */}
-        <MobileHeader 
+        <MobileHeader
           isSearchOpen={isSearchOpen}
           setIsSearchOpen={setIsSearchOpen}
           isMobileMenuOpen={isMobileMenuOpen}
@@ -95,7 +95,7 @@ export function Header() {
       </div>
 
       {/* Desktop Bottom Row */}
-      <DesktopBottomRow 
+      <DesktopBottomRow
         mounted={mounted}
         isSeller={isSeller}
         handleCategoryClick={handleCategoryClick}

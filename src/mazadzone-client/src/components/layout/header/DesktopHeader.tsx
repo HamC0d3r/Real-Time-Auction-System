@@ -36,17 +36,17 @@ export const DesktopHeader = ({
   return (
     <>
       {/* Desktop Search Bar (Part of Top Row) */}
-      <div className="hidden md:flex flex-1 max-w-xl mx-8 relative">
+      <div className="hidden md:flex flex-1 max-w-xl ml-5 mr-7 relative mx-0 pr-0">
         <Input
-          className="w-full bg-white text-black pl-4 pr-10 rounded-md h-10 border-none focus-visible:ring-2 focus-visible:ring-primary"
+          className="w-full bg-white text-black  text-2xl pl-5  rounded-2xl h-13 border-none focus-visible:ring-2 focus-visible:ring-primary"
           placeholder="Search..."
         />
-        <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+        <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-400" />
       </div>
 
       {/* Right Nav (Desktop) */}
       <div className="hidden md:flex items-center gap-6">
-        <div className="flex items-center text-sm font-medium text-gray-300">
+        <div className="flex items-center text-lg font-medium text-primary-foreground">
           <span className="cursor-pointer hover:text-white transition-colors">AR</span>
           <span className="mx-2 text-gray-500">|</span>
           <span className="cursor-pointer text-primary">EN</span>
@@ -55,40 +55,40 @@ export const DesktopHeader = ({
         {mounted && (
           <div className="flex items-center gap-6">
             {!isAuthenticated ? (
-              <div className="flex items-center gap-4">
-                <Link href={ROUTES.AUTH.LOGIN} className="text-sm font-medium hover:text-primary transition-colors">
+              <div className="flex items-center gap-2">
+                <Link href={ROUTES.AUTH.LOGIN} className="text-lg font-medium hover:text-primary transition-colors">
                   Sign In
                 </Link>
-                <Link href={ROUTES.AUTH.REGISTER} className="text-sm font-medium bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90 transition-colors">
+                <Link href={ROUTES.AUTH.REGISTER} className="text-2xl font-medium bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90 transition-colors">
                   Sign Up
                 </Link>
               </div>
             ) : (
               <>
-                <Link href={ROUTES.AUCTIONS.LIST} className="hidden lg:flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors">
-                  <Gavel className="h-4 w-4" />
+                <Link href={ROUTES.AUCTIONS.LIST} className="hidden lg:flex items-center gap-2 text-xl font-medium hover:text-primary transition-colors">
+                  <Gavel className="h-7 w-7" />
                   My Bids
                 </Link>
 
-                <Link href={ROUTES.ORDERS.LIST} className="hidden lg:flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors">
-                  <Package className="h-4 w-4" />
+                <Link href={ROUTES.ORDERS.LIST} className="hidden lg:flex items-center gap-2 text-xl font-medium hover:text-primary transition-colors">
+                  <Package className="h-7 w-7" />
                   My Orders
                 </Link>
 
                 <div className="relative flex items-center gap-2 cursor-pointer hover:text-primary transition-colors">
                   <div className="relative">
-                    <Bell className="h-5 w-5" />
+                    <Bell className="h-7 w-7" />
                     <Badge className="absolute -top-1.5 -right-1.5 h-4 w-4 flex items-center justify-center p-0 rounded-full bg-primary text-white text-[10px] border-none">
                       2
                     </Badge>
                   </div>
-                  <span className="hidden lg:inline text-sm font-medium">Notifications</span>
+                  <span className="hidden lg:inline text-xl font-medium">Notifications</span>
                 </div>
 
                 <DropdownMenu>
                   <DropdownMenuTrigger className="flex items-center gap-1 hover:text-primary transition-colors outline-none">
-                    <User className="h-5 w-5" />
-                    <ChevronDown className="h-4 w-4" />
+                    <User className="h-7 w-7" />
+                    <ChevronDown className="h-7 w-7" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48 bg-white text-black border-none rounded-md shadow-lg">
                     <DropdownMenuItem asChild>
@@ -124,34 +124,34 @@ export const DesktopBottomRow = ({
   router: any;
 }) => {
   return (
-    <div className="hidden md:flex mx-auto h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-      <nav className="flex items-center gap-6 whitespace-nowrap overflow-x-auto no-scrollbar">
+    <div className="hidden md:flex mx-auto h-14 max-w-[1408px] items-center justify-between pt-4 ">
+      <nav className="flex items-center gap-6 whitespace-nowrap overflow-x-auto no-scrollbar pt-1.5">
         {CATEGORIES.map((category) => (
           <button
             key={category}
             onClick={() => handleCategoryClick(category)}
-            className="text-sm font-medium text-gray-300 hover:text-white transition-colors"
+            className="text-lg font-normal text-primary-foreground hover:text-primary hover:border-primary transition-colors"
           >
             {category}
           </button>
         ))}
       </nav>
 
-      <div className="flex items-center gap-4 shrink-0 ml-6">
+      <div className="flex items-center gap-9 shrink-0 ml-6">
         {mounted && isSeller && (
           <Button
             variant="outline"
             onClick={() => router.push(ROUTES.SELLER.DASHBOARD)}
-            className="bg-transparent border-white/20 text-white hover:bg-white/10 hover:text-white gap-2 h-9 rounded-md"
+            className="bg-transparent border-white/20 text-white  text-lg hover:bg-primary/20 hover:text-primary hover:border-primary gap-2 h-12 rounded-xl"
           >
-            <LayoutDashboard className="h-4 w-4" />
+            <LayoutDashboard className="h-5 w-5" />
             Seller Dashboard
           </Button>
         )}
 
         <Button
           onClick={handleSellClick}
-          className="bg-primary hover:bg-primary/90 text-white font-medium px-6 h-9 rounded-md shadow-md"
+          className="bg-primary hover:bg-primary/90 text-white font-medium px-6 h-12 w-24 rounded-xl shadow-md text-lg"
         >
           Sell
         </Button>
