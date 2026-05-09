@@ -3,7 +3,7 @@ using MazadZone.Domain.Users.ValueObjects;
 
 namespace MazadZone.Api.Endpoints.Users;
 
-public record SuspendUserRequest(DateTime Until);
+public record SuspendUserRequest(string Reason,DateTime Until);
 
 public static class Suspend
 {
@@ -22,7 +22,7 @@ public static class Suspend
         ISender sender,
         CancellationToken ct)
     {
-        var result = await sender.Send(new SuspendUserCommand(UserId.Load(id), request.Until), ct);
+        var result = await sender.Send(new SuspendUserCommand(UserId.Load(id), request.Reason ,request.Until), ct);
         return result.Match(_ => Results.NoContent(), e => e.ToProblem());
     }
 }

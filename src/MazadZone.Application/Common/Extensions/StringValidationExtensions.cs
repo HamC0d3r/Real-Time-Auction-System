@@ -26,7 +26,7 @@ public static class StringValidationExtensions
             .WithMessage("Email address cannot exceed 255 characters.");
     }
 
-public static IRuleBuilderOptions<T, string> MustBeValidPassword<T>(this IRuleBuilder<T, string> ruleBuilder)
+    public static IRuleBuilderOptions<T, string> MustBeValidPassword<T>(this IRuleBuilder<T, string> ruleBuilder)
     {
         return ruleBuilder
             .NotEmpty()
@@ -43,5 +43,23 @@ public static IRuleBuilderOptions<T, string> MustBeValidPassword<T>(this IRuleBu
             .WithMessage("Password must contain at least one number.")
             .Matches("[^a-zA-Z0-9]")
             .WithMessage("Password must contain at least one special character.");
+    }
+
+public static IRuleBuilderOptions<T, string> MustBeValidName<T>(this IRuleBuilder<T, string> ruleBuilder)
+    {
+        return ruleBuilder
+            .NotEmpty()
+            .WithMessage("Name is required.")
+            .MaximumLength(SharedConstainst.MaxNameLength) // Or use SharedConstainst.MaxNameLength
+            .WithMessage("Name cannot exceed 100 characters.");
+    }
+
+    public static IRuleBuilderOptions<T, string> MustBeValidDescription<T>(this IRuleBuilder<T, string> ruleBuilder)
+    {
+        return ruleBuilder
+            .NotEmpty()
+            .WithMessage("Description is required.")
+            .MaximumLength(SharedConstainst.MaxDescriptionLength) // Or use SharedConstainst.MaxDescriptionLength
+            .WithMessage("Description cannot exceed 500 characters.");
     }
 }
