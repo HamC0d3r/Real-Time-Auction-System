@@ -1,4 +1,5 @@
 using MazadZone.Domain.Auctions;
+using MazadZone.Domain.Categories;
 using MazadZone.Domain.Users.ValueObjects;
 
 namespace MazadZone.Application.Common.Validation;
@@ -40,5 +41,12 @@ public static class GlobalValidationExtensions
         return ruleBuilder
             .NotEmpty()
             .WithMessage("Order ID is required and cannot be empty.");
+    }
+
+    public static IRuleBuilderOptions<T, CategoryId> MustBeValidCategoryId<T>(this IRuleBuilder<T, CategoryId> ruleBuilder, string nameOfCategory = "Category Id")
+    {
+        return ruleBuilder
+            .NotEmpty()
+            .WithMessage($"{nameOfCategory}  is required and cannot be empty.");
     }
 }

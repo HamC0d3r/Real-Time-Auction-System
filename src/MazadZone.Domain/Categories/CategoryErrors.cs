@@ -11,6 +11,8 @@ public static class CategoryErrorCodes
     public const string AlreadyRoot = "Category.AlreadyRoot";
     
     public const string NotFound = "Category.NotFound";
+    public const string CircularReference = "Category.CircularReference";
+    public const string DuplicateName = "Category.Duplicatename";
 }
 
 public static class CategoryErrors
@@ -38,8 +40,17 @@ public static class CategoryErrors
     public static readonly Error AlreadyRoot = Error.Conflict(
         CategoryErrorCodes.AlreadyRoot,
         "This category is already a root category (it has no parent).");
-        
+
     public static readonly Error NotFound = Error.NotFound(
         CategoryErrorCodes.NotFound,
         "The specified category was not found.");
+
+    public static readonly Error CircularReference = Error.Conflict(
+            CategoryErrorCodes.CircularReference,
+            "A category cannot be a sub-category of its own descendant.");
+
+public static readonly Error DuplicateName = Error.Conflict(
+        CategoryErrorCodes.DuplicateName, 
+        "A category with this name already exists under the selected parent.");
+
 }

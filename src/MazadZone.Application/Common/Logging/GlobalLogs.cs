@@ -1,4 +1,5 @@
 using MazadZone.Domain.Auctions;
+using MazadZone.Domain.Categories;
 using MazadZone.Domain.Users.ValueObjects;
 
 public static partial class GlobalLogs
@@ -33,6 +34,12 @@ public static partial class GlobalLogs
         Level = LogLevel.Warning,
         Message = "Login failed. Invalid password provided for User: {UserId}")]
     public static partial void LogInvalidPassword(ILogger logger, UserId userId);
+
+    [LoggerMessage(
+        EventId = MazadLogEvents.Global.NotFound,
+        Level = LogLevel.Warning,
+        Message = "Resource missing: Category with ID {categoryId} could not be found.")]
+    public static partial void LogCategoryNotFound(ILogger logger, CategoryId categoryId);
 
 
 

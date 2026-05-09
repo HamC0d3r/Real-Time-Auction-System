@@ -44,10 +44,16 @@ public sealed class Category : AggregateRoot<CategoryId>, ISoftDeletable
 
     public Result Delete()
     {
-        if (IsDeleted) return Result.Failure(CategoryErrors.AlreadyDeleted);
+        if (IsDeleted) return Result.Success();
 
         IsDeleted = true;
         DeletedOnUtc = DateTime.UtcNow;
+
+        foreach (var subCategory in _subCategories)
+        {
+            subCategory.Delete();
+        }
+        
         return Result.Success();
     }
     public Result Restore()
@@ -97,20 +103,12 @@ public sealed class Category : AggregateRoot<CategoryId>, ISoftDeletable
         return Result.Success();
     }
 
-    public Result Update(string newName, string newDescription)
+    public void Update(Name newName, Description newDescription)
     {
-        if (Name.Value == newName && Description.Value == newDescription) return Result.Success();
+        if (Name.Value == newName && Description.Value == newDescription) return;
 
-        var nameResult = Name.Create(newName);
-        if (nameResult.IsFailure) return nameResult.TopError;
-
-        var descriptionResult = Description.Create(newDescription);
-        if (descriptionResult.IsFailure) return descriptionResult.TopError;
-
-        Name = nameResult.Value;
-        Description = descriptionResult.Value;
-
-        return Result.Success();
+        Name = newName;
+        Description = newDescription;
     }
     
 }

@@ -4,19 +4,22 @@ public static partial class MazadLogEvents
     public static class Global
     {
         public const int NotFound = 100;
-
+        public const int ResourceReadSuccess = 9002;
+        public const int ResourceDeleted = 9003;
+        public const int ResourceCreated = 9004;
+        public const int ResourceUpdated = 9005;
     }
 
     public static class System
     {
 
     }
-    
+
     public static class Users
     {
         // Activate User: 4010 - 4019
         public const int ActivateDomainViolation = 4011;
-        public const int ActivateSuccess = 4012;      
+        public const int ActivateSuccess = 4012;
 
         // Ban User: 4020 - 4029
         public const int BanDomainViolation = 4021;
@@ -42,7 +45,7 @@ public static partial class MazadLogEvents
         public const int SuspendSuccess = 4052;
 
         //1250 - 1299: Suspend Side Effects (Event Handlers)
-       public const int SuspensionCacheInvalidated = 1250;
+        public const int SuspensionCacheInvalidated = 1250;
         public const int SuspensionNotificationSent = 1251;
         public const int SuspensionAuctionsCancelled = 1252;
         public const int SuspensionBidsRemoved = 1253;
@@ -104,7 +107,7 @@ public static partial class MazadLogEvents
         public const int CancelDomainViolation = 3011;
         public const int CancelSuccess = 3012;
 
-     // ConfirmOrder: 3020 - 3029
+        // ConfirmOrder: 3020 - 3029
         public const int ConfirmAttempt = 3020;
         public const int ConfirmDomainViolation = 3021;
         public const int ConfirmSuccess = 3022;
@@ -150,6 +153,38 @@ public static partial class MazadLogEvents
         // SearchOrders: 3085
         public const int SearchingOrders = 3085;
 
+    }
+
+    public static class Categories
+    {
+        // 5700 - 5749: Add SubCategory Operations
+        public const int AddSubCategoryViolation = 5702;
+        public const int AddSubCategorySuccess = 5703;
+        public const int DuplicateName = 5302;
+
+        // 5200 - 5249: Category Deletion (Destructive Ops)
+        public const int DeleteViolation = 5201;
+        public const int DeleteSuccess = 5202;
+
+        // 5600 - 5649: Hierarchy Promotion / Root Operations
+        public const int MakeRootViolation = 5601;
+        public const int MakeRootSuccess = 5602;
+
+        // 5100 - 5149: Hierarchy Relocation (MoveToParent)
+        public const int MoveToParentViolation = 5101;
+        public const int MoveToParentSuccess = 5102;
+
+        // 5400 - 5449: Restoration Operations
+        public const int RestoreViolation = 5401;
+        public const int RestoreSuccess = 5402;
+
+        public const int UpdateSuccess = 5502;
+
+        public const int CreationViolation = 5300;
+        public const int CreationSuccess = 5301;
+
+        public const int GetByIdSuccess = 5831;
+        
     }
 
 
