@@ -1,7 +1,6 @@
 namespace MazadZone.Application.Features.Categories.Queries.GetCategoryStatistics;
 
-
-internal sealed class GetCategoryStatisticsQueryHandler : IQueryHandler<GetCategoryStatisticsQuery, IReadOnlyList<CategoryStatResponse>>
+public sealed class GetCategoryStatisticsQueryHandler : IQueryHandler<GetCategoryStatisticsQuery, IReadOnlyList<CategoryStatResponse>>
 {
     private readonly ICategoryQueries _categoryQueries;
     private readonly ILogger<GetCategoryStatisticsQueryHandler> _logger;

@@ -3,7 +3,7 @@ namespace MazadZone.Application.Features.Categories.Commands.Update;
 using MazadZone.Domain.Categories;
 using MazadZone.Domain.Shared.ValueObjects;
 
-internal sealed class UpdateCategoryCommandHandler : ICommandHandler<UpdateCategoryCommand, Unit>
+public sealed class UpdateCategoryCommandHandler : ICommandHandler<UpdateCategoryCommand, Unit>
 {
     private readonly ICategoryRepository _categoryRepository;
     private readonly IUnitOfWork _unitOfWork;

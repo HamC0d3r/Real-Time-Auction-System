@@ -50,8 +50,10 @@ public static IRuleBuilderOptions<T, string> MustBeValidName<T>(this IRuleBuilde
         return ruleBuilder
             .NotEmpty()
             .WithMessage("Name is required.")
+            .MinimumLength(SharedConstainst.MinNameLength) // Or use SharedConstainst.MinNameLength
+            .WithMessage($"Name must be at least {SharedConstainst.MinNameLength} characters long.")
             .MaximumLength(SharedConstainst.MaxNameLength) // Or use SharedConstainst.MaxNameLength
-            .WithMessage("Name cannot exceed 100 characters.");
+            .WithMessage($"Name cannot exceed {SharedConstainst.MaxNameLength} characters.");
     }
 
     public static IRuleBuilderOptions<T, string> MustBeValidDescription<T>(this IRuleBuilder<T, string> ruleBuilder)

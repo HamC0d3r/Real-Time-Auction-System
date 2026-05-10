@@ -11,6 +11,14 @@ public class CancelAuctionsOnSuspensionHandler : INotificationHandler<UserSuspen
     private readonly IUserRepository _userRepository;
     private readonly IAuctionQueries _auctionQueries;
 
+    public CancelAuctionsOnSuspensionHandler(ILogger<CancelAuctionsOnSuspensionHandler> logger, IAuctionRepository auctionRepository, INotificationRepository notificationRepo, IUserRepository userRepository, IAuctionQueries auctionQueries)
+    {
+        _logger = logger;
+        _auctionRepository = auctionRepository;
+        _notificationRepo = notificationRepo;
+        _userRepository = userRepository;
+        _auctionQueries = auctionQueries;
+    }
 
     public async Task Handle(UserSuspendedDomainEvent notification, CancellationToken ct)
     {

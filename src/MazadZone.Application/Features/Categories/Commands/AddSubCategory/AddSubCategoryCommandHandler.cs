@@ -2,7 +2,7 @@ namespace MazadZone.Application.Features.Categories.Commands.AddSubCategory;
 
 using MazadZone.Domain.Categories;
 
-internal sealed class AddSubCategoryCommandHandler : ICommandHandler<AddSubCategoryCommand, Unit>
+public sealed class AddSubCategoryCommandHandler : ICommandHandler<AddSubCategoryCommand, Unit>
 {
     private readonly ICategoryRepository _categoryRepository;
     private readonly IUnitOfWork _unitOfWork;

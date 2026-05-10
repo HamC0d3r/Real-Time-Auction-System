@@ -1,6 +1,6 @@
 namespace MazadZone.Application.Features.Categories.Queries.GetTrendingCategories;
 
-internal sealed class GetTrendingCategoriesQueryHandler : IQueryHandler<GetTrendingCategoriesQuery, IReadOnlyList<TrendingCategoryResponse>>
+public sealed class GetTrendingCategoriesQueryHandler : IQueryHandler<GetTrendingCategoriesQuery, IReadOnlyList<TrendingCategoryResponse>>
 {
     private readonly ICategoryQueries _categoryQueries;
     private readonly ILogger<GetTrendingCategoriesQueryHandler> _logger;

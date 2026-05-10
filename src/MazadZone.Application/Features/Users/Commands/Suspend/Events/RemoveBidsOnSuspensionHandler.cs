@@ -11,6 +11,15 @@ public class RemoveBidsOnSuspensionHandler : INotificationHandler<UserSuspendedD
     private readonly INotificationRepository _notificationRepo;
     private readonly ILogger<RemoveBidsOnSuspensionHandler> _logger;
 
+    public RemoveBidsOnSuspensionHandler(IAuctionRepository auctionRepository, IUserRepository userRepository, IAuctionQueries auctionQueries, INotificationRepository notificationRepo, ILogger<RemoveBidsOnSuspensionHandler> logger)
+    {
+        _auctionRepository = auctionRepository;
+        _userRepository = userRepository;
+        _auctionQueries = auctionQueries;
+        _notificationRepo = notificationRepo;
+        _logger = logger;
+    }
+
     public async Task Handle(UserSuspendedDomainEvent notification, CancellationToken ct)
     {
         var isBidder = await _userRepository.IsBidderAsync(notification.UserId, ct);
@@ -51,9 +60,3 @@ public class RemoveBidsOnSuspensionHandler : INotificationHandler<UserSuspendedD
 
     }
 }
-
-//         // 1. READ: Identify which auctions are affected before we delete the bids
-//         // We need the Auction Title, SellerId, and OTHER Bidders to notify them
-//         // 2. WRITE: Bulk delete all active bids for this user
-
-//         // 3. ORCHESTRATE: Notify the stakeholders

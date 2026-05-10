@@ -4,6 +4,7 @@ namespace MazadZone.Domain.Categories;
 public partial struct CategoryId
 {
     public static CategoryId New() => From(Guid.CreateVersion7());
+    public static CategoryId Empty => From(Guid.Empty);
 }
 
 

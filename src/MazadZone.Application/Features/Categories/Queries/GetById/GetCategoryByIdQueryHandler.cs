@@ -2,7 +2,7 @@ namespace MazadZone.Application.Features.Categories.Queries.GetById;
 
 using MazadZone.Domain.Categories;
 
-internal sealed class GetCategoryByIdQueryHandler : IQueryHandler<GetCategoryByIdQuery, CategoryResponse>
+public sealed class GetCategoryByIdQueryHandler : IQueryHandler<GetCategoryByIdQuery, CategoryResponse>
 {
     private readonly ICategoryQueries _categoryQueries;
     private readonly ILogger<GetCategoryByIdQueryHandler> _logger;

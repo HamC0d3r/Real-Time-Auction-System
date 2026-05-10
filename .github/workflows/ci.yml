@@ -30,4 +30,4 @@ jobs:
 
 
     - name: Test
-      run: dotnet test Real-Time-Auction-System.sln --no-build --verbosity normal
+      run: dotnet test Real-Time-Auction-System.sln --configuration Release --no-build --verbosity normal

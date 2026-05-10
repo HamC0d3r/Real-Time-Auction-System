@@ -2,7 +2,7 @@ namespace MazadZone.Application.Features.Categories.Commands.Restore;
 
 using MazadZone.Domain.Categories;
 
-internal sealed class RestoreCategoryCommandHandler : ICommandHandler<RestoreCategoryCommand, Unit>
+public sealed class RestoreCategoryCommandHandler : ICommandHandler<RestoreCategoryCommand, Unit>
 {
     private readonly ICategoryRepository _categoryRepository;
     private readonly IUnitOfWork _unitOfWork;
