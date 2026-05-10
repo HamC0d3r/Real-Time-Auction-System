@@ -1,6 +1,6 @@
 namespace MazadZone.Application.Features.Categories.Queries.GetRootCategories;
 
-internal sealed class GetRootCategoriesQueryHandler : IQueryHandler<GetRootCategoriesQuery, IReadOnlyList<CategoryResponse>>
+public sealed class GetRootCategoriesQueryHandler : IQueryHandler<GetRootCategoriesQuery, IReadOnlyList<CategoryResponse>>
 {
     private readonly ICategoryQueries _categoryQueries;
     private readonly ILogger<GetRootCategoriesQueryHandler> _logger;
@@ -17,6 +17,6 @@ internal sealed class GetRootCategoriesQueryHandler : IQueryHandler<GetRootCateg
         
         GetRootCategoriesLogs.LogSuccess(_logger);
         
-        return Result.Success(categories);
+        return Result.Success(categories ?? new List<CategoryResponse>().AsReadOnly());
     }
 }

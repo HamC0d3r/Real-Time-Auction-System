@@ -1,6 +1,6 @@
 namespace MazadZone.Application.Features.Categories.Queries.SearchCategories;
 
-internal sealed class SearchCategoriesQueryHandler : IQueryHandler<SearchCategoriesQuery, IReadOnlyList<CategoryResponse>>
+public sealed class SearchCategoriesQueryHandler : IQueryHandler<SearchCategoriesQuery, IReadOnlyList<CategoryResponse>>
 {
     private readonly ICategoryQueries _categoryQueries;
     private readonly ILogger<SearchCategoriesQueryHandler> _logger;
@@ -15,6 +15,6 @@ internal sealed class SearchCategoriesQueryHandler : IQueryHandler<SearchCategor
     {
         var results = await _categoryQueries.SearchByNameAsync(request.SearchTerm, ct);
         SearchCategoriesLogs.LogSuccess(_logger, request.SearchTerm);
-        return Result.Success(results);
+        return Result.Success(results ?? new List<CategoryResponse>().AsReadOnly());
     }
 }

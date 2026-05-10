@@ -3,7 +3,7 @@ using MazadZone.Domain.Categories;
 namespace MazadZone.Application.Features.Categories.Queries.GetBreadcrumbs;
 
 
-internal sealed class GetCategoryBreadcrumbsQueryHandler : IQueryHandler<GetCategoryBreadcrumbsQuery, IReadOnlyList<BreadcrumbResponse>>
+public sealed class GetCategoryBreadcrumbsQueryHandler : IQueryHandler<GetCategoryBreadcrumbsQuery, IReadOnlyList<BreadcrumbResponse>>
 {
     private readonly ICategoryQueries _categoryQueries;
     private readonly ILogger<GetCategoryBreadcrumbsQueryHandler> _logger;

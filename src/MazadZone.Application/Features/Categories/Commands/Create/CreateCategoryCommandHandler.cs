@@ -2,17 +2,17 @@ namespace MazadZone.Application.Features.Categories.Commands.Create;
 
 using MazadZone.Domain.Categories;
 
-internal sealed class CreateCategoryCommandHandler : ICommandHandler<CreateCategoryCommand, Guid>
+public sealed class CreateCategoryCommandHandler : ICommandHandler<CreateCategoryCommand, Guid>
 {
     private readonly ICategoryRepository _categoryRepository;
-    private readonly CategoryDomainService _categoryDomainService;
+    private readonly ICategoryDomainService _categoryDomainService;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<CreateCategoryCommandHandler> _logger;
 
     public CreateCategoryCommandHandler(
         ICategoryRepository categoryRepository,
         IUnitOfWork unitOfWork,
-        CategoryDomainService categoryDomainService,
+        ICategoryDomainService categoryDomainService,
         ILogger<CreateCategoryCommandHandler> logger)
     {
         _categoryRepository = categoryRepository;

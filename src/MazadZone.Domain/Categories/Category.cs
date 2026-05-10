@@ -71,7 +71,7 @@ public sealed class Category : AggregateRoot<CategoryId>, ISoftDeletable
         // Prevent a category from being its own parent
         if (newParentId is not null && newParentId == this.Id)
         {
-            return Result.Failure(CategoryErrors.SelfReference);
+            return CategoryErrors.SelfReference;
         }
 
         ParentCategoryId = newParentId;
@@ -89,7 +89,6 @@ public sealed class Category : AggregateRoot<CategoryId>, ISoftDeletable
 
         if (!wasAdded)
         {
-            // Optional: Return a specific error, or just return Success if you don't care.
             return CategoryErrors.AlreadyExists;
         }
 

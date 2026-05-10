@@ -2,16 +2,16 @@ using MazadZone.Domain.Categories;
 
 namespace MazadZone.Application.Features.Categories.Commands.MoveToParent;
 
-internal sealed class MoveToParentCommandHandler : ICommandHandler<MoveToParentCommand, Unit>
+public sealed class MoveToParentCommandHandler : ICommandHandler<MoveToParentCommand, Unit>
 {
     private readonly ICategoryRepository _categoryRepository;
-    private readonly CategoryDomainService _categoryDomainService;
+    private readonly ICategoryDomainService _categoryDomainService;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<MoveToParentCommandHandler> _logger;
 
     public MoveToParentCommandHandler(
         ICategoryRepository categoryRepository,
-        CategoryDomainService categoryDomainService,
+        ICategoryDomainService categoryDomainService,
         IUnitOfWork unitOfWork,
         ILogger<MoveToParentCommandHandler> logger)
     {

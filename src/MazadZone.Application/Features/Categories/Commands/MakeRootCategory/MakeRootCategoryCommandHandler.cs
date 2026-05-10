@@ -2,7 +2,7 @@ namespace MazadZone.Application.Features.Categories.Commands.MakeRootCategory;
 
 using MazadZone.Domain.Categories;
 
-internal sealed class MakeRootCategoryCommandHandler : ICommandHandler<MakeRootCategoryCommand, Unit>
+public sealed class MakeRootCategoryCommandHandler : ICommandHandler<MakeRootCategoryCommand, Unit>
 {
     private readonly ICategoryRepository _categoryRepository;
     private readonly IUnitOfWork _unitOfWork;

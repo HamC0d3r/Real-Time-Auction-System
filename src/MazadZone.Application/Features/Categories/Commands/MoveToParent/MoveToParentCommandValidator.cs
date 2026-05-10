@@ -6,7 +6,7 @@ public sealed class MoveToParentCommandValidator : AbstractValidator<MoveToParen
 {
     public MoveToParentCommandValidator()
     {
-        RuleFor(x => x.CategoryId).MustBeValidCategoryId("Category Id");
+        RuleFor(x => x.CategoryId).MustBeValidCategoryId();
         
         RuleFor(x => x.NewParentId)
             .NotEqual(x => x.CategoryId)

@@ -1,7 +1,7 @@
 using MazadZone.Domain.Categories;
 using MazadZone.Domain.Shared.Interfaces;
 
-public class CategoryDomainService : IScopedService
+public class CategoryDomainService : ICategoryDomainService
 {
     private readonly ICategoryRepository _categoryRepository;
 

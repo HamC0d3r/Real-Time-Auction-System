@@ -2,7 +2,7 @@ namespace MazadZone.Application.Features.Categories.Commands.Delete;
 
 using MazadZone.Domain.Categories;
 
-internal sealed class DeleteCategoryCommandHandler : ICommandHandler<DeleteCategoryCommand, Unit>
+public sealed class DeleteCategoryCommandHandler : ICommandHandler<DeleteCategoryCommand, Unit>
 {
     private readonly ICategoryRepository _categoryRepository;
     private readonly IUnitOfWork _unitOfWork;
