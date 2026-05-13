@@ -1,7 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/api";
-import type { PaginatedResult, PaginationParams } from "@/types/api.types";
-import type { Auction, AuctionSummary, AuctionFilters } from "../types/auction.types";
+
+import type {
+  AuctionSummary,
+  AuctionCategory,
+  AuctionFilters,
+} from "../types/auction.types";
+
+import {
+  fetchActiveAuctions,
+  fetchAuctionById,
+  fetchAuctionsByCategory,
+  fetchAvailableLocations,
+} from "./auctions.api";
 
 // --- Query Keys --------------------------------------------------
 
@@ -12,22 +22,28 @@ import type { Auction, AuctionSummary, AuctionFilters } from "../types/auction.t
 export const auctionKeys = {
   all: ["auctions"] as const,
   lists: () => [...auctionKeys.all, "list"] as const,
-  list: (params: PaginationParams & AuctionFilters) =>
-    [...auctionKeys.lists(), params] as const,
+  list: (filters?: AuctionFilters) =>
+    [...auctionKeys.lists(), filters ?? {}] as const,
   details: () => [...auctionKeys.all, "detail"] as const,
   detail: (id: string) => [...auctionKeys.details(), id] as const,
+  categories: () => [...auctionKeys.all, "category"] as const,
+  category: (category: AuctionCategory) =>
+    [...auctionKeys.categories(), category] as const,
+  locations: () => [...auctionKeys.all, "locations"] as const,
 };
 
 // --- Query Hooks -------------------------------------------------
 
 /**
- * Fetches a paginated list of auctions with optional filters.
+ * Fetches active auctions with optional filters and sorting.
+ *
+ * Currently backed by mock data via `fetchActiveAuctions`.
+ * When the backend is ready, only `auctions.api.ts` needs to change.
  */
-export function useGetAuctions(params: PaginationParams & AuctionFilters) {
-  return useQuery({
-    queryKey: auctionKeys.list(params),
-    queryFn: () =>
-      api.get<PaginatedResult<AuctionSummary>>("/auctions", { params }),
+export function useGetAuctions(filters?: AuctionFilters) {
+  return useQuery<AuctionSummary[]>({
+    queryKey: auctionKeys.list(filters),
+    queryFn: () => fetchActiveAuctions(filters),
   });
 }
 
@@ -35,9 +51,31 @@ export function useGetAuctions(params: PaginationParams & AuctionFilters) {
  * Fetches a single auction by its ID.
  */
 export function useGetAuctionById(id: string) {
-  return useQuery({
+  return useQuery<AuctionSummary | undefined>({
     queryKey: auctionKeys.detail(id),
-    queryFn: () => api.get<Auction>(`/auctions/${id}`),
+    queryFn: () => fetchAuctionById(id),
     enabled: !!id,
+  });
+}
+
+/**
+ * Fetches auctions by category.
+ */
+export function useGetAuctionsByCategory(category: AuctionCategory) {
+  return useQuery<AuctionSummary[]>({
+    queryKey: auctionKeys.category(category),
+    queryFn: () => fetchAuctionsByCategory(category),
+    enabled: !!category,
+  });
+}
+
+/**
+ * Fetches available location options for filter dropdowns.
+ */
+export function useGetAvailableLocations() {
+  return useQuery<string[]>({
+    queryKey: auctionKeys.locations(),
+    queryFn: fetchAvailableLocations,
+    staleTime: 5 * 60 * 1000, // locations rarely change
   });
 }

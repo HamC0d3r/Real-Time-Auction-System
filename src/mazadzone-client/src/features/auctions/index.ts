@@ -8,23 +8,44 @@
 // Components
 export { AuctionsPage } from "./components/auctions-page";
 export { AuctionCard } from "./components/AuctionCard";
+export { AuctionCardSkeleton } from "./components/AuctionCardSkeleton";
 export { CountdownTimer } from "./components/CountdownTimer";
 
-// API hooks
-export { useGetAuctions, useGetAuctionById } from "./api";
+// TanStack Query hooks
+export {
+  auctionKeys,
+  useGetAuctions,
+  useGetAuctionById,
+  useGetAuctionsByCategory,
+  useGetAvailableLocations,
+} from "./api";
+
+// Mutations
 export { useCreateAuction, useUpdateAuction } from "./api";
+
+// Async fetch functions (for prefetching or non-hook usage)
+export {
+  fetchActiveAuctions,
+  fetchAuctionById,
+  fetchAuctionsByCategory,
+  fetchAvailableLocations,
+} from "./api";
 
 // Types
 export type {
   Auction,
   AuctionSummary,
+  AuctionCardProps,
   AuctionFilters,
   CreateAuctionInput,
   UpdateAuctionInput,
 } from "./types/auction.types";
-export { AuctionStatus, AuctionCategory } from "./types/auction.types";
-
-export type { AuctionCardProps } from "./components/AuctionCard";
+export {
+  AuctionStatus,
+  AuctionCategory,
+  AuctionCondition,
+  AuctionSortBy,
+} from "./types/auction.types";
 
 // Hooks
 export { useAuctionCountdown } from "./hooks/use-auction-countdown";
