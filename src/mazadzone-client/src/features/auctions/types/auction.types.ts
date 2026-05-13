@@ -18,17 +18,36 @@ export const AuctionStatus = {
 export type AuctionStatus = (typeof AuctionStatus)[keyof typeof AuctionStatus];
 
 export const AuctionCategory = {
-  ELECTRONICS: "Electronics",
-  FASHION: "Fashion",
-  HOME: "Home",
-  VEHICLES: "Vehicles",
-  COLLECTIBLES: "Collectibles",
-  SPORTS: "Sports",
-  OTHER: "Other",
+  TECH_ELECTRONICS: "Tech and Electronics",
+  FASHION_STYLE: "Fashion and Style",
+  HOME_LIVING: "Home and Living",
+  COLLECTIBLES_ART: "Collectibles and Art",
+  HOBBIES_LEISURE: "Hobbies and Leisure",
+  MOTORS: "Motors",
 } as const;
 
 export type AuctionCategory =
   (typeof AuctionCategory)[keyof typeof AuctionCategory];
+
+export const AuctionCondition = {
+  NEW: "New",
+  LIKE_NEW: "Like New",
+  GOOD: "Good",
+  FAIR: "Fair",
+} as const;
+
+export type AuctionCondition =
+  (typeof AuctionCondition)[keyof typeof AuctionCondition];
+
+export const AuctionSortBy = {
+  ENDING_SOONEST: "ending_soonest",
+  LOWEST_PRICE: "lowest_price",
+  MOST_BIDS: "most_bids",
+  NEWEST: "newest",
+} as const;
+
+export type AuctionSortBy =
+  (typeof AuctionSortBy)[keyof typeof AuctionSortBy];
 
 // --- Domain Models -----------------------------------------------
 
@@ -39,17 +58,10 @@ export interface Auction {
   category: AuctionCategory;
   status: AuctionStatus;
   images: string[];
-
-  /** Starting price set by the seller */
   startingPrice: number;
-  /** Current highest bid amount (null if no bids yet) */
   currentBid: number | null;
-  /** Total number of bids placed */
   bidCount: number;
-
-  /** ISO date string — when the auction opens for bidding */
   startDate: string;
-  /** ISO date string — when the auction closes */
   endDate: string;
 
   seller: {
@@ -62,18 +74,44 @@ export interface Auction {
   updatedAt: string;
 }
 
-/** Summary version of Auction used in list views (fewer fields) */
+/**
+ * Summary version of Auction used in list views and card rendering.
+ * Uses nested objects for pricing and timing to keep the shape organized.
+ * This is the shape returned by the API layer and consumed by listing pages.
+ *
+ * Excludes UI-only concerns (onFavoriteClick, priority, className).
+ */
 export interface AuctionSummary {
   id: string;
   title: string;
+  imageUrl: string;
   category: AuctionCategory;
+  condition: AuctionCondition;
   status: AuctionStatus;
-  thumbnailUrl: string | null;
-  startingPrice: number;
-  currentBid: number | null;
-  bidCount: number;
-  endDate: string;
-  sellerName: string;
+
+  pricing: {
+    startingPrice: number;
+    currentBid: number | null;
+    bidCount: number;
+  };
+
+  timing: {
+    endDate: string;
+    createdAt: string;
+  };
+
+  location: string;
+  isFavorite: boolean;
+  isOwner: boolean;
+}
+
+// --- Component Props ---------------------------------------------
+
+export interface AuctionCardProps {
+  auction: AuctionSummary;
+  onFavoriteClick: (auctionId: string) => void;
+  priority?: boolean;
+  className?: string;
 }
 
 // --- Input Types -------------------------------------------------
@@ -101,7 +139,10 @@ export interface UpdateAuctionInput {
 export interface AuctionFilters {
   search?: string;
   category?: AuctionCategory;
+  condition?: AuctionCondition;
   status?: AuctionStatus;
+  location?: string;
   minPrice?: number;
   maxPrice?: number;
+  sortBy?: AuctionSortBy;
 }

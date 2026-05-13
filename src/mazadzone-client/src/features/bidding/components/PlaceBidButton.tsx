@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 
 interface PlaceBidButtonProps {
   auctionId: string;
-  sellerId: string;
+  isOwner: boolean;
   className?: string;
 }
 
@@ -17,18 +17,16 @@ interface PlaceBidButtonProps {
  * Place Bid CTA button with auth-aware routing:
  *
  * - If the user is NOT authenticated → navigate to register page
- * - If the user IS the auction owner → show "View Auction" text
+ * - If the user IS the auction owner (via prop) → show "View Auction" text
  * - Otherwise → navigate to auction detail page to place a bid
  */
 export function PlaceBidButton({
   auctionId,
-  sellerId,
+  isOwner,
   className,
 }: PlaceBidButtonProps) {
   const router = useRouter();
-  const { isAuthenticated, user } = useAuthStore();
-
-  const isOwner = isAuthenticated && user?.id === sellerId;
+  const { isAuthenticated } = useAuthStore();
 
   const handleClick = () => {
     if (!isAuthenticated) {
