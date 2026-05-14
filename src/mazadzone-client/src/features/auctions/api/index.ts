@@ -4,7 +4,6 @@ export {
   useGetAuctions,
   useGetAuctionById,
   useGetAuctionsByCategory,
-  useGetAvailableLocations,
 } from "./auction.queries";
 
 // Mutations
@@ -15,5 +14,4 @@ export {
   fetchActiveAuctions,
   fetchAuctionById,
   fetchAuctionsByCategory,
-  fetchAvailableLocations,
 } from "./auctions.api";

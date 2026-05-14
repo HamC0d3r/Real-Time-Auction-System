@@ -53,7 +53,14 @@ export async function fetchActiveAuctions(
 ): Promise<AuctionSummary[]> {
   await simulateDelay();
 
-  let results = mockAuctions.filter((a) => a.status === AuctionStatus.ACTIVE);
+  // If status filter is provided, use it. Otherwise, default to ACTIVE.
+  let results = mockAuctions;
+  
+  if (filters?.status) {
+    results = results.filter((a) => a.status === filters.status);
+  } else {
+    results = results.filter((a) => a.status === AuctionStatus.ACTIVE);
+  }
 
   if (!filters) return results;
 
@@ -69,16 +76,18 @@ export async function fetchActiveAuctions(
   if (filters.category) {
     results = results.filter((a) => a.category === filters.category);
   }
+  
+  // --- Subcategory filter
+  if (filters.subcategory) {
+    results = results.filter((a) => a.subcategory === filters.subcategory);
+  }
 
   // --- Condition filter
   if (filters.condition) {
     results = results.filter((a) => a.condition === filters.condition);
   }
 
-  // --- Location filter
-  if (filters.location) {
-    results = results.filter((a) => a.location === filters.location);
-  }
+
 
   // --- Price range (use currentBid, fallback to startingPrice)
   if (filters.minPrice != null) {
@@ -94,7 +103,7 @@ export async function fetchActiveAuctions(
 
   // --- Sorting
   if (filters.sortBy) {
-    results = sortAuctions(results, filters.sortBy);
+    results = sortAuctions(results, filters.sortBy, filters.sortDirection);
   }
 
   return results;
@@ -123,16 +132,7 @@ export async function fetchAuctionsByCategory(
   return fetchActiveAuctions({ category });
 }
 
-/**
- * Fetches all unique locations available for filtering.
- *
- * TODO: Replace with a dedicated endpoint or backend enum.
- */
-export async function fetchAvailableLocations(): Promise<string[]> {
-  await simulateDelay();
-  const locations = new Set(mockAuctions.map((a) => a.location));
-  return Array.from(locations).sort();
-}
+
 
 // ---------------------------------------------------------------------------
 // Sorting Helpers
@@ -141,6 +141,7 @@ export async function fetchAvailableLocations(): Promise<string[]> {
 function sortAuctions(
   auctions: AuctionSummary[],
   sortBy: AuctionSortBy,
+  direction: "asc" | "desc" = "desc",
 ): AuctionSummary[] {
   const sorted = [...auctions];
 
@@ -149,15 +150,22 @@ function sortAuctions(
   const getTime = (date: string) => new Date(date).getTime();
 
   const strategy: Record<AuctionSortBy, (a: AuctionSummary, b: AuctionSummary) => number> = {
-    [SortByValues.ENDING_SOONEST]: (a, b) =>
-      getTime(a.timing.endDate) - getTime(b.timing.endDate),
-    [SortByValues.LOWEST_PRICE]: (a, b) =>
+    [SortByValues.CREATION_DATE]: (a, b) =>
+      getTime(a.timing.createdAt) - getTime(b.timing.createdAt),
+    [SortByValues.PRICE]: (a, b) =>
       getPrice(a) - getPrice(b),
-    [SortByValues.MOST_BIDS]: (a, b) =>
-      b.pricing.bidCount - a.pricing.bidCount,
-    [SortByValues.NEWEST]: (a, b) =>
-      getTime(b.timing.createdAt) - getTime(a.timing.createdAt),
+    [SortByValues.START_TIME]: (a, b) =>
+      getTime(a.timing.createdAt) - getTime(b.timing.createdAt),
+    [SortByValues.START_AMOUNT]: (a, b) =>
+      a.pricing.startingPrice - b.pricing.startingPrice,
+    [SortByValues.END_TIME]: (a, b) =>
+      getTime(a.timing.endDate) - getTime(b.timing.endDate),
   };
 
-  return sorted.sort(strategy[sortBy] ?? (() => 0));
+  const comparator = strategy[sortBy] ?? (() => 0);
+
+  return sorted.sort((a, b) => {
+    const result = comparator(a, b);
+    return direction === "asc" ? result : -result;
+  });
 }

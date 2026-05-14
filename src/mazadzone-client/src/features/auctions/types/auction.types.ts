@@ -8,11 +8,9 @@
 // --- Enums -------------------------------------------------------
 
 export const AuctionStatus = {
-  DRAFT: "Draft",
-  SCHEDULED: "Scheduled",
   ACTIVE: "Active",
+  UPCOMING: "Upcoming",
   ENDED: "Ended",
-  CANCELLED: "Cancelled",
 } as const;
 
 export type AuctionStatus = (typeof AuctionStatus)[keyof typeof AuctionStatus];
@@ -29,6 +27,26 @@ export const AuctionCategory = {
 export type AuctionCategory =
   (typeof AuctionCategory)[keyof typeof AuctionCategory];
 
+export const AuctionSubcategory = {
+  // Tech
+  LAPTOPS: "Laptops",
+  SMARTPHONES: "Smartphones",
+  CAMERAS: "Cameras",
+  // Fashion
+  WATCHES: "Watches",
+  SHOES: "Shoes",
+  ACCESSORIES: "Accessories",
+  // Motors
+  CARS: "Cars",
+  MOTORCYCLES: "Motorcycles",
+  // Home
+  FURNITURE: "Furniture",
+  DECOR: "Decor",
+} as const;
+
+export type AuctionSubcategory =
+  (typeof AuctionSubcategory)[keyof typeof AuctionSubcategory];
+
 export const AuctionCondition = {
   NEW: "New",
   LIKE_NEW: "Like New",
@@ -40,10 +58,11 @@ export type AuctionCondition =
   (typeof AuctionCondition)[keyof typeof AuctionCondition];
 
 export const AuctionSortBy = {
-  ENDING_SOONEST: "ending_soonest",
-  LOWEST_PRICE: "lowest_price",
-  MOST_BIDS: "most_bids",
-  NEWEST: "newest",
+  CREATION_DATE: "CreationDate",
+  PRICE: "Price",
+  START_TIME: "StartTime",
+  START_AMOUNT: "StartAmount",
+  END_TIME: "EndTime",
 } as const;
 
 export type AuctionSortBy =
@@ -56,6 +75,7 @@ export interface Auction {
   title: string;
   description: string;
   category: AuctionCategory;
+  subcategory: AuctionSubcategory;
   status: AuctionStatus;
   images: string[];
   startingPrice: number;
@@ -86,6 +106,7 @@ export interface AuctionSummary {
   title: string;
   imageUrl: string;
   category: AuctionCategory;
+  subcategory: AuctionSubcategory;
   condition: AuctionCondition;
   status: AuctionStatus;
 
@@ -100,7 +121,6 @@ export interface AuctionSummary {
     createdAt: string;
   };
 
-  location: string;
   isFavorite: boolean;
   isOwner: boolean;
 }
@@ -139,10 +159,11 @@ export interface UpdateAuctionInput {
 export interface AuctionFilters {
   search?: string;
   category?: AuctionCategory;
+  subcategory?: AuctionSubcategory;
   condition?: AuctionCondition;
   status?: AuctionStatus;
-  location?: string;
   minPrice?: number;
   maxPrice?: number;
   sortBy?: AuctionSortBy;
+  sortDirection?: "asc" | "desc";
 }
