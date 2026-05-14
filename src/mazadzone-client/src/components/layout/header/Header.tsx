@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/config/routes.config";
 import { useAuthStore } from "@/stores/auth.store";
-import { useAuctionFilterStore } from "@/stores/auction-filter.store";
 import { DesktopHeader, DesktopBottomRow } from "./DesktopHeader";
 import { MobileHeader } from "./MobileHeader";
 
@@ -26,7 +25,6 @@ export function Header() {
   isAuthenticated = true;
   const role = "seller";
 
-  const { setCategory } = useAuctionFilterStore();
 
   // States
   const [mounted, setMounted] = useState(false);
@@ -38,9 +36,10 @@ export function Header() {
   }, []);
 
   const handleCategoryClick = (category: string) => {
-    setCategory(category);
     setIsMobileMenuOpen(false);
-    router.push(ROUTES.AUCTIONS.LIST);
+    const params = new URLSearchParams();
+    params.set("category", category);
+    router.push(`${ROUTES.AUCTIONS.LIST}?${params.toString()}`);
   };
 
   const handleSellClick = () => {

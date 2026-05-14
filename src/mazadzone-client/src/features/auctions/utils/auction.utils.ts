@@ -15,7 +15,7 @@ export function isAuctionBiddable(status: AuctionStatus): boolean {
  * Determines if an auction can be edited by its seller.
  */
 export function isAuctionEditable(status: AuctionStatus): boolean {
-  return status === AuctionStatus.DRAFT || status === AuctionStatus.SCHEDULED;
+  return status === AuctionStatus.UPCOMING;
 }
 
 /**
@@ -23,11 +23,9 @@ export function isAuctionEditable(status: AuctionStatus): boolean {
  */
 export function getAuctionStatusLabel(status: AuctionStatus): string {
   const labels: Record<AuctionStatus, string> = {
-    [AuctionStatus.DRAFT]: "Draft",
-    [AuctionStatus.SCHEDULED]: "Scheduled",
+    [AuctionStatus.UPCOMING]: "Upcoming",
     [AuctionStatus.ACTIVE]: "Live",
     [AuctionStatus.ENDED]: "Ended",
-    [AuctionStatus.CANCELLED]: "Cancelled",
   };
   return labels[status];
 }

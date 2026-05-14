@@ -10,6 +10,7 @@ export { AuctionsPage } from "./components/auctions-page";
 export { AuctionCard } from "./components/AuctionCard";
 export { AuctionCardSkeleton } from "./components/AuctionCardSkeleton";
 export { CountdownTimer } from "./components/CountdownTimer";
+export { AuctionFilterBar } from "./components/auction-filter-bar";
 
 // TanStack Query hooks
 export {
@@ -17,7 +18,6 @@ export {
   useGetAuctions,
   useGetAuctionById,
   useGetAuctionsByCategory,
-  useGetAvailableLocations,
 } from "./api";
 
 // Mutations
@@ -28,7 +28,6 @@ export {
   fetchActiveAuctions,
   fetchAuctionById,
   fetchAuctionsByCategory,
-  fetchAvailableLocations,
 } from "./api";
 
 // Types

@@ -24,7 +24,7 @@ export function AuctionCard({
   return (
     <article
       className={cn(
-        "flex min-h-[416px] w-full max-w-[311px] flex-col rounded-[12px] border border-border bg-card p-3 shadow-sm transition-shadow hover:shadow-md",
+        "flex min-h-[416px] w-full min-w-[311px] flex-col rounded-[12px] border border-border bg-card p-3 shadow-sm transition-shadow hover:shadow-md",
         className,
       )}
     >

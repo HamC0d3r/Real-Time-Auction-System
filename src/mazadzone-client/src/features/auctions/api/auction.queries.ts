@@ -10,7 +10,6 @@ import {
   fetchActiveAuctions,
   fetchAuctionById,
   fetchAuctionsByCategory,
-  fetchAvailableLocations,
 } from "./auctions.api";
 
 // --- Query Keys --------------------------------------------------
@@ -29,7 +28,6 @@ export const auctionKeys = {
   categories: () => [...auctionKeys.all, "category"] as const,
   category: (category: AuctionCategory) =>
     [...auctionKeys.categories(), category] as const,
-  locations: () => [...auctionKeys.all, "locations"] as const,
 };
 
 // --- Query Hooks -------------------------------------------------
@@ -69,13 +67,4 @@ export function useGetAuctionsByCategory(category: AuctionCategory) {
   });
 }
 
-/**
- * Fetches available location options for filter dropdowns.
- */
-export function useGetAvailableLocations() {
-  return useQuery<string[]>({
-    queryKey: auctionKeys.locations(),
-    queryFn: fetchAvailableLocations,
-    staleTime: 5 * 60 * 1000, // locations rarely change
-  });
-}
+

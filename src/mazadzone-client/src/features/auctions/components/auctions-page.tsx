@@ -1,10 +1,13 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { PageWrapper } from "@/components/layout/page-wrapper";
 import { AuctionCard } from "./AuctionCard";
 import { AuctionCardSkeleton } from "@/features/auctions/components/AuctionCardSkeleton";
+import { AuctionFilterBar } from "./auction-filter-bar";
 import { useGetAuctions } from "../api";
+import { AuctionFilters } from "../types/auction.types";
 
 /**
  * Auctions page-level component.
@@ -19,7 +22,41 @@ import { useGetAuctions } from "../api";
 export function AuctionsPage() {
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
 
-  const { data: auctions, isLoading, isError, refetch } = useGetAuctions();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const filters = useMemo<AuctionFilters>(() => {
+    const f: any = {};
+    searchParams.forEach((value, key) => {
+      if (value) {
+        const num = Number(value);
+        // Convert to number if numeric and not the 'search' field
+        if (!isNaN(num) && value.trim() !== "" && key !== "search") {
+          f[key] = num;
+        } else {
+          f[key] = value;
+        }
+      }
+    });
+    return f as AuctionFilters;
+  }, [searchParams]);
+
+  const { data: auctions, isLoading, isError, refetch } = useGetAuctions(filters);
+
+  const handleFilterChange = useCallback((newFilters: AuctionFilters) => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    Object.entries(newFilters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") {
+        params.set(key, String(value));
+      } else {
+        params.delete(key);
+      }
+    });
+
+    router.replace(`${pathname}?${params.toString()}`);
+  }, [searchParams, pathname, router]);
 
   const handleFavoriteClick = useCallback((auctionId: string) => {
     setFavorites((prev) => {
@@ -44,7 +81,11 @@ export function AuctionsPage() {
           </p>
         </div>
 
-        {/* TODO: Filter bar */}
+        {/* Filter bar */}
+        <AuctionFilterBar
+          initialFilters={filters}
+          onFilterChange={handleFilterChange}
+        />
 
         {/* Loading state */}
         {isLoading && (
@@ -88,7 +129,7 @@ export function AuctionsPage() {
           <>
             {/* Auction count */}
             <p className="text-sm text-muted-foreground">
-              Showing {auctions.length} active auctions
+              Showing {auctions.length} {filters.status?.toLowerCase() || "active"} auctions
             </p>
 
             {/* Auction grid */}

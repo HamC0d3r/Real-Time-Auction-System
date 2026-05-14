@@ -15,6 +15,7 @@ import {
   AuctionCategory,
   AuctionCondition,
   AuctionStatus,
+  AuctionSubcategory,
 } from "../types/auction.types";
 import type { AuctionSummary } from "../types/auction.types";
 
@@ -24,18 +25,29 @@ import type { AuctionSummary } from "../types/auction.types";
 
 const FAKER_SEED = 123;
 
-const JORDANIAN_LOCATIONS = [
-  "Amman",
-  "Irbid",
-  "Zarqa",
-  "Aqaba",
-  "Salt",
-  "Madaba",
-  "Karak",
-] as const;
 
 const AUCTION_CATEGORY_VALUES = Object.values(AuctionCategory);
 const AUCTION_CONDITION_VALUES = Object.values(AuctionCondition);
+const AUCTION_SUBCATEGORY_VALUES = Object.values(AuctionSubcategory);
+
+// Mapping categories to their valid subcategories for realistic mock data
+const CATEGORY_TO_SUBCATEGORIES: Record<string, AuctionSubcategory[]> = {
+  [AuctionCategory.TECH_ELECTRONICS]: [AuctionSubcategory.LAPTOPS, AuctionSubcategory.SMARTPHONES, AuctionSubcategory.CAMERAS],
+  [AuctionCategory.FASHION_STYLE]: [AuctionSubcategory.WATCHES, AuctionSubcategory.SHOES, AuctionSubcategory.ACCESSORIES],
+  [AuctionCategory.MOTORS]: [AuctionSubcategory.CARS, AuctionSubcategory.MOTORCYCLES],
+  [AuctionCategory.HOME_LIVING]: [AuctionSubcategory.FURNITURE, AuctionSubcategory.DECOR],
+  [AuctionCategory.COLLECTIBLES_ART]: [AuctionSubcategory.DECOR], // fallback
+  [AuctionCategory.HOBBIES_LEISURE]: [AuctionSubcategory.ACCESSORIES], // fallback
+};
+
+const CATEGORY_IMAGE_KEYWORDS: Record<string, string> = {
+  [AuctionCategory.TECH_ELECTRONICS]: "gadget,technology,laptop",
+  [AuctionCategory.FASHION_STYLE]: "fashion,watch,clothing",
+  [AuctionCategory.HOME_LIVING]: "interior,furniture,decor",
+  [AuctionCategory.COLLECTIBLES_ART]: "art,painting,antique",
+  [AuctionCategory.HOBBIES_LEISURE]: "hobby,instrument,sports",
+  [AuctionCategory.MOTORS]: "car,motorcycle,vehicle",
+};
 
 /**
  * Realistic product title templates keyed by category.
@@ -180,20 +192,19 @@ export function createMockAuctions(count: number = 100): AuctionSummary[] {
 
   for (let i = 0; i < count; i++) {
     const category = faker.helpers.arrayElement(AUCTION_CATEGORY_VALUES);
+    const subcategories = CATEGORY_TO_SUBCATEGORIES[category] || [AuctionSubcategory.ACCESSORIES];
+    const subcategory = faker.helpers.arrayElement(subcategories);
     const condition = faker.helpers.arrayElement(AUCTION_CONDITION_VALUES);
-    const location = faker.helpers.arrayElement([...JORDANIAN_LOCATIONS]);
 
-    // --- Status: ~75% Active, ~10% Ended, ~10% Scheduled/Draft, ~5% Cancelled
+    // --- Status: ~75% Active, ~15% Upcoming, ~10% Ended
     const statusRoll = faker.number.int({ min: 1, max: 100 });
     let status: AuctionStatus;
     if (statusRoll <= 75) {
       status = AuctionStatus.ACTIVE;
-    } else if (statusRoll <= 85) {
-      status = AuctionStatus.ENDED;
-    } else if (statusRoll <= 95) {
-      status = AuctionStatus.SCHEDULED;
+    } else if (statusRoll <= 90) {
+      status = AuctionStatus.UPCOMING;
     } else {
-      status = AuctionStatus.CANCELLED;
+      status = AuctionStatus.ENDED;
     }
 
     // --- Pricing
@@ -230,8 +241,8 @@ export function createMockAuctions(count: number = 100): AuctionSummary[] {
       const hoursFromNow = faker.number.int({ min: 1, max: 336 }); // 336 = 14 days
       endDate = new Date(now.getTime() + hoursFromNow * 60 * 60 * 1000);
     } else {
-      // Scheduled/Draft/Cancelled — 7 to 30 days from now
-      endDate = new Date(now.getTime() + faker.number.int({ min: 7, max: 30 }) * 24 * 60 * 60 * 1000);
+      // Upcoming — 1 to 7 days from now
+      endDate = new Date(now.getTime() + faker.number.int({ min: 1, max: 7 }) * 24 * 60 * 60 * 1000);
     }
 
     // --- Created at: 1-60 days ago
@@ -240,8 +251,9 @@ export function createMockAuctions(count: number = 100): AuctionSummary[] {
     auctions.push({
       id: `auction-${String(i + 1).padStart(3, "0")}`,
       title: generateTitle(category),
-      imageUrl: `https://picsum.photos/seed/auction-${i + 1}/600/400`,
+      imageUrl: `https://loremflickr.com/600/400/${CATEGORY_IMAGE_KEYWORDS[category].split(',')[0]}?lock=${i + 1}`,
       category,
+      subcategory,
       condition,
       status,
       pricing: {
@@ -253,7 +265,6 @@ export function createMockAuctions(count: number = 100): AuctionSummary[] {
         endDate: endDate.toISOString(),
         createdAt: createdAt.toISOString(),
       },
-      location,
       isFavorite: faker.datatype.boolean({ probability: 0.15 }),
       isOwner: false,
     });
