@@ -11,7 +11,7 @@ using MazadZone.Api.Contracts.Notifications;
 using MazadZone.Domain.Notifications;
 using MazadZone.Api.Extensions;
 
-namespace MazadZone.Api.Endpoints;
+namespace MazadZone.Api.Endpoints.Notifications;
 
 public static class NotificationEndpoints
 {

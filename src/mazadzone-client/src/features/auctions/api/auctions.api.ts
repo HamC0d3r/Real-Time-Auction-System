@@ -1,0 +1,202 @@
+/**
+ * Auction API fetch functions.
+ *
+ * These async functions are the data layer consumed by TanStack Query hooks.
+ * Currently backed by local mock data from `../testing/mock-auctions.ts`.
+ *
+ * When the ASP.NET backend is ready, swap the mock imports for real
+ * `api.get()` calls — the hooks and components stay unchanged.
+ *
+ * @example Future backend swap:
+ * ```ts
+ * export async function fetchActiveAuctions(filters?: AuctionFilters) {
+ *   const { data } = await api.get<AuctionSummary[]>("/auctions", { params: filters });
+ *   return data;
+ * }
+ * ```
+ */
+
+import type {
+  AuctionSummary,
+  AuctionCategory,
+  AuctionFilters,
+  AuctionSortBy,
+  PaginatedResponse,
+} from "../types/auction.types";
+import { AuctionStatus, AuctionSortBy as SortByValues } from "../types/auction.types";
+
+import {
+  mockAuctions,
+  getMockAuctionById,
+} from "../testing/mock-auctions";
+
+// ---------------------------------------------------------------------------
+// Simulated network delay (remove when switching to real API)
+// ---------------------------------------------------------------------------
+
+const MOCK_DELAY_MS = 400;
+
+function simulateDelay(): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
+}
+
+// ---------------------------------------------------------------------------
+// Fetch Functions (consumed by TanStack Query hooks)
+// ---------------------------------------------------------------------------
+
+/**
+ * Fetches active auctions, optionally filtered and sorted.
+ * 
+ * Returns a paginated response.
+ */
+export async function fetchActiveAuctions(
+  filters?: AuctionFilters,
+): Promise<PaginatedResponse<AuctionSummary>> {
+  await simulateDelay();
+
+  const page = filters?.page || 1;
+  const pageSize = filters?.pageSize || 12;
+
+  // If status filter is provided, use it. Otherwise, default to ACTIVE.
+  let results = mockAuctions;
+  
+  if (filters?.status) {
+    results = results.filter((a) => a.status === filters.status);
+  } else {
+    results = results.filter((a) => a.status === AuctionStatus.ACTIVE);
+  }
+
+  if (filters) {
+    // --- Text search
+    if (filters.search) {
+      const query = filters.search.toLowerCase();
+      results = results.filter((a) =>
+        a.title.toLowerCase().includes(query),
+      );
+    }
+
+    // --- Category filter
+    if (filters.category) {
+      results = results.filter((a) => a.category === filters.category);
+    }
+    
+    // --- Subcategory filter
+    if (filters.subcategory) {
+      results = results.filter((a) => a.subcategory === filters.subcategory);
+    }
+
+    // --- Condition filter
+    if (filters.condition) {
+      results = results.filter((a) => a.condition === filters.condition);
+    }
+
+    // --- Price range (use currentBid, fallback to startingPrice)
+    if (filters.minPrice != null) {
+      results = results.filter(
+        (a) => (a.pricing.currentBid ?? a.pricing.startingPrice) >= filters.minPrice!,
+      );
+    }
+    if (filters.maxPrice != null) {
+      results = results.filter(
+        (a) => (a.pricing.currentBid ?? a.pricing.startingPrice) <= filters.maxPrice!,
+      );
+    }
+
+    // --- Sorting
+    if (filters.sortBy) {
+      results = sortAuctions(results, filters.sortBy, filters.sortDirection);
+    }
+  }
+
+  // --- Pagination
+  const totalCount = results.length;
+  const totalPages = Math.ceil(totalCount / pageSize);
+  const startIndex = (page - 1) * pageSize;
+  const paginatedItems = results.slice(startIndex, startIndex + pageSize);
+
+  return {
+    items: paginatedItems,
+    totalCount,
+    page,
+    pageSize,
+    totalPages,
+    hasNextPage: page < totalPages,
+    hasPreviousPage: page > 1,
+  };
+}
+
+/**
+ * Fetches a single auction by ID.
+ *
+ * TODO: Replace with: `api.get<AuctionSummary>(`/auctions/${id}`)`
+ */
+export async function fetchAuctionById(
+  id: string,
+): Promise<AuctionSummary | undefined> {
+  await simulateDelay();
+  return getMockAuctionById(id);
+}
+
+/**
+ * Fetches auctions matching the given category (active only).
+ *
+ * TODO: Replace with: `api.get<AuctionSummary[]>("/auctions", { params: { category } })`
+ */
+export async function fetchAuctionsByCategory(
+  category: AuctionCategory,
+): Promise<PaginatedResponse<AuctionSummary>> {
+  return fetchActiveAuctions({ category });
+}
+
+/**
+ * Fetches auctions that are ending soonest.
+ */
+export async function fetchClosingSoonAuctions(
+  limit: number = 4,
+): Promise<AuctionSummary[]> {
+  const response = await fetchActiveAuctions({
+    status: AuctionStatus.ACTIVE,
+    sortBy: SortByValues.END_TIME,
+    sortDirection: "asc",
+    pageSize: limit,
+  });
+  return response.items;
+}
+
+
+
+// ---------------------------------------------------------------------------
+// Sorting Helpers
+// ---------------------------------------------------------------------------
+
+function sortAuctions(
+  auctions: AuctionSummary[],
+  sortBy: AuctionSortBy,
+  direction: "asc" | "desc" = "desc",
+): AuctionSummary[] {
+  const sorted = [...auctions];
+
+  const getPrice = (a: AuctionSummary) =>
+    a.pricing.currentBid ?? a.pricing.startingPrice;
+  const getTime = (date: string) => new Date(date).getTime();
+
+  const strategy: Record<AuctionSortBy, (a: AuctionSummary, b: AuctionSummary) => number> = {
+    [SortByValues.CREATION_DATE]: (a, b) =>
+      getTime(a.timing.createdAt) - getTime(b.timing.createdAt),
+    [SortByValues.PRICE]: (a, b) =>
+      getPrice(a) - getPrice(b),
+    [SortByValues.START_TIME]: (a, b) =>
+      getTime(a.timing.createdAt) - getTime(b.timing.createdAt),
+    [SortByValues.START_AMOUNT]: (a, b) =>
+      a.pricing.startingPrice - b.pricing.startingPrice,
+    [SortByValues.END_TIME]: (a, b) =>
+      getTime(a.timing.endDate) - getTime(b.timing.endDate),
+  };
+
+  const comparator = strategy[sortBy] ?? (() => 0);
+
+  return sorted.sort((a, b) => {
+    const result = comparator(a, b);
+    return direction === "asc" ? result : -result;
+  });
+}

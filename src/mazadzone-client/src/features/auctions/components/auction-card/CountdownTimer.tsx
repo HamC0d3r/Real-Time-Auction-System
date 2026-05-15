@@ -2,7 +2,7 @@
 
 import { Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useAuctionCountdown } from "../hooks/use-auction-countdown";
+import { useAuctionCountdown } from "../../hooks/use-auction-countdown";
 
 interface CountdownTimerProps {
   /** ISO date string of when the auction ends */
@@ -104,7 +104,7 @@ export function CountdownTimer({ endDate, className }: CountdownTimerProps) {
 
       <div
         className={cn(
-          "flex h-[58px] w-[275px] items-center justify-center rounded-[10px] mx-auto bg-creamey",
+          "flex h-[58px] max-w-[275px] items-center justify-center rounded-[10px] mx-auto bg-creamey",
           isUrgent && "ring-2 ring-destructive/30",
         )}
         role="timer"

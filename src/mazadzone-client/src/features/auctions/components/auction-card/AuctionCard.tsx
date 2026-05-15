@@ -9,40 +9,22 @@ import { ROUTES } from "@/config/routes.config";
 import { formatCurrency } from "@/utils/currency.utils";
 import { CountdownTimer } from "./CountdownTimer";
 import { PlaceBidButton } from "@/features/bidding";
-
-export interface AuctionCardProps {
-  id: string;
-  sellerId: string;
-  title: string;
-  imageUrl: string;
-  currentBid: number;
-  bidCount: number;
-  endDate: string;
-  isFavorite: boolean;
-  onFavoriteClick: (auctionId: string) => void;
-  priority?: boolean;
-  className?: string;
-}
+import type { AuctionCardProps } from "../../types/auction.types";
 
 export function AuctionCard({
-  id,
-  sellerId,
-  title,
-  imageUrl,
-  currentBid,
-  bidCount,
-  endDate,
-  isFavorite,
+  auction,
   onFavoriteClick,
   priority = false,
   className,
 }: AuctionCardProps) {
+  const { id, title, imageUrl, pricing, timing, isFavorite, isOwner } = auction;
+  const displayPrice = pricing.currentBid ?? pricing.startingPrice;
   const auctionDetailsHref = ROUTES.AUCTIONS.DETAIL(id);
 
   return (
     <article
       className={cn(
-        "flex min-h-[416px] w-full max-w-[311px] flex-col rounded-[12px] border border-border bg-card p-3 shadow-sm transition-shadow hover:shadow-md",
+        "flex min-h-[416px] w-full min-w-[311px] flex-col rounded-[12px] border border-border bg-card p-3 shadow-sm transition-shadow hover:shadow-md",
         className,
       )}
     >
@@ -90,52 +72,54 @@ export function AuctionCard({
         </h3>
       </Link>
 
-      <div className="mt-2">
-        <CountdownTimer endDate={endDate} />
-      </div>
-
-      <div className="my-2.5 h-px w-full bg-border" aria-hidden="true" />
-
-      <div className="flex items-start justify-between">
-        <div className="flex flex-col">
-          <div className="flex items-center gap-1">
-            <CircleDollarSign
-              className="size-3.5 text-muted-foreground"
-              aria-hidden="true"
-            />
-            <span className="text-xs font-semibold text-foreground">
-              Current Bid:
-            </span>
-          </div>
-
-          <span className="text-lg font-bold text-primary">
-            {formatCurrency(currentBid)}
-          </span>
-        </div>
-
-        <div className="flex flex-col items-end gap-0.5">
-          <div className="flex items-center gap-1">
-            <Users
-              className="size-3.5 text-muted-foreground"
-              aria-hidden="true"
-            />
-            <span className="text-xs font-bold text-foreground">
-              {bidCount} {bidCount === 1 ? "BID" : "BIDS"}
-            </span>
-          </div>
-
-          <Link
-            href={auctionDetailsHref}
-            className="text-xs font-medium text-primary transition-colors hover:text-primary/80 hover:underline"
-          >
-            View Bidders &rsaquo;
-          </Link>
-        </div>
-      </div>
-
       <div className="mt-auto pt-3">
-        <PlaceBidButton auctionId={id} sellerId={sellerId} />
+        <div className="mt-2">
+          <CountdownTimer endDate={timing.endDate} />
+        </div>
+
+
+        <div className="my-2.5 h-px w-full bg-border" aria-hidden="true" />
+
+        <div className="flex items-start justify-between">
+          <div className="flex flex-col">
+            <div className="flex items-center gap-1">
+              <CircleDollarSign
+                className="size-3.5 text-muted-foreground"
+                aria-hidden="true"
+              />
+              <span className="text-xs font-semibold text-foreground">
+                Current Bid:
+              </span>
+            </div>
+
+            <span className="text-lg font-bold text-primary">
+              {formatCurrency(displayPrice)}
+            </span>
+          </div>
+
+          <div className="flex flex-col items-end gap-0.5">
+            <div className="flex items-center gap-1">
+              <Users
+                className="size-3.5 text-muted-foreground"
+                aria-hidden="true"
+              />
+              <span className="text-xs font-bold text-foreground">
+                {pricing.bidCount} {pricing.bidCount === 1 ? "BID" : "BIDS"}
+              </span>
+            </div>
+
+            <Link
+              href={auctionDetailsHref}
+              className="text-xs font-medium text-primary transition-colors hover:text-primary/80 hover:underline"
+            >
+              View Bidders &rsaquo;
+            </Link>
+          </div>
+        </div>
+
+
+        <PlaceBidButton auctionId={id} isOwner={isOwner} />
       </div>
-    </article>
+    </article >
   );
 }

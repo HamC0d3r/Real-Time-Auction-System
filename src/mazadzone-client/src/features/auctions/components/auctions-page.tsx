@@ -1,8 +1,13 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useCallback, useMemo } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { PageWrapper } from "@/components/layout/page-wrapper";
-import { AuctionCard } from "./AuctionCard";
+import { AuctionCard, AuctionCardSkeleton } from "./auction-card";
+import { AuctionFilterBar } from "./auction-filter-bar";
+import { AuctionPagination } from "./auction-pagination";
+import { useGetAuctions } from "../api";
+import { AuctionFilters } from "../types/auction.types";
 
 /**
  * Auctions page-level component.
@@ -10,13 +15,76 @@ import { AuctionCard } from "./AuctionCard";
  * This is the main entry point rendered by `app/(main)/auctions/page.tsx`.
  * It owns the page layout, data fetching orchestration, and feature composition.
  *
- * TODO: Wire up useGetAuctions, filters, and AuctionCard grid.
+ * Uses TanStack Query (`useGetAuctions`) for server state management.
+ * The query is backed by mock data during development and will seamlessly
+ * switch to real API calls when the backend is ready.
  */
 export function AuctionsPage() {
-  const [isFavorite, setIsFavorite] = useState(false);
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
 
-  // Stable demo date: 2 days from May 9th, 2026
-  const demoEndDate = "2026-05-11T12:00:00Z";
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const filters = useMemo<AuctionFilters>(() => {
+    const f: any = {};
+    searchParams.forEach((value, key) => {
+      if (value) {
+        const num = Number(value);
+        // Convert to number if numeric and not the 'search' field
+        if (!isNaN(num) && value.trim() !== "" && key !== "search") {
+          f[key] = num;
+        } else {
+          f[key] = value;
+        }
+      }
+    });
+    // Ensure page is at least 1
+    if (!f.page) f.page = 1;
+    if (!f.pageSize) f.pageSize = 12;
+    return f as AuctionFilters;
+  }, [searchParams]);
+
+  const { data: response, isLoading, isError, refetch } = useGetAuctions(filters);
+  const auctions = response?.items;
+  const pagination = response;
+
+  const handleFilterChange = useCallback((newFilters: AuctionFilters) => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    Object.entries(newFilters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") {
+        params.set(key, String(value));
+      } else {
+        params.delete(key);
+      }
+    });
+
+    // Reset to page 1 when filters change (unless only page changed)
+    if (newFilters.page === undefined) {
+      params.set("page", "1");
+    }
+
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [searchParams, pathname, router]);
+
+  const handlePageChange = useCallback((page: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", String(page));
+    router.replace(`${pathname}?${params.toString()}`);
+  }, [searchParams, pathname, router]);
+
+  const handleFavoriteClick = useCallback((auctionId: string) => {
+    setFavorites((prev) => {
+      const next = new Set(prev);
+      if (next.has(auctionId)) {
+        next.delete(auctionId);
+      } else {
+        next.add(auctionId);
+      }
+      return next;
+    });
+  }, []);
 
   return (
     <PageWrapper>
@@ -29,22 +97,85 @@ export function AuctionsPage() {
           </p>
         </div>
 
-        {/* TODO: Filter bar */}
+        {/* Filter bar */}
+        <AuctionFilterBar
+          initialFilters={filters}
+          onFilterChange={handleFilterChange}
+        />
 
-        {/* Demo: AuctionCard with Luxury watch 2020 data */}
-        <div className="flex flex-wrap gap-6">
-          <AuctionCard
-            id="auction-001"
-            sellerId="seller-xyz"
-            title="Luxury watch 2020"
-            imageUrl="/mock-images/auctions/auction_num_1.jpg"
-            currentBid={38500}
-            bidCount={25}
-            endDate={demoEndDate}
-            isFavorite={isFavorite}
-            onFavoriteClick={() => setIsFavorite((prev) => !prev)}
-          />
-        </div>
+        {/* Loading state */}
+        {isLoading && (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <AuctionCardSkeleton key={i} />
+            ))}
+          </div>
+        )}
+
+        {/* Error state */}
+        {isError && (
+          <div className="flex flex-col items-center justify-center gap-4 py-16">
+            <p className="text-lg font-medium text-destructive">
+              Failed to load auctions
+            </p>
+            <button
+              type="button"
+              onClick={() => refetch()}
+              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              Try Again
+            </button>
+          </div>
+        )}
+
+        {/* Empty state */}
+        {!isLoading && !isError && auctions?.length === 0 && (
+          <div className="flex flex-col items-center justify-center gap-2 py-16">
+            <p className="text-lg font-medium text-muted-foreground">
+              No auctions found
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Check back later for new listings
+            </p>
+          </div>
+        )}
+
+        {/* Success state */}
+        {!isLoading && !isError && auctions && auctions.length > 0 && (
+          <>
+            {/* Auction count */}
+            <p className="text-sm text-muted-foreground">
+              Showing {auctions.length} {filters.status?.toLowerCase() || "active"} auctions
+            </p>
+
+            {/* Auction grid */}
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {auctions.map((auction, index) => (
+                <AuctionCard
+                  key={auction.id}
+                  auction={{
+                    ...auction,
+                    isFavorite: favorites.has(auction.id),
+                  }}
+                  onFavoriteClick={handleFavoriteClick}
+                  priority={index < 4}
+                />
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {pagination && (
+              <AuctionPagination
+                currentPage={pagination.page}
+                totalPages={pagination.totalPages}
+                onPageChange={handlePageChange}
+                hasPreviousPage={pagination.hasPreviousPage}
+                hasNextPage={pagination.hasNextPage}
+                className="mt-12 mb-8"
+              />
+            )}
+          </>
+        )}
       </div>
     </PageWrapper>
   );
