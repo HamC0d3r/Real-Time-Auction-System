@@ -1,6 +1,7 @@
 
 using MazadZone.Api.Endpoints;
 using MazadZone.Api.Endpoints.Bidders;
+using MazadZone.Api.Endpoints.Notifications;
 using MazadZone.Api.Middlewares;
 using Serilog;
 

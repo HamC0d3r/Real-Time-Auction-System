@@ -1,8 +1,8 @@
 namespace MazadZone.Infrastructure.Persistence.Extensions;
 
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using MazadZone.Domain.Entities.Users;
 using MazadZone.Domain.Shared;
+using MazadZone.Domain.Shared.ValueObjects;
 
 public static class ValueObjectConfigurationExtensions
 {

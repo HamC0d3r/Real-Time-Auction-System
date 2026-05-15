@@ -1,8 +1,8 @@
 using MazadZone.Application.Features.Bidders.DTOs;
 using MazadZone.Domain.Auctions;
-using MazadZone.Domain.Entities.Users;
 using AutoMapper;
 using MazadZone.Application.Features.Orders.Commands.Create;
+using MazadZone.Domain.Shared.ValueObjects;
 
 namespace MazadZone.Api.Endpoints.Orders;
 

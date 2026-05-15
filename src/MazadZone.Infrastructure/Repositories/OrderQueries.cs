@@ -5,6 +5,7 @@ using MazadZone.Application.Features.Orders.Queries.DTOs;
 using MazadZone.Application.Services;
 using MazadZone.Domain.Auctions;
 using MazadZone.Domain.Orders;
+using MzadZone.Domain.Payments;
 using Polly;
 
 namespace MazadZone.Infrastructure.Repositories;
@@ -224,5 +225,15 @@ public class OrderQueries : ResilientRepository , IOrderQueries
 
         // Provide a safe fallback if the table is completely empty
         return stats ?? AdminGlobalStatsDto.Empty;
+    }
+
+    public Task<Payment?> GetPaymentByOrderIdAsync(OrderId orderId, CancellationToken ct = default)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<AuctionId> GetAuctionIdByOrderIdAsync(OrderId orderId, CancellationToken ct = default)
+    {
+        throw new NotImplementedException();
     }
 }
