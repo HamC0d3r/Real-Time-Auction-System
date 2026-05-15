@@ -13,15 +13,17 @@ public static class AuctionErrorCodes
     public const string DepositTooLow = "Auction.DepositTooLow";
     public const string ItemNotLoaded = "Auction.ItemNotLoaded";
 
-public const string MinBidTooLow = "Auction.MinBidTooLow";
+    public const string MinBidTooLow = "Auction.MinBidTooLow";
     public const string StartBidTooLow = "Auction.StartBidTooLow";
 
 
     // Application-level errors related to auction operations can be added here as needed
     public const string NotFound = "Auction.NotFound";
 
-public const string Forbidden = "Auction.Forbidden";
+    public const string Forbidden = "Auction.Forbidden";
     public const string CannotRelistActive = "Auction.CannotRelistActive";
+
+    public const string PaymentAuthorizationFailed = "Auction.PaymentAuthorizationFailed";
 
 }
 
@@ -66,7 +68,7 @@ public static class AuctionErrors
                 "The associated Item must be loaded from the database to modify its images."
             );
 
-public static readonly Error MinBidTooLow = Error.Validation(
+    public static readonly Error MinBidTooLow = Error.Validation(
         AuctionErrorCodes.MinBidTooLow,
         "The minimum bid increment must be greater than zero."
     );
@@ -81,7 +83,7 @@ public static readonly Error MinBidTooLow = Error.Validation(
         "The specified auction was not found."
     );
 
-// Use Forbidden (403) for ownership violations
+    // Use Forbidden (403) for ownership violations
     public static readonly Error Forbidden = Error.Forbidden(
         AuctionErrorCodes.Forbidden,
         "You do not have permission to modify or relist this auction."
@@ -93,6 +95,9 @@ public static readonly Error MinBidTooLow = Error.Validation(
         "An active auction cannot be relisted. It must be ended or cancelled first."
     );
 
-public static Error PlaceBidFailed =>
-        Error.Conflict(AuctionErrorCodes.BidTooLow, "Place bid failed."); // 
+    public static Error PlaceBidFailed =>
+        Error.Conflict(AuctionErrorCodes.BidTooLow, "Place bid failed."); 
+    
+    public static Error PaymentAuthorizationFailed =>
+        Error.Conflict(AuctionErrorCodes.PaymentAuthorizationFailed, "Payment authorization for the bid deposit failed."); 
 }

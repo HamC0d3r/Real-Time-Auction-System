@@ -1,4 +1,5 @@
 
+using System.Runtime;
 using MazadZone.Domain.Auctions.Events;
 using MazadZone.Domain.Auctions.ValueObjects;
 using MazadZone.Domain.Sellers;
@@ -59,20 +60,31 @@ public sealed class Auction : AggregateRoot<AuctionId>, IAuditableEntity
 
     // --- Calculated Properties ---
     public Bid? CurrentLeadingBid => _bids.FirstOrDefault(b => b.Status == BidStatus.Leading);
-
     public Money CurrentHighestBidAmount => CurrentLeadingBid?.Amount ?? StartBidAmount;
 
     public Money MinNextBidAmount => CurrentHighestBidAmount + MinBidAmount;
 
-    public TimeSpan RemainderTime => EndTime > DateTime.UtcNow ? EndTime - DateTime.UtcNow : TimeSpan.Zero;
+    public int TotalBids => _bids.Count;
 
+    public bool HasBids => _bids.Any();
+
+    
+
+    public TimeSpan GetRemainderTime(DateTime utcNow) =>
+        EndTime > utcNow
+            ? EndTime - utcNow
+            : TimeSpan.Zero;
     // Both the Status must be Active AND the current time must fall within the boundaries
-    public bool IsActive => Status == AuctionStatus.Active && DateTime.UtcNow >= StartTime && DateTime.UtcNow < EndTime;
+    public bool IsActive(DateTime utcNow) =>
+        Status == AuctionStatus.Active &&
+        utcNow >= StartTime &&
+        utcNow < EndTime;
+    public bool IsEnded => Status == AuctionStatus.Ended;
 
-    public bool IsEnded => Status == AuctionStatus.Ended || DateTime.UtcNow >= EndTime;
-
-    public bool IsPending => Status == AuctionStatus.Pending || StartTime > DateTime.UtcNow;
-
+    public bool IsPending(DateTime utcNow) =>
+        Status == AuctionStatus.Pending &&
+        utcNow < StartTime;
+        
     // --- Factory Method ---
     public static Result<Auction> Create(
         ItemId itemId,
@@ -106,9 +118,10 @@ public sealed class Auction : AggregateRoot<AuctionId>, IAuditableEntity
 
     // --- Operations (State Machine) ---
 
-    public Result SetAsActive()
+    public Result MarkAsActive(DateTime utcNow)
     {
-        if (IsPending) return AuctionErrors.CannotStart;
+        if (!IsPending(utcNow))
+            return AuctionErrors.CannotStart;
 
         Status = AuctionStatus.Active;
 
@@ -117,19 +130,23 @@ public sealed class Auction : AggregateRoot<AuctionId>, IAuditableEntity
         return Result.Success();
     }
 
-    public Result SetAsEnded()
+    public Result MarkAsEnded(DateTime utcNow)
     {
-        if (!IsActive) return AuctionErrors.CannotEnd;
+        if (!IsActive(utcNow))
+            return AuctionErrors.CannotEnd;
 
         Status = AuctionStatus.Ended;
+
         RaiseDomainEvent(new AuctionEndedDomainEvent(Id));
 
         return Result.Success();
     }
 
-    public Result SetAsCancelled()
+    public Result MarkAsCancelled(DateTime utcNow)
     {
-        if (IsPending) return AuctionErrors.CannotCancel;
+        if (Status == AuctionStatus.Cancelled) return AuctionErrors.AlreadyCancelled;
+
+        if (IsPending(utcNow)) return AuctionErrors.CannotCancel;
 
         Status = AuctionStatus.Cancelled;
         RaiseDomainEvent(new AuctionCancelledDomainEvent(Id));
@@ -137,7 +154,7 @@ public sealed class Auction : AggregateRoot<AuctionId>, IAuditableEntity
         return Result.Success();
     }
 
-    public Result SetAsCancelledByAdmin()
+    public Result MarkAsCancelledByAdmin()
     {
         if (Status == AuctionStatus.Cancelled) return AuctionErrors.AlreadyCancelled;
 
@@ -150,10 +167,15 @@ public sealed class Auction : AggregateRoot<AuctionId>, IAuditableEntity
 
     // --- Detail Modification ---
 
-    public Result Update(decimal startBid, decimal minBid, DateTime startTime, DateTime endTime)
-    {
+        public Result Update(
+            decimal startBid,
+            decimal minBid,
+            DateTime startTime,
+            DateTime endTime,
+            DateTime utcNow)    
+        {
         // Business Rule: You can only update details BEFORE the auction starts
-        if (!IsPending) return AuctionErrors.CannotUpdateActive;
+        if (!IsPending(utcNow)) return AuctionErrors.CannotUpdateActive;
 
         if (startTime >= endTime) return AuctionErrors.InvalidTimeFrame;
 
@@ -172,42 +194,71 @@ public sealed class Auction : AggregateRoot<AuctionId>, IAuditableEntity
     }
 
     // --- Bidding Logic ---
-
-    public Result<Bid> PlaceBid(BidderId bidderId, decimal amount)
+    public Result<Bid> CheckPlaceBid(
+    BidderId bidderId,
+    Money amount,
+    DateTime utcNow)
     {
+        if (!IsActive(utcNow)) 
+            return AuctionErrors.AlreadyEnded;
 
-        if (!IsActive) return AuctionErrors.AlreadyEnded;
-
-        var amountResult = Money.Create(amount, Currency.Jod);
-        if (amountResult.IsFailure) return BidErrors.InvalidAmount;
+        var amountResult = Money.Create(amount.Amount, Currency.Jod);
+        
+        if (amountResult.IsFailure) return 
+            BidErrors.InvalidAmount;
         
 
-        var depositAmountResult = Money.Create(amount * AuctionConstants.BidDepositPercentage, Currency.Jod);
-        if (depositAmountResult.IsFailure) return AuctionErrors.DepositTooLow;
+        var depositAmountResult = Money.Create(amount.Amount * AuctionConstants.BidDepositPercentage, 
+                            Currency.Jod);
+        
+        if (depositAmountResult.IsFailure) 
+            return AuctionErrors.DepositTooLow;
 
         // Business Rule: Deposit must meet the minimum requirement
         // Business Rule: Bid must meet the minimum next bid threshold
-        if (amountResult.Value < MinNextBidAmount) return AuctionErrors.BidTooLow;
+        if (amountResult.Value < MinNextBidAmount) 
+            return AuctionErrors.BidTooLow;
+        
+        // Create and add the new bid
+        var newBid = Bid.Create(this.Id, bidderId, amount, depositAmountResult.Value, null);
+        
 
-        // Mark the old leading bid as Outbid
+        return Result.Success(newBid);
+    }
+
+    public Result<Bid> PlaceVerifiedBid(
+    Bid newBid,
+    string authId,
+    DateTime utcNow)
+    {
+        if (!IsActive(utcNow)) 
+            return AuctionErrors.AlreadyEnded;
+        
         var previousLeadingBid = CurrentLeadingBid;
-        if (previousLeadingBid is not null)
-        {
-            var outbidResult = previousLeadingBid.SetAsOutbid();
-            if (outbidResult.IsFailure) return outbidResult.TopError;
 
-            RaiseDomainEvent(new BidderOutbidDomainEvent(Id, previousLeadingBid.Id));
+        if (CurrentLeadingBid is not null)
+        {
+            CurrentLeadingBid.MarkAsOutbid();
         }
 
-        // Create and add the new bid
-        var newBid = Bid.Create(this.Id, bidderId, amountResult.Value, depositAmountResult.Value);
         _bids.Add(newBid);
+
+        newBid.MarkAsLeading();
+
+        if (previousLeadingBid is not null)
+        {
+            RaiseDomainEvent(
+                new BidderOutbidDomainEvent(
+                    Id,
+                    previousLeadingBid.Id,
+                    previousLeadingBid.BidderId,
+                    previousLeadingBid.Amount));
+        }        
 
         RaiseDomainEvent(new BidPlacedDomainEvent(Id, newBid.Id));
 
         return newBid;
     }
-
 
 
 }

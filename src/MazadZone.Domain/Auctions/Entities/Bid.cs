@@ -12,12 +12,15 @@ public sealed class Bid : Entity<BidId>
         AuctionId auctionId,
         BidderId bidderId,
         Money amount,
-        Money depositAmount) : base(id)
+        Money depositAmount,
+        string gatewayAuthHoldId
+        ) : base(id)
     {
         AuctionId = auctionId;
         BidderId = bidderId;
         Amount = amount;
         DepositAmount = depositAmount;
+        GatewayAuthHoldId = gatewayAuthHoldId;
         Status = BidStatus.Leading; // A new valid bid is always the leading bid initially
         PlacedAtUtc = DateTime.UtcNow;
     }
@@ -30,6 +33,7 @@ public sealed class Bid : Entity<BidId>
     public Money DepositAmount { get; private init; }
     public BidStatus Status { get; private set; }
     public DateTime PlacedAtUtc { get; private init; }
+    public string GatewayAuthHoldId { get; private init; } // Store the payment gateway's authorization hold ID for the deposit
 
     // --- Factory Method ---
     // INTERNAL: Only the Auction can create a bid.
@@ -37,19 +41,27 @@ public sealed class Bid : Entity<BidId>
         AuctionId auctionId, 
         BidderId bidderId, 
         Money amount, 
-        Money depositAmount)
+        Money depositAmount,
+        string? gatewayAuthHoldId)
     {
-        return new Bid(BidId.New(), auctionId, bidderId, amount, depositAmount);
+        return new Bid(BidId.New(), auctionId, bidderId, amount, depositAmount , gatewayAuthHoldId);
     }
 
     // --- Operations ---
     // INTERNAL: Only the Auction can change the status.
 
-    internal Result SetAsOutbid()
+    internal Result MarkAsOutbid()
     {
         if (Status != BidStatus.Leading) return BidErrors.NotLeading;
 
         Status = BidStatus.Outbid;
+        return Result.Success();
+    }
+
+    internal Result MarkAsLeading()
+    {
+        Status = BidStatus.Leading;
+        
         return Result.Success();
     }
 
