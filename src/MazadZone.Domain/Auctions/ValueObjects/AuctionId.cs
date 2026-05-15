@@ -4,4 +4,5 @@ namespace MazadZone.Domain.Auctions;
 public partial struct AuctionId
 {
     public static AuctionId New() => From(Guid.CreateVersion7());
+    public static AuctionId Empty => From(Guid.Empty);
 }

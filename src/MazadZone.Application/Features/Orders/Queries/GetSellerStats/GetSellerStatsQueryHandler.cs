@@ -18,10 +18,13 @@ public class GetSellerStatsQueryHandler
         _logger = logger;
     }
 
-    async Task<Result<SellerOrderStatsDto>> IRequestHandler<GetSellerStatsQuery, Result<SellerOrderStatsDto>>.Handle(GetSellerStatsQuery request, CancellationToken cancellationToken)
+    public async Task<Result<SellerOrderStatsDto>> Handle(GetSellerStatsQuery request, CancellationToken cancellationToken)
     {
         GetSellerStatsLog.LogCalculating(_logger, request.SellerId.Value);
 
-        return await _orderQueries.GetSellerStatsAsync(request.SellerId, cancellationToken);
+        var result = await _orderQueries.GetSellerStatsAsync(request.SellerId, cancellationToken);
+        if (result is null) return SellerOrderStatsDto.Empty;
+
+        return result;
     }
 }

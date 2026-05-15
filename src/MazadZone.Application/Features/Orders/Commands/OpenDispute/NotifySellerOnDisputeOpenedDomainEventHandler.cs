@@ -1,7 +1,5 @@
-using MazadZone.Domain.Entities.Orders;
 using MazadZone.Domain.Orders.Events;
 using MazadZone.Domain.Repositories;
-using MediatR;
 
 namespace MazadZone.Application.Features.Orders.Commands.OpenDispute;
 

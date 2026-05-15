@@ -249,5 +249,26 @@ public class User : AggregateRoot<UserId>, IAuditableEntity
         _hashedRefreshTokens.RemoveAll(t => t.IsExpired && t.ExpiresAt < DateTime.UtcNow.AddDays(-30));
     }
 
+    public void AddRole(UserRole role)
+    {
+        if (Roles.Contains(role)) return;
+
+        Roles.Add(role);
+    }
+
+    public void AddSellerRole()
+    {
+        if (Roles.Contains(UserRole.Seller)) return;
+
+        Roles.Add(UserRole.Seller);
+    }
+
+    public void RemoveRole(UserRole role)
+    {
+        if (!Roles.Contains(role)) return;
+
+        Roles.Remove(role);
+    }
+
 
 }

@@ -6,7 +6,7 @@ public sealed record Rating
 
     public static Result<Rating> Create(int value)
     {
-        if (value < 1 || value > 5)
+        if (value < OrderConstants.MinRating || value > OrderConstants.MaxRating)
             return OrderErrors.FeedbackInvalidRating;
 
         return new Rating(value);

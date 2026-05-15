@@ -34,7 +34,7 @@ public sealed class DisputeConfiguration : IEntityTypeConfiguration<Dispute>
         builder.Property(d => d.Resolution)
             .IsRequired(false) 
             .HasColumnName("Resolution")
-            .HasMaxLength(Resolution.MaxLength) 
+            .HasMaxLength(OrderConstants.MaxResolutionLength) 
             .HasConversion(
                 resolution => resolution == null ? null : resolution.Value,
                 value => value == null ? null : Resolution.Create(value).Value); 

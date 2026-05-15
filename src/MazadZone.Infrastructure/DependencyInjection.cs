@@ -1,6 +1,5 @@
 using MazadZone.Application.Common.Interfaces;
 using MazadZone.Application.Services;
-using MazadZone.Domain.Entities.Orders;
 using MazadZone.Domain.Repositories;
 using MazadZone.Domain.Shared.Interfaces;
 using MazadZone.Infrastructure.Configuration;
@@ -11,6 +10,7 @@ using MazadZone.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Polly;
 
 namespace MazadZone.Infrastructure;

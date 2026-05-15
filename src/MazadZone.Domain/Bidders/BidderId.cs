@@ -5,6 +5,7 @@ public partial struct BidderId
 {
     public static BidderId New() => From(Guid.CreateVersion7());
     public static BidderId Load(Guid existingId) => From(existingId);
+    public static BidderId Empty => From(Guid.Empty);
 }
 
 

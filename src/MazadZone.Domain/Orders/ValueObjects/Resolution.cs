@@ -2,8 +2,6 @@ namespace MazadZone.Domain.Orders;
 
 public sealed record Resolution
 {
-    public const int MaxLength = 1000;
-    public const int MinLength = 10;
 
     public string Value { get; init; }
 
@@ -22,9 +20,9 @@ public sealed record Resolution
 
         var sanitizedText = resolutionText.Trim();
 
-        if (sanitizedText.Length < MinLength) return ResolutionErrors.TooShort;
+        if (sanitizedText.Length < OrderConstants.MinResolutionLength) return ResolutionErrors.TooShort;
 
-        if (sanitizedText.Length > MaxLength) return ResolutionErrors.TooLong;
+        if (sanitizedText.Length > OrderConstants.MaxResolutionLength) return ResolutionErrors.TooLong;
 
         return new Resolution(sanitizedText);
     }

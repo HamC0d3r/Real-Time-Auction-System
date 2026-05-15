@@ -1,4 +1,4 @@
-using MazadZone.Application.Features.Orders.Commands.ConfirmOrder;
+using MazadZone.Application.Features.Orders.Commands.Confirm;
 using MazadZone.Domain.Orders;
 
 namespace MazadZone.Api.Endpoints.Orders;

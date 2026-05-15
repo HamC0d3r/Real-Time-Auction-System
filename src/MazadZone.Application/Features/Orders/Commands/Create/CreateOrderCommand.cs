@@ -1,3 +1,4 @@
+using MazadZone.Application.Features.Bidders.DTOs;
 using MazadZone.Domain.Auctions;
 using MazadZone.Domain.Entities.Users;
 
@@ -7,6 +8,6 @@ public record CreateOrderCommand(
     AuctionId AuctionId,
     BidderId BidderId,
     BidId WinningBidId,
-    Address ReceiptAddressId,
+    AddressDto ReceiptAddress,
     decimal Amount,
     string DepositCaptureTransactionId) : ICommand<OrderId>;

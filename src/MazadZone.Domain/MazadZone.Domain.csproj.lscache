@@ -21,7 +21,7 @@ ProjectAssetsFile=<PATH>obj/project.assets.json
 RootNamespace=MazadZone.Domain
 RunAnalyzers=
 RunAnalyzersDuringLiveAnalysis=
-SolutionPath=*Undefined*
+SolutionPath=<PATH>../../Real-Time-Auction-System.sln
 TargetFrameworkIdentifier=.NETCoreApp
 TargetPath=<PATH>bin/Debug/net9.0/MazadZone.Domain.dll
 TargetRefPath=<PATH>obj/Debug/net9.0/ref/MazadZone.Domain.dll
@@ -43,8 +43,8 @@ TemporaryDependencyNodeTargetIdentifier=net9.0
 /debug:portable
 /filealign:512
 /optimize-
-/out:obj\Debug\net9.0\MazadZone.Domain.dll
-/refout:obj\Debug\net9.0\refint\MazadZone.Domain.dll
+/out:obj/Debug/net9.0/MazadZone.Domain.dll
+/refout:obj/Debug/net9.0/refint/MazadZone.Domain.dll
 /target:library
 /warnaserror-
 /utf8output
@@ -56,14 +56,13 @@ TemporaryDependencyNodeTargetIdentifier=net9.0
 Auctions/
  Auction.cs
  AuctionConstants.cs
- AuctionErrors.cs
- AuctionId.cs
- AuctionStatus.cs
- Bid.cs
- BidderId.cs
- BidErrors.cs
- BidId.cs
- BidStatus.cs
+ Entities/Bid.cs
+ Enums/
+  AuctionStatus.cs
+  BidStatus.cs
+ Errors/
+  AuctionErrors.cs
+  BidErrors.cs
  Events/
   AuctionCancelledDomainEvent.cs
   AuctionCreatedDomainEvent.cs
@@ -71,45 +70,93 @@ Auctions/
   AuctionStartedDomainEvent.cs
   BidderOutbidDomainEvent.cs
   BidPlacedDomainEvent.cs
+ ValueObjects/
+  AuctionId.cs
+  BidId.cs
+Bidders/
+ Bidder.cs
+ BidderErrors.cs
+ BidderId.cs
+ BidderPolicies.cs
+ Events/
+  BidderAddressUpdatedDomainEvent.cs
+  BidderExceededUnpaidLimitDomainEvent.cs
+  BidderFailedToPayDomainEvent.cs
+  BidderProfileCompletedDomainEvent.cs
+Categories/
+ Category.cs
+ CategoryConstainst.cs
+ CategoryDomainService.cs
+ CategoryErrors.cs
+ CategoryId.cs
+ ICategoryDomainService.cs
+ ICategoryRepository.cs
+GlobalUsings.cs
+Items/
  Image.cs
  Item.cs
  ItemErrors.cs
  ItemId.cs
-Categories/
- Category.cs
- CategoryId.cs
-Financials/
- Payment.cs
- PaymentId.cs
- PaymentStatus.cs
- PaymentType.cs
- Transaction.cs
- TransactionId.cs
- TransactionStatus.cs
- TransactionType.cs
-GlobalUsings.cs
+Notifications/
+ Errors/NotificationErrors.cs
+ Notification.cs
+ NotificationConstraints.cs
+ ValueObjects/NotificationId.cs
 obj/Debug/net9.0/
  .NETCoreApp,Version=v9.0.AssemblyAttributes.cs
  MazadZone.Domain.AssemblyInfo.cs
  MazadZone.Domain.GlobalUsings.g.cs
-Orders/
+Orders/Entities/
  Dispute.cs
- DisputeId.cs
- DisputeStatus.cs
+ DisputeConsts.cs
  Feedback.cs
- FeedbackErrors.cs
- FeedbackId.cs
+Orders/
+ Enums/DisputeStatus.cs
+ Errors/
+  DisputeErrors.cs
+  FeedbackErrors.cs
+  OrderErrors.cs
+  OrderStatus.cs
+ Events/
+  DisputeOpenedDomainEvent.cs
+  DisputeResolvedDomainEvent.cs
+  FeedbackLeftDomainEvent.cs
+  FeedbackRepliedDomainEvent.cs
+  OrderCancelledDomainEvent.cs
+  OrderConfirmedDomainEvent.cs
+  OrderCreatedDomainEvent.cs
+  OrderDeliveredDomainEvent.cs
+  OrderShippedDomainEvent.cs
  Order.cs
  OrderConstants.cs
- OrderErrors.cs
- OrderId.cs
- OrderStatus.cs
- Rating.cs
- Reason.cs
+ ValueObjects/
+  Comment.cs
+  DisputeId.cs
+  FeedbackId.cs
+  OrderId.cs
+  Rating.cs
+  Resolution.cs
+Payments/Entities/
+ Transaction.cs
+ TransactionStatus.cs
+ TransactionType.cs
+Payments/
+ Enums/PaymentStatus.cs
+ Errors/PaymentErrors.cs
+ Events/
+  PaymentAuthorizedDomainEvent.cs
+  PaymentCompletedDomainEvent.cs
+  PaymentCreatedDomainEvent.cs
+  PaymentFailedDomainEvent.cs
+ Payment.cs
+ ValueObjects/
+  PaymentId.cs
+  TransactionId.cs
 Primitives/
  Entity.cs
  IAuditableEntity.cs
  IDomainEvent.cs
+ IHasDomainEvents.cs
  ISoftDeletable.cs
  Results/
   AggregateRoot.cs
@@ -119,26 +166,73 @@ Primitives/
   ResultT.cs
 Repositories/
  IAuctionRepository.cs
+ IBidderRepository.cs
+ IGenericRepository.cs
  IItemRepository.cs
+ INotificationRepository.cs
  IOrderRepository.cs
+ ISellerRepository.cs
  IUnitOfWork.cs
-Shared/
- Errors/MoneyErrors.cs
- ValueObjects/
-  Currency.cs
-  Money.cs
-Users/
- Address.cs
- AddressId.cs
- Member.cs
- Notifications/
-  Notification.cs
-  NotificationId.cs
+ IUserRepository.cs
+Sellers/Events/
+ SellerCreatedDomainEvent.cs
+ SellerRatingUpdatedDomainEvent.cs
+ SellerVerifiedDomainEvent.cs
+Sellers/
+ Seller.cs
+ SellerConstants.cs
+ SellerErrors.cs
  SellerId.cs
- UserId.cs
+Shared/Errors/
+ AddressErrors.cs
+ DescriptionErrors.cs
+ MoneyErrors.cs
+ NameErrors.cs
+ ReasonErrors.cs
+Shared/Interfaces/
+ IScopedService.cs
+ ISingletonService.cs
+ ITransientService.cs
+ IVerifiableEntity.cs
+Shared/
+ SharedConstainst.cs
+ ValueObjects/
+  Address.cs
+  Currency.cs
+  Description.cs
+  Money.cs
+  Name.cs
+  Reason.cs
+Users/Enums/
+ UserRole.cs
+ UserStatus.cs
+Users/Errors/
+ EmailErrors.cs
+ FullNameErrors.cs
+ PhoneNumberErrors.cs
+ UserErrors.cs
+ UserNameErrors.cs
+Users/Events/
+ UserActivatedDomainEvent.cs
+ UserBannedDomainEvent.cs
+ UserEmailChangedDomainEvent.cs
+ UserPasswordChangedDomainEvent.cs
+ UserSuspendedDomainEvent.cs
+Users/
+ HashedRefreshToken.cs
+ User.cs
+ UserConstants.cs
+ UserPolicies.cs
+ ValueObjects/
+  Email.cs
+  FullName.cs
+  HashedRefreshTokenId.cs
+  PasswordHash.cs
+  PhoneNumber.cs
+  UserId.cs
 
 [metadataReferences]
-<DOTNET>/packs/Microsoft.NETCore.App.Ref/9.0.15/ref/net9.0/
+../../../../../usr/lib/dotnet/packs/Microsoft.NETCore.App.Ref/9.0.8/ref/net9.0/
  Microsoft.CSharp.dll
  Microsoft.VisualBasic.Core.dll
  Microsoft.VisualBasic.dll
@@ -303,19 +397,29 @@ Users/
  System.Xml.XPath.dll
  System.Xml.XPath.XDocument.dll
  WindowsBase.dll
+<NUGET>/
+ mediatr.contracts/2.0.1/lib/netstandard2.0/MediatR.Contracts.dll
+ vogen/8.0.5/lib/net9.0/Vogen.SharedTypes.dll
 
 [analyzerReferences]
-<DOTNET>/packs/Microsoft.NETCore.App.Ref/9.0.15/analyzers/dotnet/cs/
+../../../../../usr/lib/dotnet/packs/Microsoft.NETCore.App.Ref/9.0.8/analyzers/dotnet/cs/
  Microsoft.Interop.ComInterfaceGenerator.dll
  Microsoft.Interop.JavaScript.JSImportGenerator.dll
  Microsoft.Interop.LibraryImportGenerator.dll
  Microsoft.Interop.SourceGeneration.dll
  System.Text.Json.SourceGeneration.dll
  System.Text.RegularExpressions.Generator.dll
-<DOTNET>/sdk/9.0.313/Sdks/Microsoft.NET.Sdk/analyzers/
+../../../../../usr/lib/dotnet/sdk/9.0.109/Sdks/Microsoft.NET.Sdk/analyzers/
  Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll
  Microsoft.CodeAnalysis.NetAnalyzers.dll
+<NUGET>/vogen/8.0.5/analyzers/dotnet/
+ cs/Vogen.SharedTypes.dll
+ roslyn4.12/cs/
+  Vogen.CodeFixers.dll
+  Vogen.dll
 
 [analyzerConfigFiles]
-<DOTNET>/sdk/9.0.313/Sdks/Microsoft.NET.Sdk/analyzers/build/config/analysislevel_9_default.globalconfig
+../../
+ ../../../usr/lib/dotnet/sdk/9.0.109/Sdks/Microsoft.NET.Sdk/analyzers/build/config/analysislevel_9_default.globalconfig
+ .editorconfig
 obj/Debug/net9.0/MazadZone.Domain.GeneratedMSBuildEditorConfig.editorconfig

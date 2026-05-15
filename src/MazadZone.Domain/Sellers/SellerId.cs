@@ -5,4 +5,5 @@ public partial struct SellerId
 {
     public static SellerId New() => From(Guid.CreateVersion7());
     public static SellerId Load(Guid existingId) => From(existingId);
+    public static SellerId Empty => From(Guid.Empty);
 }
