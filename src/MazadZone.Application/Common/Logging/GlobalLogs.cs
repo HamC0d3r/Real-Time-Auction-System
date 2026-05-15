@@ -1,5 +1,6 @@
 using MazadZone.Domain.Auctions;
 using MazadZone.Domain.Categories;
+using MazadZone.Domain.Sellers;
 using MazadZone.Domain.Users.ValueObjects;
 
 public static partial class GlobalLogs

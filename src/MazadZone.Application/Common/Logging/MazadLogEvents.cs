@@ -107,10 +107,13 @@ public static partial class MazadLogEvents
         public const int CancelDomainViolation = 3011;
         public const int CancelSuccess = 3012;
 
+        public const int OrderNotFound = 3013;
+
         // ConfirmOrder: 3020 - 3029
         public const int ConfirmAttempt = 3020;
         public const int ConfirmDomainViolation = 3021;
         public const int ConfirmSuccess = 3022;
+
 
         // CreateOrder: 3030 - 3039
         public const int CreateAttempt = 3030;
@@ -153,6 +156,77 @@ public static partial class MazadLogEvents
         // SearchOrders: 3085
         public const int SearchingOrders = 3085;
 
+        
+
+    }
+
+    public static class Payments
+    {
+        // Record authorization hold: 3100 - 3102
+        public const int RecordAttempt = 3100;
+        public const int RecordSuccess = 3101;
+        public const int RecordFailure = 3102;
+
+        // Capture authorized hold: 3110 - 3113
+        public const int CaptureHoldAttempt = 3110;
+        public const int CaptureHoldSuccess = 3111;
+        public const int CaptureHoldFailure = 3112;
+        public const int CaptureHoldGatewayFailure = 3113;
+
+        // Capture remaining amount: 3120 - 3123
+        public const int CaptureRemainingAttempt = 3120;
+        public const int CaptureRemainingSuccess = 3121;
+        public const int CaptureRemainingFailure = 3122;
+        public const int CaptureRemainingGatewayFailure = 3123;
+
+        // General payment logs
+        public const int PaymentNotFound = 3124;
+
+        // Unauthorize outbid payments: 3130 - 3132
+        public const int UnauthorizeAttempt = 3130;
+        public const int UnauthorizeSuccess = 3131;
+        public const int UnauthorizeFailure = 3132;
+    }
+
+    public static class Auctions
+    {
+        public const int PlaceBidAttempt = 4100;
+        public const int PlaceBidAuctionNotFound = 4101;
+        public const int PlaceBidDomainViolation = 4102;
+        public const int PlaceBidPaymentAuthorizationFailed = 4103;
+        public const int PlaceBidPersistenceFailed = 4104;
+        public const int PlaceBidSuccess = 4105;
+
+        public const int CreateAuctionAttempt = 4106;
+        public const int CreateAuctionDomainViolation = 4107;
+        public const int CreateAuctionSuccess = 4108;
+
+        public const int ActivateAuctionAttempt = 4109;
+        public const int ActivateAuctionNotFound = 4110;
+        public const int ActivateAuctionSuccess = 4111;
+        public const int ActivateAuctionDomainViolation = 4112;
+
+        public const int CancelAuctionAttempt = 4113;
+        public const int CancelAuctionNotFound = 4114;
+        public const int CancelAuctionSuccess = 4115;
+        public const int CancelAuctionDomainViolation = 4116;
+
+        public const int CancelAuctionByAdminAttempt = 4117;
+        public const int CancelAuctionByAdminNotFound = 4118;
+        public const int CancelAuctionByAdminSuccess = 4119;
+        public const int CancelAuctionByAdminDomainViolation = 4120;
+
+        public const int EndAuctionAttempt = 4121;
+        public const int EndAuctionNotFound = 4122;
+        public const int EndAuctionSuccess = 4123;
+        public const int EndAuctionDomainViolation = 4124;
+
+        public const int GetAuctionByIdAttempt = 4125;
+        public const int GetAuctionByIdNotFound = 4126;
+
+        public const int GetAuctionsAttempt = 4127;
+        public const int GetAuctionsNoResults = 4128;
+        public const int GetAuctionsSuccess = 4129;
     }
 
     public static class Categories
