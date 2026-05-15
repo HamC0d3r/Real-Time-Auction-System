@@ -1,7 +1,9 @@
+using System.Text.RegularExpressions;
 using MazadZone.Domain.Payments.Enums;
 using MazadZone.Domain.Payments.Errors;
 using MazadZone.Domain.Payments.Events;
 using MazadZone.Domain.Payments.ValueObjects;
+using MazadZone.Domain.Shared.Errors;
 using MazadZone.Domain.Users.ValueObjects;
 using MzadZone.Domain.Payments.Entities;
 
@@ -14,23 +16,30 @@ public sealed class Payment : AggregateRoot<PaymentId>
     private Payment() { }
 
     private Payment(
-        PaymentId id, OrderId orderId, UserId userId, Money amount) 
+        PaymentId id, OrderId orderId, UserId userId, Money? capturedHoldedAmount, Money? capturedRemainingAmount = null) 
         : base(id)
     {
         OrderId = orderId;
         UserId = userId;
-        Amount = amount;
+        CapturedHoldedAmount = capturedHoldedAmount;
+        CapturedRemainingAmount = capturedRemainingAmount;
         Status = PaymentStatus.Pending;
         CreatedAtUtc = DateTime.UtcNow;
     }
 
     public OrderId OrderId { get; private init; }
     public UserId UserId { get; private init; }
-    public Money Amount { get; private init; }
+    public Money? CapturedHoldedAmount { get; private set; }
+    public Money? CapturedRemainingAmount {get; private set; }
     public PaymentStatus Status { get; private set; }
-    
     public DateTime CreatedAtUtc { get; private init; }
     public DateTime? CompletedAtUtc { get; private set; }
+    public DateTime? CapturedAuthHoldAtUtc { get; private set; }
+
+    // --- Calculated Properties ---
+    public Money TotalCapturedAmount => (CapturedHoldedAmount ?? Money.Zero()) + (CapturedRemainingAmount ?? Money.Zero());
+
+
     
     // Encapsulate the collection
     public IReadOnlyCollection<Transaction> Transactions => _transactions.AsReadOnly();
@@ -48,14 +57,36 @@ public sealed class Payment : AggregateRoot<PaymentId>
         return Result.Success(payment);
     }
 
+    public Result AddCapturedRemainingAmount(Money amount)
+    {
+        if (amount <= Money.Zero())
+            return Result.Failure<Payment>(MoneyErrors.AmountTooLow);
+
+        if (CapturedRemainingAmount is not null)
+            return Result.Failure<Payment>(PaymentErrors.RemainingAmountCaptureFailed);
+        
+        
+        this.CapturedRemainingAmount = amount;
+
+        RaiseDomainEvent(new PaymentAmountUpdatedDomainEvent(this.Id, this.OrderId));
+        return Result.Success();
+    }
+
     // Records the intent to execute a transaction
     public Result RecordTransactionAttempt(string gatewayIntentId, TransactionType transactionType)
     {
-        if (Status == PaymentStatus.Completed || Status == PaymentStatus.Refunded)
+        if (Status == PaymentStatus.Completed 
+            || Status == PaymentStatus.Refunded)
+        {
             return Result.Failure(PaymentErrors.AlreadyProcessed(Status));
+        }
 
-        if (_transactions.Any(t => t.GatewayIntentId == gatewayIntentId))
+        if (_transactions.Any(t =>
+            t.GatewayIntentId == gatewayIntentId &&
+            t.Type == transactionType))
+        {
             return Result.Failure(PaymentErrors.DuplicateTransaction);
+        }
 
         var transactionResult =  Transaction.Create(this.Id, gatewayIntentId, transactionType);
         if (transactionResult.IsFailure) return transactionResult.TopError;
@@ -98,20 +129,30 @@ public sealed class Payment : AggregateRoot<PaymentId>
     //              - If there's a successful authorization but no capture, the payment is authorized. 
     private void EvaluatePaymentStatus()
     {
-        bool hasSuccessfulCapture = _transactions.Any(t => t.Type == TransactionType.Capture && t.Status == TransactionStatus.Success);
+        bool hasSuccessfulRemaningAmountCapture = _transactions.Any(t => t.Type == TransactionType.RemainingAmountCapture && t.Status == TransactionStatus.Success);
+        bool hasSuccessfulCapture = _transactions.Any(t => t.Type == TransactionType.DepositCaptured && t.Status == TransactionStatus.Success);
         bool hasSuccessfulAuth = _transactions.Any(t => t.Type == TransactionType.AuthorizationHold && t.Status == TransactionStatus.Success);
         
-        if (hasSuccessfulCapture && Status != PaymentStatus.Completed)
+        if (hasSuccessfulRemaningAmountCapture && Status != PaymentStatus.Completed && hasSuccessfulCapture)
         {
             Status = PaymentStatus.Completed;
             CompletedAtUtc = DateTime.UtcNow;
             RaiseDomainEvent(new PaymentCompletedDomainEvent(this.Id, this.OrderId));
         }
+        
+        else if (hasSuccessfulCapture && Status != PaymentStatus.Completed && Status != PaymentStatus.AuthorizedAmountCaptured)
+        {
+            Status = PaymentStatus.AuthorizedAmountCaptured;
+            CapturedAuthHoldAtUtc = DateTime.UtcNow;
+            RaiseDomainEvent(new PaymentAuthHoldedCapturedDomainEvent(this.Id, this.OrderId));
+        }
+
         else if (hasSuccessfulAuth && Status == PaymentStatus.Pending)
         {
             Status = PaymentStatus.Authorized;
             RaiseDomainEvent(new PaymentAuthorizedDomainEvent(this.Id, this.OrderId));
         }
+        
         else if (_transactions.All(t => t.Status == TransactionStatus.Failed))
         {
              Status = PaymentStatus.Failed;
