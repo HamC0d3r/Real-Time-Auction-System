@@ -7,6 +7,7 @@
 
 // Components
 export { AuctionsPage } from "./components/auctions-page";
+export { AuctionDetailPage } from "./components/auction-detail";
 export { AuctionCard, AuctionCardSkeleton, CountdownTimer } from "./components/auction-card";
 export { AuctionFilterBar } from "./components/auction-filter-bar";
 export { ClosingSoonSection, HomeHero } from "./components/Home-Sections";
@@ -16,6 +17,7 @@ export {
   auctionKeys,
   useGetAuctions,
   useGetAuctionById,
+  useGetBidHistory,
   useGetAuctionsByCategory,
   useGetClosingSoonAuctions,
 } from "./api";
@@ -35,6 +37,8 @@ export {
 export type {
   Auction,
   AuctionSummary,
+  BidHistoryEntry,
+  Seller,
   AuctionCardProps,
   AuctionFilters,
   CreateAuctionInput,
