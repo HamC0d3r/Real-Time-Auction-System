@@ -4,6 +4,8 @@ import { ROUTES } from "@/config/routes.config";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CATEGORIES } from "./header.constants";
+import { NotificationPopover, useGetUnreadCount } from "@/features/notifications";
+import { useAuthStore } from "@/stores/auth.store";
 
 export interface MobileHeaderProps {
   isSearchOpen: boolean;
@@ -30,10 +32,16 @@ export const MobileHeader = ({
   handleSellClick,
   logout,
 }: MobileHeaderProps) => {
+  const user = useAuthStore((state) => state.user);
+  const { data: unreadCount = 0 } = useGetUnreadCount(user?.id || "", { enabled: isAuthenticated });
+
   return (
     <>
       {/* Mobile Search Toggle */}
       <div className="md:hidden flex items-center gap-2 ml-auto mr-4">
+        {isAuthenticated && mounted && (
+          <NotificationPopover unreadCount={unreadCount} className="mr-2" />
+        )}
         <button
           onClick={() => setIsSearchOpen(!isSearchOpen)}
           className="p-2 hover:text-primary transition-colors"

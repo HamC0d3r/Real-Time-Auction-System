@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { CATEGORIES } from "./header.constants";
 import type { AuthUser } from "@/stores/auth.store";
+import { NotificationPopover, useGetUnreadCount } from "@/features/notifications";
+import { useAuthStore } from "@/stores/auth.store";
 
 export interface DesktopHeaderProps {
   isAuthenticated: boolean;
@@ -33,6 +35,10 @@ export const DesktopHeader = ({
   handleSellClick,
   isSeller,
 }: DesktopHeaderProps) => {
+  const user = useAuthStore((state) => state.user);
+  const { data: unreadCount = 0 } = useGetUnreadCount(user?.id || "", { enabled: isAuthenticated });
+
+
   return (
     <>
       {/* Desktop Search Bar (Part of Top Row) */}
@@ -75,15 +81,10 @@ export const DesktopHeader = ({
                   My Orders
                 </Link>
 
-                <div className="relative flex items-center gap-2 cursor-pointer hover:text-primary transition-colors">
-                  <div className="relative">
-                    <Bell className="h-7 w-7" />
-                    <Badge className="absolute -top-1.5 -right-1.5 h-4 w-4 flex items-center justify-center p-0 rounded-full bg-primary text-white text-[10px] border-none">
-                      2
-                    </Badge>
-                  </div>
-                  <span className="hidden lg:inline text-xl font-medium">Notifications</span>
-                </div>
+                <NotificationPopover unreadCount={unreadCount} />
+
+
+
 
                 <DropdownMenu>
                   <DropdownMenuTrigger className="flex items-center gap-1 hover:text-primary transition-colors outline-none">
