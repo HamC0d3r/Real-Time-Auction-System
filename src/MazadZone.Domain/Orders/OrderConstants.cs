@@ -1,8 +1,12 @@
+using System.ComponentModel.Design.Serialization;
+
 namespace MazadZone.Domain.Orders;
 
 public static class OrderConstants
 {
     public const int MaxCommentLength = 2000;
+    public const int MinResolutionLength = 2;
+    public const int MaxResolutionLength = 1000;
     public const int MinRating = 1;
     public const int MaxRating = 5;
         public const int MaxTransactionIdLength = 100;

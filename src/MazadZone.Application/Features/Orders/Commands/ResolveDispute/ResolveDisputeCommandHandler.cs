@@ -1,4 +1,4 @@
-using MazadZone.Domain.Entities.Orders;
+using MazadZone.Domain.Repositories;
 
 namespace MazadZone.Application.Features.Orders.Commands.ResolveDispute;
 

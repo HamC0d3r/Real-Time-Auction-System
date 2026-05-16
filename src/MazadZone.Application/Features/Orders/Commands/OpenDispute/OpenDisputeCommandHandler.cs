@@ -1,5 +1,4 @@
-using MazadZone.Application.Common.Logging;
-using MazadZone.Domain.Entities.Orders;
+using MazadZone.Domain.Repositories;
 
 namespace MazadZone.Application.Features.Orders.Commands.OpenDispute;
 
@@ -28,7 +27,6 @@ public class OpenDisputeCommandHandler : ICommandHandler<OpenDisputeCommand, Uni
         if (order is null) 
         {
             GlobalLogs.LogOrderNotFound(_logger, request.OrderId);
-            _logger.LogOrderNotFound(request.OrderId);
             return OrderErrors.NotFound;
         }
 

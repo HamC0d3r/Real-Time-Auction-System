@@ -1,5 +1,5 @@
-using MazadZone.Domain.Entities.Orders;
 using MazadZone.Application.Features.Orders.Commands.CreateOrder;
+using MazadZone.Domain.Repositories;
 
 namespace MazadZone.Application.Features.Orders.Commands.Create;
 
@@ -23,7 +23,6 @@ public class CreateOrderCommandHandler : ICommandHandler<CreateOrderCommand, Ord
     {
         CreateOrderLogs.LogAttempt(_logger, request.WinningBidId);
 
-
         var orderResult = _CreateOrder(request);
 
         if (orderResult.IsFailure)
@@ -39,13 +38,14 @@ public class CreateOrderCommandHandler : ICommandHandler<CreateOrderCommand, Ord
 
         return orderResult.Value.Id;
     }
+
     private Result<Order> _CreateOrder(CreateOrderCommand command)
     {
         return Order.Create(
             command.AuctionId,
             command.BidderId,
             command.WinningBidId,
-            command.ReceiptAddressId,
+            command.ReceiptAddress.ToAddress(),
             command.Amount,
             command.DepositCaptureTransactionId
         );

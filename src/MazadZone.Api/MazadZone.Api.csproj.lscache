@@ -43,8 +43,8 @@ TemporaryDependencyNodeTargetIdentifier=net9.0
 /debug:portable
 /filealign:512
 /optimize-
-/out:obj\Debug\net9.0\MazadZone.Api.dll
-/refout:obj\Debug\net9.0\refint\MazadZone.Api.dll
+/out:obj/Debug/net9.0/MazadZone.Api.dll
+/refout:obj/Debug/net9.0/refint/MazadZone.Api.dll
 /target:exe
 /warnaserror-
 /utf8output
@@ -84,7 +84,11 @@ Endpoints/Categories/
  Search.cs
  Update.cs
 Endpoints/
+<<<<<<< HEAD
+ NotificationEndpoints.cs
+=======
  Notifications/NotificationEndpoints.cs
+>>>>>>> d2fb1ae735d1e8294de5e7e1c2036b6562cef30d
  Orders/
   AddFeedback.cs
   Cancel.cs
@@ -128,11 +132,15 @@ OpenApi/StronglyTypedIdTransformer.cs
 Program.cs
 
 [metadataReferences]
+<<<<<<< HEAD
+../../../../../usr/lib/dotnet/packs/Microsoft.AspNetCore.App.Ref/9.0.8/ref/net9.0/
+=======
 ../
  MazadZone.Application/obj/Debug/net9.0/ref/MazadZone.Application.dll
  MazadZone.Domain/obj/Debug/net9.0/ref/MazadZone.Domain.dll
  MazadZone.Infrastructure/obj/Debug/net9.0/ref/MazadZone.Infrastructure.dll
 <DOTNET>/packs/Microsoft.AspNetCore.App.Ref/9.0.16/ref/net9.0/
+>>>>>>> d2fb1ae735d1e8294de5e7e1c2036b6562cef30d
  Microsoft.AspNetCore.Antiforgery.dll
  Microsoft.AspNetCore.Authentication.Abstractions.dll
  Microsoft.AspNetCore.Authentication.BearerToken.dll
@@ -220,8 +228,11 @@ Program.cs
  Microsoft.AspNetCore.StaticFiles.dll
  Microsoft.AspNetCore.WebSockets.dll
  Microsoft.AspNetCore.WebUtilities.dll
+<<<<<<< HEAD
+=======
  Microsoft.Extensions.Caching.Abstractions.dll
  Microsoft.Extensions.Caching.Memory.dll
+>>>>>>> d2fb1ae735d1e8294de5e7e1c2036b6562cef30d
  Microsoft.Extensions.Configuration.Ini.dll
  Microsoft.Extensions.Configuration.KeyPerFile.dll
  Microsoft.Extensions.Configuration.Xml.dll
@@ -243,7 +254,11 @@ Program.cs
  Microsoft.Net.Http.Headers.dll
  System.Security.Cryptography.Xml.dll
  System.Threading.RateLimiting.dll
+<<<<<<< HEAD
+../../../../../usr/lib/dotnet/packs/Microsoft.NETCore.App.Ref/9.0.8/ref/net9.0/
+=======
 <DOTNET>/packs/Microsoft.NETCore.App.Ref/9.0.16/ref/net9.0/
+>>>>>>> d2fb1ae735d1e8294de5e7e1c2036b6562cef30d
  Microsoft.CSharp.dll
  Microsoft.VisualBasic.Core.dll
  Microsoft.VisualBasic.dll
@@ -404,6 +419,10 @@ Program.cs
  System.Xml.XPath.dll
  System.Xml.XPath.XDocument.dll
  WindowsBase.dll
+../
+ MazadZone.Application/obj/Debug/net9.0/ref/MazadZone.Application.dll
+ MazadZone.Domain/obj/Debug/net9.0/ref/MazadZone.Domain.dll
+ MazadZone.Infrastructure/obj/Debug/net9.0/ref/MazadZone.Infrastructure.dll
 <NUGET>/
  asp.versioning.abstractions/8.1.0/lib/net8.0/Asp.Versioning.Abstractions.dll
  asp.versioning.http/8.1.0/lib/net8.0/Asp.Versioning.Http.dll
@@ -425,10 +444,19 @@ Program.cs
  microsoft.data.sqlclient.extensions.abstractions/1.0.0/lib/netstandard2.0/Microsoft.Data.SqlClient.Extensions.Abstractions.dll
  microsoft.data.sqlclient.internal.logging/1.0.0/lib/netstandard2.0/Microsoft.Data.SqlClient.Internal.Logging.dll
  microsoft.data.sqlclient/7.0.1/ref/net9.0/Microsoft.Data.SqlClient.dll
+<<<<<<< HEAD
+ microsoft.entityframeworkcore.abstractions/9.0.15/lib/net8.0/Microsoft.EntityFrameworkCore.Abstractions.dll
+ microsoft.entityframeworkcore.relational/9.0.15/lib/net8.0/Microsoft.EntityFrameworkCore.Relational.dll
+ microsoft.entityframeworkcore.sqlserver/9.0.15/lib/net8.0/Microsoft.EntityFrameworkCore.SqlServer.dll
+ microsoft.entityframeworkcore/9.0.15/lib/net8.0/Microsoft.EntityFrameworkCore.dll
+ microsoft.extensions.caching.abstractions/9.0.15/lib/net9.0/Microsoft.Extensions.Caching.Abstractions.dll
+ microsoft.extensions.caching.memory/9.0.15/lib/net9.0/Microsoft.Extensions.Caching.Memory.dll
+=======
  microsoft.entityframeworkcore.abstractions/9.0.16/lib/net8.0/Microsoft.EntityFrameworkCore.Abstractions.dll
  microsoft.entityframeworkcore.relational/9.0.16/lib/net8.0/Microsoft.EntityFrameworkCore.Relational.dll
  microsoft.entityframeworkcore.sqlserver/9.0.16/lib/net8.0/Microsoft.EntityFrameworkCore.SqlServer.dll
  microsoft.entityframeworkcore/9.0.16/lib/net8.0/Microsoft.EntityFrameworkCore.dll
+>>>>>>> d2fb1ae735d1e8294de5e7e1c2036b6562cef30d
  microsoft.extensions.configuration.abstractions/10.0.7/lib/net9.0/Microsoft.Extensions.Configuration.Abstractions.dll
  microsoft.extensions.configuration.binder/10.0.7/lib/net9.0/Microsoft.Extensions.Configuration.Binder.dll
  microsoft.extensions.configuration.commandline/10.0.7/lib/net9.0/Microsoft.Extensions.Configuration.CommandLine.dll
@@ -495,21 +523,43 @@ Program.cs
  vogen/8.0.5/lib/net9.0/Vogen.SharedTypes.dll
 
 [analyzerReferences]
+<<<<<<< HEAD
+../../../../../usr/lib/dotnet/packs/Microsoft.AspNetCore.App.Ref/9.0.8/analyzers/dotnet/cs/
+ Microsoft.AspNetCore.App.Analyzers.dll
+ Microsoft.AspNetCore.App.CodeFixes.dll
+ Microsoft.AspNetCore.Components.Analyzers.dll
+../../../../../usr/lib/dotnet/packs/Microsoft.NETCore.App.Ref/9.0.8/analyzers/dotnet/cs/
+=======
 <DOTNET>/packs/Microsoft.AspNetCore.App.Ref/9.0.16/analyzers/dotnet/cs/
  Microsoft.AspNetCore.App.Analyzers.dll
  Microsoft.AspNetCore.App.CodeFixes.dll
  Microsoft.AspNetCore.Components.Analyzers.dll
 <DOTNET>/packs/Microsoft.NETCore.App.Ref/9.0.16/analyzers/dotnet/cs/
+>>>>>>> d2fb1ae735d1e8294de5e7e1c2036b6562cef30d
  Microsoft.Interop.ComInterfaceGenerator.dll
  Microsoft.Interop.JavaScript.JSImportGenerator.dll
  Microsoft.Interop.LibraryImportGenerator.dll
  Microsoft.Interop.SourceGeneration.dll
  System.Text.RegularExpressions.Generator.dll
+<<<<<<< HEAD
+../../../../../usr/lib/dotnet/sdk/9.0.109/Sdks/Microsoft.NET.Sdk.Razor/source-generators/
+=======
 <DOTNET>/sdk/9.0.314/Sdks/Microsoft.NET.Sdk.Razor/source-generators/
+>>>>>>> d2fb1ae735d1e8294de5e7e1c2036b6562cef30d
  Microsoft.AspNetCore.Razor.Utilities.Shared.dll
  Microsoft.CodeAnalysis.Razor.Compiler.dll
  Microsoft.Extensions.ObjectPool.dll
  System.Collections.Immutable.dll
+<<<<<<< HEAD
+../../../../../usr/lib/dotnet/sdk/9.0.109/Sdks/Microsoft.NET.Sdk.Web/analyzers/cs/
+ Microsoft.AspNetCore.Analyzers.dll
+ Microsoft.AspNetCore.Mvc.Analyzers.dll
+../../../../../usr/lib/dotnet/sdk/9.0.109/Sdks/Microsoft.NET.Sdk/analyzers/
+ Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll
+ Microsoft.CodeAnalysis.NetAnalyzers.dll
+<NUGET>/
+ microsoft.entityframeworkcore.analyzers/9.0.15/analyzers/dotnet/cs/Microsoft.EntityFrameworkCore.Analyzers.dll
+=======
 <DOTNET>/sdk/9.0.314/Sdks/Microsoft.NET.Sdk.Web/analyzers/cs/
  Microsoft.AspNetCore.Analyzers.dll
  Microsoft.AspNetCore.Mvc.Analyzers.dll
@@ -518,6 +568,7 @@ Program.cs
  Microsoft.CodeAnalysis.NetAnalyzers.dll
 <NUGET>/
  microsoft.entityframeworkcore.analyzers/9.0.16/analyzers/dotnet/cs/Microsoft.EntityFrameworkCore.Analyzers.dll
+>>>>>>> d2fb1ae735d1e8294de5e7e1c2036b6562cef30d
  microsoft.extensions.logging.abstractions/10.0.7/analyzers/dotnet/roslyn4.4/cs/Microsoft.Extensions.Logging.Generators.dll
  microsoft.extensions.options/10.0.7/analyzers/dotnet/roslyn4.4/cs/Microsoft.Extensions.Options.SourceGeneration.dll
  system.text.json/10.0.7/analyzers/dotnet/roslyn4.4/cs/System.Text.Json.SourceGeneration.dll
@@ -528,6 +579,12 @@ Program.cs
    Vogen.dll
 
 [analyzerConfigFiles]
+<<<<<<< HEAD
+../../
+ ../../../usr/lib/dotnet/sdk/9.0.109/Sdks/Microsoft.NET.Sdk/analyzers/build/config/analysislevel_9_default.globalconfig
+ .editorconfig
+=======
 ../../.editorconfig
 <DOTNET>/sdk/9.0.314/Sdks/Microsoft.NET.Sdk/analyzers/build/config/analysislevel_9_default.globalconfig
+>>>>>>> d2fb1ae735d1e8294de5e7e1c2036b6562cef30d
 obj/Debug/net9.0/MazadZone.Api.GeneratedMSBuildEditorConfig.editorconfig

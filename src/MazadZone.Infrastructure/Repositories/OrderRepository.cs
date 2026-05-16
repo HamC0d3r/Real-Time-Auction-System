@@ -1,5 +1,5 @@
-using MazadZone.Domain.Entities.Orders;
 using MazadZone.Domain.Orders;
+using MazadZone.Domain.Repositories;
 using MazadZone.Infrastructure.Persistence;
 
 namespace MazadZone.Infrastructure.Repositories;

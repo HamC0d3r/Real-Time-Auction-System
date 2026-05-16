@@ -4,13 +4,11 @@ using MazadZone.Domain.Sellers.Events;
 
 namespace MazadZone.Domain.Sellers;
 
-public sealed class Seller : AggregateRoot<SellerId>, IVerifiableEntity
+public sealed class Seller : AggregateRoot<SellerId>, IVerifiableEntity, IAuditableEntity
 {
 
-    #pragma warning disable CS8618 
     #pragma warning disable CS0519
     private Seller() { } 
-    #pragma warning restore CS8618
 
     private Seller(
         SellerId id, 

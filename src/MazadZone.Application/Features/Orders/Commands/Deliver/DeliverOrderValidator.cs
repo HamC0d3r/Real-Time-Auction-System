@@ -1,10 +1,11 @@
+using MazadZone.Application.Common.Validation;
+
 namespace MazadZone.Application.Features.Orders.Commands.DeliverOrder;
 
 public class DeliverOrderValidator : AbstractValidator<DeliverOrderCommand>
 {
     public DeliverOrderValidator()
     {
-        RuleFor(x => x.OrderId)
-            .ValidateOrderId();
+        RuleFor(x => x.OrderId).MustBeValidOrderId();
     }
 }

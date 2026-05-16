@@ -4,6 +4,7 @@ namespace MazadZone.Domain.Orders;
 public partial struct OrderId
 {
     public static OrderId New() => From(Guid.CreateVersion7());
+    public static OrderId Empty => From(Guid.Empty);
 }
 
 

@@ -1,5 +1,4 @@
-using MazadZone.Application.Common.Logging;
-using MazadZone.Domain.Entities.Orders;
+using MazadZone.Domain.Repositories;
 
 namespace MazadZone.Application.Features.Orders.Commands.DeliverOrder;
 
@@ -21,8 +20,6 @@ public class DeliverOrderCommandHandler : ICommandHandler<DeliverOrderCommand, U
 
     public async Task<Result<Unit>> Handle(DeliverOrderCommand request, CancellationToken ct)
     {
-        using var scope = _logger.BeginOrderScope(request.OrderId);
-
         DeliverOrderLogs.LogAttempt(_logger, request.OrderId);
 
         var order = await _orderRepository.GetByIdAsync(request.OrderId.Value, ct);
@@ -30,7 +27,6 @@ public class DeliverOrderCommandHandler : ICommandHandler<DeliverOrderCommand, U
         if (order is null) 
         {
             GlobalLogs.LogOrderNotFound(_logger, request.OrderId);
-            _logger.LogOrderNotFound(request.OrderId);
             return OrderErrors.NotFound;
         }
 

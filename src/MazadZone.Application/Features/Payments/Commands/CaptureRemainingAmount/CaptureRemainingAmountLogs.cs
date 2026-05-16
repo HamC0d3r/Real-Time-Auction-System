@@ -1,5 +1,3 @@
-using MazadZone.Domain.Entities.Orders;
-
 namespace MazadZone.Application.Features.Payments.Commands.CaptureRemainingAmount;
 
 internal static partial class CaptureRemainingAmountLogs

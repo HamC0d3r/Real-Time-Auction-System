@@ -7,17 +7,16 @@ public sealed class NotifySellerOnFeedbackLeftDomainEventHandler : INotification
     private readonly INotificationRepository _notificationService;
     private readonly ISellerRepository _sellerRepository;
 
-    public NotifySellerOnFeedbackLeftDomainEventHandler(
-        ISellerRepository sellerRepository,
-        INotificationRepository notificationService)
+    public NotifySellerOnFeedbackLeftDomainEventHandler(INotificationRepository notificationService, ISellerRepository sellerRepository)
     {
-        _sellerRepository = sellerRepository;
         _notificationService = notificationService;
+        _sellerRepository = sellerRepository;
     }
 
     public async Task Handle(FeedbackLeftDomainEvent notification, CancellationToken ct)
     {
         var seller = await _sellerRepository.GetByAuctionIdAsync(notification.AuctionId, ct);
+        if (seller is null) return;
         
         await _notificationService.NotifySellerAsync(
             seller.Id.Value, 

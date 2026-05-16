@@ -21,7 +21,9 @@ public class GetGlobalStatsQueryHandler
     public async Task<Result<AdminGlobalStatsDto>> Handle(GetGlobalStatsQuery request, CancellationToken cancellationToken)
     {
         GetGlobalStatsLog.LogCompiling(_logger);
-        return await _orderQueries.GetGlobalStatsAsync(cancellationToken);
+        var result = await _orderQueries.GetGlobalStatsAsync(cancellationToken);
+        if (result is null) return AdminGlobalStatsDto.Empty;
+        return result;
 
     }
 }

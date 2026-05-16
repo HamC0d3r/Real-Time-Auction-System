@@ -1,6 +1,5 @@
 namespace MazadZone.Domain.Orders;
 
-
 public sealed record Comment
 {
 

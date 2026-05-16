@@ -7,3 +7,5 @@ global using MazadZone.Application.Common.Extensions;
 global using MazadZone.Domain.Orders;
 
 global using Microsoft.Extensions.Logging;
+
+global using MazadZone.Domain.Shared.ValueObjects;

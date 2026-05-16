@@ -14,11 +14,11 @@ public record CreateOrderRequest(
     decimal Amount,
     string DepositCaptureTransactionId)
 {
-    public CreateOrderCommand ToCommand(IMapper mapper) => new(
+    public CreateOrderCommand ToCommand() => new(
         AuctionId,
         BidderId,
         WinningBidId,
-        mapper.Map<Address>(ReceiptAddress),
+        ReceiptAddress,
         Amount,
         DepositCaptureTransactionId);
 }
@@ -38,12 +38,11 @@ public static class Create
     private static async Task<IResult> CreateOrderAsync(
         [FromBody] CreateOrderRequest? request,
         [FromServices] ISender sender,
-        [FromServices] IMapper mapper,
         CancellationToken ct)
     {
         if (request is null) return Results.BadRequest("Request body cannot be null.");
 
-        var result = await sender.Send(request.ToCommand(mapper), ct);
+        var result = await sender.Send(request.ToCommand(), ct);
 
         return result.Match(
             onValue: orderId => Results.Created($"/api/orders/{orderId}", new { OrderId = orderId }),

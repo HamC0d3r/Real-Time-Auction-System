@@ -11,14 +11,18 @@ public static class GlobalValidationExtensions
     {
         return ruleBuilder
             .NotEmpty()
-            .WithMessage("Bidder ID is required and cannot be empty.");
+            .WithMessage("Bidder ID is required and cannot be empty.")
+            .Must(id => id.Value != Guid.Empty)
+            .WithMessage("Invalid BidderId.");
     }
 
     public static IRuleBuilderOptions<T, SellerId> MustBeValidSellerId<T>(this IRuleBuilder<T, SellerId> ruleBuilder)
     {
         return ruleBuilder
             .NotEmpty()
-            .WithMessage("Seller identifier is required.");
+            .WithMessage("Seller identifier is required.")
+            .Must(id => id.Value != Guid.Empty)
+            .WithMessage("Invalid SellerId.");
     }
 
 
@@ -26,14 +30,18 @@ public static class GlobalValidationExtensions
     {
         return ruleBuilder
             .NotEmpty()
-            .WithMessage("User identifier is required.");
+            .WithMessage("User identifier is required.")
+            .Must(id => id.Value != Guid.Empty)
+            .WithMessage("Invalid UserId.");
     }
 
     public static IRuleBuilderOptions<T, BidId> MustBeValidBidId<T>(this IRuleBuilder<T, BidId> ruleBuilder)
     {
         return ruleBuilder
             .NotEmpty()
-            .WithMessage("Bid ID is required and cannot be empty.");
+            .WithMessage("Bid ID is required and cannot be empty.")
+            .Must(id => id.Value != Guid.Empty)
+            .WithMessage("Invalid BidId.");
     }
 
     // Extension for OrderId
@@ -41,7 +49,9 @@ public static class GlobalValidationExtensions
     {
         return ruleBuilder
             .NotEmpty()
-            .WithMessage("Order ID is required and cannot be empty.");
+            .WithMessage("Order ID is required and cannot be empty.")
+            .Must(id => id.Value != Guid.Empty)
+            .WithMessage("Invalid OrderId.");
     }
 
     public static IRuleBuilderOptions<T, CategoryId> MustBeValidCategoryId<T>(this IRuleBuilder<T, CategoryId> ruleBuilder, string nameOfCategory = "Category Id")

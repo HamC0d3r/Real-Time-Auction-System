@@ -1,4 +1,3 @@
-using MazadZone.Domain.Entities.Orders;
 using MazadZone.Domain.Orders.Events;
 using MazadZone.Domain.Repositories;
 

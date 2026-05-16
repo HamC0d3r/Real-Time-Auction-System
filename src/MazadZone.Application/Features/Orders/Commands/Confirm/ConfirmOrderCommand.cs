@@ -1,3 +1,3 @@
-namespace MazadZone.Application.Features.Orders.Commands.ConfirmOrder;
+namespace MazadZone.Application.Features.Orders.Commands.Confirm;
 
 public record ConfirmOrderCommand(OrderId OrderId) : ICommand<Unit>;

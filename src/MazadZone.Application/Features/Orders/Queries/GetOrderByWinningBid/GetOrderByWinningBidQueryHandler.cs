@@ -9,13 +9,16 @@ public class GetOrderByWinningBidQueryHandler
     private readonly IOrderQueries _orderQueries;
     private readonly ILogger<GetOrderByWinningBidQueryHandler> _logger;
 
-    public GetOrderByWinningBidQueryHandler(IOrderQueries orderQueries, ILogger<GetOrderByWinningBidQueryHandler> logger)
+    public GetOrderByWinningBidQueryHandler(
+        IOrderQueries orderQueries,
+        ILogger<GetOrderByWinningBidQueryHandler> logger
+    )
     {
         _orderQueries = orderQueries;
         _logger = logger;
     }
 
-    async Task<Result<OrderDetailsDto>> IRequestHandler<GetOrderByWinningBidQuery, Result<OrderDetailsDto>>.Handle(GetOrderByWinningBidQuery request, CancellationToken cancellationToken)
+    public async Task<Result<OrderDetailsDto>> Handle(GetOrderByWinningBidQuery request, CancellationToken cancellationToken)
     {
         GetOrderByWinningBidLog.LogResolving(_logger, request.WinningBidId);
 

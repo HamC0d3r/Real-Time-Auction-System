@@ -1,4 +1,4 @@
-using MazadZone.Domain.Orders;
+using MazadZone.Application.Common.Validation;
 
 namespace MazadZone.Application.Features.Orders.Commands.AddFeedback;
 
@@ -6,6 +6,8 @@ public class AddFeedbackValidator : AbstractValidator<AddFeedbackCommand>
 {
     public AddFeedbackValidator()
     {
+        RuleFor(x => x.OrderId).MustBeValidOrderId();
+
         RuleFor(x => x.Rating)
             .InclusiveBetween(OrderConstants.MinRating, OrderConstants.MaxRating)
             .WithMessage($"Rating must be between {OrderConstants.MinRating} and {OrderConstants.MaxRating}.");

@@ -1,7 +1,7 @@
-using MazadZone.Domain.Repositories;
+using MazadZone.Domain.Shared.Interfaces;
 
-namespace MazadZone.Domain.Entities.Orders;
+namespace MazadZone.Domain.Repositories;
 
-public interface IOrderRepository : IGenericRepository<Order>
+public interface IOrderRepository : IGenericRepository<Order> , IScopedService
 {
 }

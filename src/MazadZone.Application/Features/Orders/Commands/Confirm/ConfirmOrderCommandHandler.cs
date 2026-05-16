@@ -1,8 +1,7 @@
 using MazadZone.Application.Features.Payments.Commands.CaptureRemainingAmount;
-using MazadZone.Domain.Entities.Orders;
 using MazadZone.Domain.Repositories;
 
-namespace MazadZone.Application.Features.Orders.Commands.ConfirmOrder;
+namespace MazadZone.Application.Features.Orders.Commands.Confirm;
 
 public class ConfirmOrderCommandHandler : ICommandHandler<ConfirmOrderCommand, Unit>
 {

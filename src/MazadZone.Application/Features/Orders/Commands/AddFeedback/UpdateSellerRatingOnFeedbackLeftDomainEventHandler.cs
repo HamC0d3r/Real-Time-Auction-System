@@ -8,9 +8,7 @@ public sealed class UpdateSellerRatingOnFeedbackLeftDomainEventHandler : INotifi
     private readonly ISellerRepository _sellerRepository;
     private readonly IUnitOfWork _unitOfWork;
 
-    public UpdateSellerRatingOnFeedbackLeftDomainEventHandler(
-        ISellerRepository sellerRepository,
-        IUnitOfWork unitOfWork)
+    public UpdateSellerRatingOnFeedbackLeftDomainEventHandler(ISellerRepository sellerRepository, IUnitOfWork unitOfWork)
     {
         _sellerRepository = sellerRepository;
         _unitOfWork = unitOfWork;
@@ -19,7 +17,7 @@ public sealed class UpdateSellerRatingOnFeedbackLeftDomainEventHandler : INotifi
     public async Task Handle(FeedbackLeftDomainEvent notification, CancellationToken ct)
     {
         var seller = await _sellerRepository.GetByAuctionIdAsync(notification.AuctionId, ct);
-        if (seller == null) return;
+        if (seller is null) return;
 
         seller.UpdateRating(notification.Rating);
         await _unitOfWork.SaveChangesAsync(ct);

@@ -1,4 +1,4 @@
-namespace MazadZone.Application.Features.Orders.Commands.ConfirmOrder;
+namespace MazadZone.Application.Features.Orders.Commands.Confirm;
 
 internal static partial class ConfirmOrderLogs
 {

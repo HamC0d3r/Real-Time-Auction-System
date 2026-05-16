@@ -1,4 +1,3 @@
-using MazadZone.Domain.Entities.Orders;
 using MazadZone.Domain.Orders.Events;
 using MazadZone.Domain.Repositories;
 
@@ -9,9 +8,7 @@ public sealed class NotifyBidderOnDisputeResolvedDomainEventHandler
     private readonly IOrderRepository _orderRepository;
     private readonly INotificationRepository _notificationRepository;
 
-    public NotifyBidderOnDisputeResolvedDomainEventHandler(
-        IOrderRepository orderRepository,
-        INotificationRepository notificationRepository)
+    public NotifyBidderOnDisputeResolvedDomainEventHandler(IOrderRepository orderRepository, INotificationRepository notificationRepository)
     {
         _orderRepository = orderRepository;
         _notificationRepository = notificationRepository;

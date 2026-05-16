@@ -1,16 +1,13 @@
 using MazadZone.Application.Features.Orders.Commands.Create;
-using MazadZone.Application.Features.Orders.Commands.CreateOrder;
 using MazadZone.Application.Features.Payments.Commands.RecordAuthorizationHold;
 using MazadZone.Application.Features.Payments.Commands.CaptureAuthorizedHold;
 using MazadZone.Application.Features.Payments.Commands.UnauthorizeOutbidPayments;
-using MazadZone.Domain.Auctions;
 using MazadZone.Domain.Auctions.Events;
-using MazadZone.Domain.Entities.Orders;
 using MazadZone.Domain.Repositories;
 using MazadZone.Domain.Users.ValueObjects;
 using MzadZone.Domain.Payments;
-using MzadZone.Domain.Payments.Entities;
 using MazadZone.Application.Services;
+using MazadZone.Application.Features.Bidders.DTOs;
 
 namespace MazadZone.Application.Features.Auctions.Commands.EndAuction.EventHandlers;
 /// <summary>
@@ -59,12 +56,19 @@ public class CreateAuctionEndedOrderEventHandler
         var WiningBidId = auction.CurrentLeadingBid.Id;
         var FinalAmount = auction.CurrentLeadingBid.Amount;
 
+        var address = await _userQueries.GetAddressByIdAsync(auction.CurrentLeadingBid.BidderId.Value, cancellationToken);
+        if (address is null)
+        {
+            _logger.LogWarning("Address for user with ID {UserId} not found for ended event.", auction.CurrentLeadingBid.BidderId.Value);
+            return;
+        }
+
         // 1. Create the Order aggregate
         var result = await _sender.Send(new CreateOrderCommand(
             AuctionId: auction.Id,
             BidderId: auction.CurrentLeadingBid!.BidderId,
             WinningBidId: WiningBidId,
-            ReceiptAddressId: (await _userQueries.GetAddressByIdAsync(auction.CurrentLeadingBid.BidderId.Value, cancellationToken)).Value,
+            ReceiptAddress: AddressDto.FromAddress(address.Value),
             Amount: FinalAmount.Amount,
             DepositCaptureTransactionId: auction.CurrentLeadingBid.GatewayAuthHoldId
         ), cancellationToken);

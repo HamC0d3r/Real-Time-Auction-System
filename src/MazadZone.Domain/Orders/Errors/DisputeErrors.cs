@@ -22,7 +22,7 @@ public static class ResolutionErrorCodes
 public static class ResolutionErrors
 {
     public static Error Empty => Error.Validation(ResolutionErrorCodes.Empty, "Resolution text cannot be empty or whitespace.");
-    public static Error TooShort => Error.Validation(ResolutionErrorCodes.TooShort, $"Resolution must be at least {Resolution.MinLength} characters long.");
-    public static Error TooLong => Error.Validation(ResolutionErrorCodes.TooLong, $"Resolution");
+    public static Error TooShort => Error.Validation(ResolutionErrorCodes.TooShort, $"Resolution must be at least {OrderConstants.MinResolutionLength} characters long.");
+    public static Error TooLong => Error.Validation(ResolutionErrorCodes.TooLong, $"Resolution must be at most {OrderConstants.MaxResolutionLength} characters long.");
 }
 

@@ -18,7 +18,7 @@ public class GetOrderDetailsQueryHandler
         _logger = logger;
     }
 
-    async Task<Result<OrderDetailsDto>> IRequestHandler<GetOrderDetailsQuery, Result<OrderDetailsDto>>.Handle(GetOrderDetailsQuery request, CancellationToken cancellationToken)
+    public async Task<Result<OrderDetailsDto>> Handle(GetOrderDetailsQuery request, CancellationToken cancellationToken)
     {
         GetOrderDetailsLog.LogFetching(_logger, request.OrderId.Value);
 

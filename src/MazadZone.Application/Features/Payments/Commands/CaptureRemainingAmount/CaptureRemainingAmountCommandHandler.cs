@@ -1,8 +1,6 @@
 using MazadZone.Application.Services;
-using MazadZone.Domain.Entities.Orders;
 using MazadZone.Domain.Payments.Errors;
 using MazadZone.Domain.Repositories;
-using MzadZone.Domain.Payments;
 using MzadZone.Domain.Payments.Entities;
 
 namespace MazadZone.Application.Features.Payments.Commands.CaptureRemainingAmount;

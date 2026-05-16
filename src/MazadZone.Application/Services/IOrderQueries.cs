@@ -1,11 +1,12 @@
 using MazadZone.Application.Common.Paging;
 using MazadZone.Application.Features.Orders.Queries.DTOs;
 using MazadZone.Domain.Auctions;
-using MazadZone.Domain.Sellers;
+using MazadZone.Domain.Shared.Interfaces;
 using MzadZone.Domain.Payments;
 
 namespace MazadZone.Application.Services;
-public interface IOrderQueries
+
+public interface IOrderQueries : IScopedService
 {
     // --- Detailed View ---
     Task<OrderDetailsDto?> GetOrderDetailsAsync(OrderId orderId, CancellationToken ct = default);
@@ -16,7 +17,7 @@ public interface IOrderQueries
     // --- Specialized Lookups ---
     Task<OrderDetailsDto?> GetOrderByWinningBidAsync(BidId winningBidId, CancellationToken ct = default);
 
-    // --- Analytics & Dashboard (The "Architect" Level) ---
+    // --- Analytics & Dashboard ---
     Task<SellerOrderStatsDto> GetSellerStatsAsync(SellerId sellerId, CancellationToken ct = default);
     Task<AdminGlobalStatsDto> GetGlobalStatsAsync(CancellationToken ct = default);
 

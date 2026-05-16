@@ -151,6 +151,7 @@ public sealed class Order : AggregateRoot<OrderId>, IAuditableEntity
     public Result Cancel()
     {
         if (Status != OrderStatus.Pending) return OrderErrors.CannotCancel;
+        
         Status = OrderStatus.Canceled;
         RaiseDomainEvent(new OrderCancelledDomainEvent(Id));
         return Result.Success();
@@ -206,7 +207,7 @@ public sealed class Order : AggregateRoot<OrderId>, IAuditableEntity
 
         var resolutionResult = Dispute.Resolve(resolutionText);
         if (resolutionResult.IsFailure) return resolutionResult.TopError;
-        RaiseDomainEvent(new DisputeResolvedDomainEvent(Id, Dispute.Id, resolutionText));
+        RaiseDomainEvent(new DisputeResolvedDomainEvent(Id, AuctionId, Dispute.Id, resolutionText));
         return Result.Success();
     }
 

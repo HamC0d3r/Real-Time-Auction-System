@@ -1,5 +1,5 @@
 using MazadZone.Application.Features.Sellers.Commands.BecomeSeller;
-using MazadZone.Domain.Auctions;
+using MazadZone.Domain.Users.ValueObjects;
 
 namespace MazadZone.Api.Endpoints.Sellers;
 
@@ -17,7 +17,7 @@ public static class BecomeSeller
     }
 
     private static async Task<IResult> BecomeSellerAsync(
-        BidderId id,
+        UserId id,
         [FromBody] BecomeSellerRequest request,
         [FromServices] ISender sender,
         CancellationToken ct)
