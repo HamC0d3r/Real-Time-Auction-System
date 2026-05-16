@@ -1,7 +1,7 @@
 using MazadZone.Domain.Auctions;
-using MazadZone.Domain.Entities.Users;
 using MazadZone.Domain.Orders;
 using MazadZone.Domain.Orders.Events;
+using MazadZone.Domain.Shared.ValueObjects;
 using Shouldly;
 
 namespace Tests.Domain.Orders;
