@@ -28,6 +28,12 @@ export const ROUTES = {
     DETAIL: (id: string) => `/orders/${id}` as const,
   },
 
+  // --- Bidding -------------------------------------------
+  BIDDING: {
+    MY_BIDS: "/bids",
+  },
+
+
   // --- Seller --------------------------------------------
   SELLER: {
     DASHBOARD: "/seller",

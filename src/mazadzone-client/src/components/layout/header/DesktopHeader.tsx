@@ -71,7 +71,7 @@ export const DesktopHeader = ({
               </div>
             ) : (
               <>
-                <Link href={ROUTES.AUCTIONS.LIST} className="hidden lg:flex items-center gap-2 text-xl font-medium hover:text-primary transition-colors">
+                <Link href={ROUTES.BIDDING.MY_BIDS} className="hidden lg:flex items-center gap-2 text-xl font-medium hover:text-primary transition-colors">
                   <Gavel className="h-7 w-7" />
                   My Bids
                 </Link>

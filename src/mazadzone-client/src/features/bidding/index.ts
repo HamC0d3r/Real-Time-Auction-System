@@ -7,8 +7,12 @@
 
 // Components
 export { PlaceBidButton } from "./components/PlaceBidButton";
+export { MyBidsPage } from "./components/my-bids/MyBidsPage";
 
-// Placeholder exports — uncomment as implementations are added:
-// export { BidForm } from "./components/bid-form";
-// export { BidHistory } from "./components/bid-history";
-// export { usePlaceBid } from "./api";
+// Hooks / Queries
+export { useGetMyBids } from "./api/bidding.queries";
+export { fetchMyBids } from "./api/bidding.api";
+
+// Types
+export type { BidActivity, BidStatus } from "./types/bidding.types";
+
