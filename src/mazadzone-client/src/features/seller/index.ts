@@ -1,11 +1,10 @@
 /**
  * Seller feature — public API.
  *
- * TODO: Implement seller dashboard, auction management,
- * analytics, and seller-specific components.
+ * Handles seller dashboard, become a seller applications,
+ * analytics, and seller-specific operations.
  */
 
-// Placeholder exports — uncomment as implementations are added:
-// export { SellerDashboard } from "./components/seller-dashboard";
-// export { SellerAuctionList } from "./components/seller-auction-list";
-// export { useGetSellerStats } from "./api";
+export { BecomeSellerPage } from "./components/BecomeSellerPage";
+export { useBecomeSeller } from "./api/seller.mutations";
+export type { BecomeSellerInput, BecomeSellerResponse } from "./api/seller.mutations";
