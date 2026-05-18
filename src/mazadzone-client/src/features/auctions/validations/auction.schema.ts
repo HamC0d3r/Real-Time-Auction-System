@@ -82,21 +82,29 @@ export const createAuctionSchema = z
       .max(10, "You can upload up to 10 images"),
   })
   .refine(
-    (data) => new Date(data.endDate) > new Date(data.startDate),
+    (data) => {
+      if (!data.startDate || !data.endDate) return true;
+      const start = new Date(data.startDate);
+      const end = new Date(data.endDate);
+      return !isNaN(start.getTime()) && !isNaN(end.getTime()) && end > start;
+    },
     {
-      message: "End date must be after start date",
+      message: "End date and time must be after the start date and time",
       path: ["endDate"],
     }
   )
   .refine(
     (data) => {
-      // Current date with 1-minute buffer for form latency
+      if (!data.startDate) return true;
+      const start = new Date(data.startDate);
+      if (isNaN(start.getTime())) return false;
       const now = new Date();
+      // 1-minute buffer for form latency
       now.setMinutes(now.getMinutes() - 1);
-      return new Date(data.startDate) >= now;
+      return start >= now;
     },
     {
-      message: "Start date cannot be in the past",
+      message: "Start date and time must be in the future",
       path: ["startDate"],
     }
   );
