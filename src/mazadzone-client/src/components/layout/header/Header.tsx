@@ -50,7 +50,7 @@ export function Header() {
     } else if (role === "seller") {
       router.push(ROUTES.SELLER.CREATE_AUCTION);
     } else {
-      router.push(ROUTES.PROFILE.VIEW);
+      router.push(ROUTES.SELLER.BECOME);
     }
   };
 

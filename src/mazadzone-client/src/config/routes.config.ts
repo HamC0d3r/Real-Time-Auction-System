@@ -39,6 +39,7 @@ export const ROUTES = {
     DASHBOARD: "/seller",
     AUCTIONS: "/seller/auctions",
     CREATE_AUCTION: "/seller/auctions/create",
+    BECOME: "/seller/become",
   },
 
   // --- Profile -------------------------------------------
