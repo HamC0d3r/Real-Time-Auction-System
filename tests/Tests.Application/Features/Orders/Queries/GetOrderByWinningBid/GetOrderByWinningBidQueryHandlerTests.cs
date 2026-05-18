@@ -1,6 +1,5 @@
 using MazadZone.Application.Features.Orders.Queries.DTOs;
 using MazadZone.Application.Features.Orders.Queries.GetOrderByWinningBid;
-using MazadZone.Domain.Auctions;
 using MazadZone.Domain.Orders;
 
 namespace Tests.Application.Features.Orders.Queries.GetOrderByWinningBid;
@@ -8,27 +7,17 @@ namespace Tests.Application.Features.Orders.Queries.GetOrderByWinningBid;
 public class GetOrderByWinningBidQueryHandlerTests : OrderBaseTest<GetOrderByWinningBidQueryHandler>
 {
     [Fact]
-    public async Task Handle_Should_ReturnOrderDetails_When_OrderExists()
+    public async Task Handle_OrderExists_ReturnsOrderDetails()
     {
         // 1. Arrange
-        var winningBidId = BidId.New();
-        var query = new GetOrderByWinningBidQuery(winningBidId);
-        
-        // Using the new positional record constructor
-        var expectedDto = new OrderDetailsDto(
-            Id: Guid.NewGuid(),
-            Status: "Confirmed",
-            TotalAmount: 1500.00m,
-            Currency: "JOD",
-            BidderId: Guid.NewGuid(),
-            WinningBidId: winningBidId.Value,
-            HasActiveDispute: false,
-            IsDisputable: true,
-            CanLeaveFeedback: false
-        );
+        var query = OrderHelper.CreateGetOrderByWinningBidQuery();
+
+        // Use 'with' to easily link the IDs together without changing the helper
+        var expectedDto = OrderHelper.CreateOrderDetailsDto() with { WinningBidId = query.WinningBidId.Value };
+
 
         // ✅ Use Arg.Is with the Value to avoid Vogen's default constructor check
-        _orderQueries.GetOrderByWinningBidAsync(winningBidId, Arg.Any<CancellationToken>())
+        _orderQueries.GetOrderByWinningBidAsync(query.WinningBidId, Arg.Any<CancellationToken>())
             .Returns(expectedDto);
 
         // 2. Act
@@ -39,17 +28,16 @@ public class GetOrderByWinningBidQueryHandlerTests : OrderBaseTest<GetOrderByWin
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldBe(expectedDto); // Value equality works automatically for records
         
-        await _orderQueries.Received(1).GetOrderByWinningBidAsync(winningBidId, Arg.Any<CancellationToken>());
+        await _orderQueries.Received(1).GetOrderByWinningBidAsync(query.WinningBidId, Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnNotFound_When_OrderDoesNotExist()
+    public async Task Handle_OrderDoesNotExist_ReturnsNotFoundError()
     {
         // 1. Arrange
-        var winningBidId = BidId.New();
-        var query = new GetOrderByWinningBidQuery(winningBidId);
+        var query = OrderHelper.CreateGetOrderByWinningBidQuery();
 
-        _orderQueries.GetOrderByWinningBidAsync(winningBidId, Arg.Any<CancellationToken>())
+        _orderQueries.GetOrderByWinningBidAsync(query.WinningBidId, Arg.Any<CancellationToken>())
             .Returns((OrderDetailsDto?)null);
 
         // 2. Act

@@ -1,6 +1,5 @@
 using MazadZone.Domain.Orders;
 using Shouldly;
-using Xunit;
 
 namespace Tests.Domain.Orders.Entities;
 
@@ -17,7 +16,7 @@ public class DisputeTests
     // --- 1. Creation Tests ---
 
     [Fact]
-    public void Create_Should_ReturnFailure_When_ReasonIsInvalid()
+    public void Create_InvalidReason_ReturnsValidationError()
     {
         // Arrange
         var invalidReason = ""; // Assuming empty strings fail Reason.Create()
@@ -32,7 +31,7 @@ public class DisputeTests
     }
 
     [Fact]
-    public void Create_Should_InitializeDispute_When_ReasonIsValid()
+    public void Create_ValidReason_InitializesDispute()
     {
         // Arrange
         var orderId = GenerateOrderId();
@@ -60,7 +59,7 @@ public class DisputeTests
     // --- 2. Change Reason Tests ---
 
     [Fact]
-    public void ChangeReason_Should_Fail_When_DisputeIsAlreadyResolved()
+    public void ChangeReason_DisputeAlreadyResolved_ReturnsDisputeCannotChangeReasonError()
     {
         // Arrange
         var dispute = CreateValidOpenDispute();
@@ -77,7 +76,7 @@ public class DisputeTests
     }
 
     [Fact]
-    public void ChangeReason_Should_Succeed_When_DisputeIsOpen()
+    public void ChangeReason_DisputeIsOpen_UpdatesReason()
     {
         // Arrange
         var dispute = CreateValidOpenDispute();
@@ -95,7 +94,7 @@ public class DisputeTests
     // --- 3. Resolve Tests ---
 
     [Fact]
-    public void Resolve_Should_Fail_When_DisputeIsAlreadyResolved()
+    public void Resolve_DisputeAlreadyResolved_ReturnsDisputeAlreadyResolvedError()
     {
         // Arrange
         var dispute = CreateValidOpenDispute();
@@ -110,7 +109,7 @@ public class DisputeTests
     }
 
     [Fact]
-    public void Resolve_Should_Fail_When_ResolutionTextIsInvalid()
+    public void Resolve_InvalidResolution_ReturnsValidationError()
     {
         // Arrange
         var dispute = CreateValidOpenDispute();
@@ -129,7 +128,7 @@ public class DisputeTests
     }
 
     [Fact]
-    public void Resolve_Should_Succeed_And_UpdateState_When_Valid()
+    public void Resolve_ValidResolution_ResolvesDispute()
     {
         // Arrange
         var dispute = CreateValidOpenDispute();

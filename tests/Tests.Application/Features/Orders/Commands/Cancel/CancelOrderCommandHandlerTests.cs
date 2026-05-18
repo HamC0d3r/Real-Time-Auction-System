@@ -1,7 +1,5 @@
 using MazadZone.Application.Features.Orders.Commands.CancelOrder;
-using MazadZone.Domain.Auctions;
 using MazadZone.Domain.Orders;
-using MazadZone.Domain.Shared.ValueObjects;
 using MediatR;
 
 namespace Tests.Application.Features.Orders.Commands.CancelOrder;
@@ -9,10 +7,9 @@ namespace Tests.Application.Features.Orders.Commands.CancelOrder;
 public class CancelOrderCommandHandlerTests : OrderBaseTest<CancelOrderCommandHandler>
 {
     [Fact]
-    public async Task Handle_Should_ReturnNotFound_When_OrderDoesNotExist()
+    public async Task Handle_OrderDoesNotExist_ReturnsNotFoundError()
     {
         // Arrange
-        // Note: I am assuming CancelOrderCommand takes the strongly typed OrderId
         var command = new CancelOrderCommand(OrderId.New());
         
         _orderRepository.GetByIdAsync(command.OrderId.Value, Arg.Any<CancellationToken>())
@@ -30,17 +27,15 @@ public class CancelOrderCommandHandlerTests : OrderBaseTest<CancelOrderCommandHa
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnDomainError_When_CancelFails()
+    public async Task Handle_CancelFails_ReturnsDomainError()
     {
         // Arrange
-        var order = CreateValidOrder(); 
+        var order = OrderHelper.CreatePendingOrder();
 
         order.Confirm(); 
 
         var command = new CancelOrderCommand(order.Id);
 
-        // IMPORTANT: Move the order out of the 'Pending' state to force a domain failure.
-        
         _orderRepository.GetByIdAsync(command.OrderId.Value, Arg.Any<CancellationToken>())
             .Returns(order);
 
@@ -56,14 +51,12 @@ public class CancelOrderCommandHandlerTests : OrderBaseTest<CancelOrderCommandHa
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnSuccess_When_OrderIsCancelled()
+    public async Task Handle_ValidCommand_CancelsOrderAndSavesChanges()
     {
         // Arrange
         var command = new CancelOrderCommand(OrderId.New());
         
-        // A fresh order is automatically in the 'Pending' state, 
-        // which ALLOWS cancellation.
-        var order = CreateValidOrder();
+        var order = OrderHelper.CreatePendingOrder();
 
         
         _orderRepository.GetByIdAsync(command.OrderId.Value, Arg.Any<CancellationToken>())
@@ -78,25 +71,5 @@ public class CancelOrderCommandHandlerTests : OrderBaseTest<CancelOrderCommandHa
         
         // Verify the database transaction was committed
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
-    }
-
-    // --- Helper Methods ---
-
-    /// <summary>
-    /// Centralizes the creation of a valid order for testing purposes, 
-    /// fulfilling all required Domain constraints.
-    /// </summary>
-    private static Order CreateValidOrder()
-    {
-        var address = new Address("123 Test St", "Amman", "11118", "Jordan");
-
-        return Order.Create(
-            AuctionId.New(),
-            BidderId.New(),
-            BidId.New(),
-            address,
-            150.00m,
-            "txn_deposit_123"
-        ).Value;
     }
 }

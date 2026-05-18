@@ -16,7 +16,7 @@ public class ShipOrderValidatorTests
     public void Should_Not_Have_Error_When_OrderId_Is_Valid()
     {
         // Arrange
-        var command = new ShipOrderCommand(OrderId.New());
+        var command = OrderHelper.CreateShipOrderCommand();
 
         // Act
         var result = _validator.TestValidate(command);
@@ -29,7 +29,7 @@ public class ShipOrderValidatorTests
     public void Should_Have_Error_When_OrderId_Is_Empty()
     {
         // Arrange
-        var command = new ShipOrderCommand(OrderId.Empty);
+        var command = OrderHelper.CreateShipOrderCommand() with { OrderId = OrderId.Empty };
 
         // Act
         var result = _validator.TestValidate(command);

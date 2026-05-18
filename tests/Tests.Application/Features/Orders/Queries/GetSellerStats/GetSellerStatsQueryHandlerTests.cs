@@ -7,22 +7,14 @@ namespace Tests.Application.Features.Orders.Queries.GetSellerStats;
 public class GetSellerStatsQueryHandlerTests : OrderBaseTest<GetSellerStatsQueryHandler>
 {
     [Fact]
-    public async Task Handle_Should_ReturnSellerStats_When_SellerExists()
+    public async Task Handle_SellerExists_ReturnsSellerStats()
     {
         // 1. Arrange
-        var sellerId = SellerId.New();
-        var query = new GetSellerStatsQuery(sellerId);
-        
-        var expectedDto = new SellerOrderStatsDto(
-            TotalSales: 5000.00m,
-            TotalRevenue: 4500.00m,
-            PendingOrders: 5,
-            ActiveDisputes: 1,
-            AverageRating: 4.8
-        );
+        var query = new GetSellerStatsQuery(SellerId.New());
 
-        // ✅ Use Arg.Is to match the SellerId by value, avoiding Vogen default crashes
-        _orderQueries.GetSellerStatsAsync(sellerId, Arg.Any<CancellationToken>())
+        var expectedDto = OrderHelper.CreateSellerOrderStatsDto();
+
+        _orderQueries.GetSellerStatsAsync(query.SellerId, Arg.Any<CancellationToken>())
             .Returns(expectedDto);
 
         // 2. Act
@@ -31,19 +23,18 @@ public class GetSellerStatsQueryHandlerTests : OrderBaseTest<GetSellerStatsQuery
         // 3. Assert
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldBe(expectedDto); // Record value equality
-        result.Value.TotalSales.ShouldBe(5000.00m);
+        result.Value.TotalSales.ShouldBe(expectedDto.TotalSales);
         
-        await _orderQueries.Received(1).GetSellerStatsAsync(sellerId, Arg.Any<CancellationToken>());
+        await _orderQueries.Received(1).GetSellerStatsAsync(query.SellerId, Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnEmptyStats_When_QueryServiceReturnsNull()
+    public async Task Handle_QueryServiceReturnsNull_ReturnsEmptyStats()
     {
         // 1. Arrange
-        var sellerId = SellerId.New();
-        var query = new GetSellerStatsQuery(sellerId);
+        var query = new GetSellerStatsQuery(SellerId.New());
 
-        _orderQueries.GetSellerStatsAsync(sellerId, Arg.Any<CancellationToken>())
+        _orderQueries.GetSellerStatsAsync(query.SellerId, Arg.Any<CancellationToken>())
             .Returns((SellerOrderStatsDto?)null!);
 
         // 2. Act

@@ -1,23 +1,16 @@
 using MazadZone.Application.Features.Orders.Commands.AddFeedback;
-using MazadZone.Domain.Auctions;
-using MazadZone.Domain.Orders;
-using MazadZone.Domain.Orders.Events;
-using MazadZone.Domain.Repositories;
 using MazadZone.Domain.Sellers;
+using Tests.Application.Features.Sellers;
 
 namespace Tests.Application.Features.Orders.Commands.AddFeedback;
 
 public class UpdateSellerRatingOnFeedbackLeftDomainEventHandlerTests : OrderBaseTest<UpdateSellerRatingOnFeedbackLeftDomainEventHandler>
 {
     [Fact]
-    public async Task Handle_Should_ReturnEarly_When_SellerIsNotFound()
+    public async Task Handle_SellerNotFound_SkipsRatingUpdate()
     {
         // Arrange
-        var domainEvent = new FeedbackLeftDomainEvent(
-            OrderId.New(), 
-            AuctionId.New(), 
-            5, 
-            "Great seller!");
+        var domainEvent = OrderHelper.CreateFeedbackLeftEvent();
 
         // Simulate database returning null
         _sellerRepository.GetByAuctionIdAsync(domainEvent.AuctionId, Arg.Any<CancellationToken>())
@@ -32,16 +25,12 @@ public class UpdateSellerRatingOnFeedbackLeftDomainEventHandlerTests : OrderBase
     }
 
     [Fact]
-    public async Task Handle_Should_UpdateRatingAndSaveChanges_When_SellerIsFound()
+    public async Task Handle_SellerFound_UpdatesRatingAndSavesChanges()
     {
         // Arrange
-        var domainEvent = new FeedbackLeftDomainEvent(
-            OrderId.New(), 
-            AuctionId.New(), 
-            4, 
-            "Good transaction.");
+        var domainEvent = OrderHelper.CreateFeedbackLeftEvent();
 
-        var expectedSeller = CreateValidSeller();
+        var expectedSeller = SellerHelper.CreateValidSeller();
 
         _sellerRepository.GetByAuctionIdAsync(domainEvent.AuctionId, Arg.Any<CancellationToken>())
             .Returns(expectedSeller);
@@ -52,20 +41,5 @@ public class UpdateSellerRatingOnFeedbackLeftDomainEventHandlerTests : OrderBase
         // Assert
         // Verify the database transaction was committed to save the new rating
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
-        
-        // Note: Because we are passing a real Seller entity, if `UpdateRating` 
-        // exposes a readable property (like AverageRating or TotalReviews), 
-        // you could also assert the mutation here.
-    }
-
-    // --- Helper Methods ---
-
-    /// <summary>
-    /// Centralizes the creation of a valid dummy Seller for testing purposes.
-    /// </summary>
-    private static Seller CreateValidSeller()
-    {
-        // Assuming your Seller aggregate requires an ID and maybe a UserID
-        return Seller.BecomeSeller(BidderId.New(), "Tests Bank Acoount", "Test National Id").Value; 
     }
 }

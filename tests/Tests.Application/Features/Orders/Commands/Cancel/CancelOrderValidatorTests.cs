@@ -1,4 +1,3 @@
-using FluentValidation.TestHelper;
 using MazadZone.Application.Features.Orders.Commands.CancelOrder;
 using MazadZone.Domain.Orders;
 
@@ -10,12 +9,11 @@ public class CancelOrderValidatorTests
 
     public CancelOrderValidatorTests()
     {
-        // Arrange (Setup)
         _validator = new CancelOrderValidator();
     }
 
     [Fact]
-    public void Should_Not_Have_Error_When_OrderId_IsValid()
+    public void Validate_ValidCommand_PassesValidation()
     {
         // Arrange
         var command = new CancelOrderCommand(OrderId.New());
@@ -28,10 +26,9 @@ public class CancelOrderValidatorTests
     }
 
     [Fact]
-    public void Should_Have_Error_When_OrderId_IsEmpty()
+    public void Validate_OrderIdIsEmpty_FailsValidation()
     {
         // Arrange
-        // Assuming MustBeValidOrderId() rejects Guid.Empty
         var command = new CancelOrderCommand(OrderId.Empty);
 
         // Act
@@ -39,8 +36,5 @@ public class CancelOrderValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.OrderId);
-        
-        // Note: If MustBeValidOrderId() sets a specific custom error message, 
-        // you can optionally chain .WithErrorMessage("Your expected message here")
     }
 }

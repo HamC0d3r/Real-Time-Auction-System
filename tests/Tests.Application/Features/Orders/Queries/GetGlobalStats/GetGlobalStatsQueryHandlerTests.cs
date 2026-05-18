@@ -6,20 +6,10 @@ namespace Tests.Application.Features.Orders.Queries.GetGlobalStats;
 public class GetGlobalStatsQueryHandlerTests : OrderBaseTest<GetGlobalStatsQueryHandler>
 {
     [Fact]
-    public async Task Handle_Should_ReturnGlobalStats_When_QueriesAreSuccessful()
+    public async Task Handle_QueriesAreSuccessful_ReturnsGlobalStats()
     {
         // 1. Arrange - Using the positional record constructor
-        var expectedStats = new AdminGlobalStatsDto(
-            TotalSalesVolume: 25000.75m,
-            TotalOrders: 50,
-            TotalRealizedRevenue: 18000.00m,
-            AverageOrderValue: 360.00m,
-            TotalPendingAmount: 5000.25m,
-            TotalPendingOrders: 10,
-            TotalCanceledAmount: 2000.50m,
-            TotalCanceledOrders: 5,
-            TotalActiveDisputes: 3
-        );
+        var expectedStats = OrderHelper.CreateAdminGlobalStatsDto();
 
         var query = new GetGlobalStatsQuery();
 
@@ -37,9 +27,8 @@ public class GetGlobalStatsQueryHandlerTests : OrderBaseTest<GetGlobalStatsQuery
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnEmptyStats_When_NoDataExists()
+    public async Task Handle_NoDataExists_ReturnsEmptyStats()
     {
-        // Arrange - Testing your static 'Empty' property logic
         var query = new GetGlobalStatsQuery();
         
         _orderQueries.GetGlobalStatsAsync(Arg.Any<CancellationToken>())

@@ -8,7 +8,7 @@ public class RatingTests
     // --- 1. Validation Failures (Out of Bounds) ---
 
     [Fact]
-    public void Create_Should_ReturnFailure_When_ValueIsBelowMinimum()
+    public void Create_ValueIsBelowMinimum_ReturnsInvalidRatingError()
     {
         // Arrange: Dynamically calculate a value 1 step below the allowed minimum
         var tooLowRating = OrderConstants.MinRating - 1;
@@ -22,7 +22,7 @@ public class RatingTests
     }
 
     [Fact]
-    public void Create_Should_ReturnFailure_When_ValueIsAboveMaximum()
+    public void Create_ValueIsAboveMaximum_ReturnsInvalidRatingError()
     {
         // Arrange: Dynamically calculate a value 1 step above the allowed maximum
         var tooHighRating = OrderConstants.MaxRating + 1;
@@ -38,7 +38,7 @@ public class RatingTests
     // --- 2. Success Paths (Valid Bounds) ---
 
     [Fact]
-    public void Create_Should_ReturnSuccess_When_ValueIsExactlyMinimum()
+    public void Create_ValueIsExactlyMinimum_InitializesRating()
     {
         // Act
         var result = Rating.Create(OrderConstants.MinRating);
@@ -49,7 +49,7 @@ public class RatingTests
     }
 
     [Fact]
-    public void Create_Should_ReturnSuccess_When_ValueIsExactlyMaximum()
+    public void Create_ValueIsExactlyMaximum_InitializesRating()
     {
         // Act
         var result = Rating.Create(OrderConstants.MaxRating);
@@ -62,7 +62,7 @@ public class RatingTests
     // --- 3. Value Object Behaviors (Equality) ---
 
     [Fact]
-    public void Records_Should_Support_ValueEquality()
+    public void Equality_SameValues_EvaluatesToTrue()
     {
         // Arrange
         var validValue = OrderConstants.MaxRating;

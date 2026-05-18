@@ -7,26 +7,14 @@ namespace Tests.Application.Features.Orders.Queries.GetOrderDetails;
 public class GetOrderDetailsQueryHandlerTests : OrderBaseTest<GetOrderDetailsQueryHandler>
 {
     [Fact]
-    public async Task Handle_Should_ReturnOrderDetails_When_OrderExists()
+    public async Task Handle_OrderExists_ReturnsOrderDetails()
     {
         // 1. Arrange
-        var orderId = OrderId.New();
-        var query = new GetOrderDetailsQuery(orderId);
-        
-        var expectedDto = new OrderDetailsDto(
-            Id: orderId.Value,
-            Status: "Shipped",
-            TotalAmount: 2500.00m,
-            Currency: "JOD",
-            BidderId: Guid.NewGuid(),
-            WinningBidId: Guid.NewGuid(),
-            HasActiveDispute: false,
-            IsDisputable: true,
-            CanLeaveFeedback: true
-        );
+        var query = new GetOrderDetailsQuery(OrderId.New());
 
-        // ✅ We use the .Value to match the Guid logic in your Handler
-        _orderQueries.GetOrderDetailsAsync( orderId, Arg.Any<CancellationToken>())
+        var expectedDto = OrderHelper.CreateOrderDetailsDto() with {Id = query.OrderId.Value};
+
+        _orderQueries.GetOrderDetailsAsync( query.OrderId, Arg.Any<CancellationToken>())
             .Returns(expectedDto);
 
         // 2. Act
@@ -36,20 +24,19 @@ public class GetOrderDetailsQueryHandlerTests : OrderBaseTest<GetOrderDetailsQue
         // 3. Assert
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldBe(expectedDto);
-        result.Value.Id.ShouldBe(orderId.Value);
+        result.Value.Id.ShouldBe(query.OrderId.Value);
         
-        await _orderQueries.Received(1).GetOrderDetailsAsync(orderId, Arg.Any<CancellationToken>());
+        await _orderQueries.Received(1).GetOrderDetailsAsync(query.OrderId, Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnNotFound_When_OrderDoesNotExist()
+    public async Task Handle_OrderDoesNotExist_ReturnsNotFoundError()
     {
         // 1. Arrange
-        var orderId = OrderId.New();
-        var query = new GetOrderDetailsQuery(orderId);
+        var query = new GetOrderDetailsQuery(OrderId.New());
 
         // Ensure the query service returns null to trigger the error logic
-        _orderQueries.GetOrderDetailsAsync(orderId, Arg.Any<CancellationToken>())
+        _orderQueries.GetOrderDetailsAsync(query.OrderId, Arg.Any<CancellationToken>())
             .Returns((OrderDetailsDto?)null);
 
         // 2. Act

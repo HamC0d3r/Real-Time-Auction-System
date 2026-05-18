@@ -1,6 +1,7 @@
 using MazadZone.Application.Features.Orders.Commands.OpenDispute;
 using MazadZone.Application.Orders.OpenDispute;
 using MazadZone.Domain.Orders;
+using Tests.Application.Features.Orders;
 
 namespace Tests.Application.Orders.OpenDispute;
 
@@ -10,19 +11,14 @@ public class OpenDisputeValidatorTests
 
     public OpenDisputeValidatorTests()
     {
-        // Arrange
         _validator = new OpenDisputeValidator();
     }
 
-    // --- 1. SUCCESS SITUATION ---
-
     [Fact]
-    public void Should_Not_Have_Any_Errors_When_Command_Is_Valid()
+    public void Validate_ValidCommand_PassesValidation()
     {
         // Arrange
-        var command = new OpenDisputeCommand(
-            OrderId.New(), 
-            "The item received is significantly different from the auction description.");
+        var command = OrderHelper.CreateOpenDisputeCommand();
 
         // Act
         var result = _validator.TestValidate(command);
@@ -31,14 +27,11 @@ public class OpenDisputeValidatorTests
         result.ShouldNotHaveAnyValidationErrors();
     }
 
-    // --- 2. FAILURE SITUATIONS ---
-
     [Fact]
-    public void Should_Have_Error_When_OrderId_Is_Empty()
+    public void Validate_OrderIdIsEmpty_FailsValidation()
     {
         // Arrange
-        // Using OrderId.Empty which our MustBeValidOrderId correctly identifies as invalid
-        var command = new OpenDisputeCommand(OrderId.Empty, "Valid reason here");
+        var command = OrderHelper.CreateOpenDisputeCommand() with { OrderId = OrderId.Empty };
 
         // Act
         var result = _validator.TestValidate(command);
@@ -51,7 +44,7 @@ public class OpenDisputeValidatorTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void Should_Have_Error_When_Reason_Is_Null_Or_Whitespace(string invalidReason)
+    public void Validate_ReasonIsNullOrWhitespace_FailsValidation(string invalidReason)
     {
         // Arrange
         var command = new OpenDisputeCommand(OrderId.New(), invalidReason);
@@ -65,12 +58,12 @@ public class OpenDisputeValidatorTests
     }
 
     [Fact]
-    public void Should_Have_Error_When_Reason_Is_Too_Short()
+    public void Validate_ReasonIsTooShort_FailsValidation()
     {
         // Arrange 
         // Assuming your 'MustBeValidReason' requires a minimum length (e.g., 10 chars)
-        var shortReason = "Too short"; 
-        var command = new OpenDisputeCommand(OrderId.New(), shortReason);
+        var shortReason = "Too short";
+        var command = OrderHelper.CreateOpenDisputeCommand() with { Reason = shortReason };
 
         // Act
         var result = _validator.TestValidate(command);

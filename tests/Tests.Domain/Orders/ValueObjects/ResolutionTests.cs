@@ -12,7 +12,7 @@ public class ResolutionTests
     [InlineData("")]
     [InlineData(" ")]
     [InlineData("   ")]
-    public void Create_Should_ReturnFailure_When_TextIsNullOrWhitespace(string invalidText)
+    public void Create_TextIsNullOrWhitespace_ReturnsEmptyError(string invalidText)
     {
         // Act
         var result = Resolution.Create(invalidText);
@@ -23,7 +23,7 @@ public class ResolutionTests
     }
 
     [Fact]
-    public void Create_Should_ReturnFailure_When_TextIsTooShort()
+    public void Create_TextIsTooShort_ReturnsTooShortError()
     {
         // Arrange: Create a string exactly 1 character shorter than the minimum
         var tooShortText = new string('A', OrderConstants.MinResolutionLength - 1);
@@ -37,7 +37,7 @@ public class ResolutionTests
     }
 
     [Fact]
-    public void Create_Should_ReturnFailure_When_TextIsTooLong()
+    public void Create_TextIsTooLong_ReturnsTooLongError()
     {
         // Arrange: Create a string exactly 1 character longer than the maximum
         var tooLongText = new string('A', OrderConstants.MaxResolutionLength + 1);
@@ -53,7 +53,7 @@ public class ResolutionTests
     // --- 2. Success Paths & Data Sanitization ---
 
     [Fact]
-    public void Create_Should_ReturnSuccess_And_TrimWhitespace_When_Valid()
+    public void Create_ValidText_InitializesResolutionAndTrimsWhitespace()
     {
         // Arrange
         var validCoreText = "Refund issued to buyer.";
@@ -70,7 +70,7 @@ public class ResolutionTests
     }
 
     [Fact]
-    public void Create_Should_ReturnSuccess_When_LengthIsExactlyMinimum()
+    public void Create_LengthIsExactlyMinimum_InitializesResolution()
     {
         // Arrange
         var exactMinText = new string('A', OrderConstants.MinResolutionLength);
@@ -84,7 +84,7 @@ public class ResolutionTests
     }
 
     [Fact]
-    public void Create_Should_ReturnSuccess_When_LengthIsExactlyMaximum()
+    public void Create_LengthIsExactlyMaximum_InitializesResolution()
     {
         // Arrange
         var exactMaxText = new string('A', OrderConstants.MaxResolutionLength);
@@ -100,7 +100,7 @@ public class ResolutionTests
     // --- 3. Value Object Behaviors (Equality & Conversions) ---
 
     [Fact]
-    public void ImplicitOperator_Should_ConvertTo_String()
+    public void ImplicitConversion_ToString_ReturnsUnderlyingValue()
     {
         // Arrange
         var text = "Agreed to split shipping costs.";
@@ -114,7 +114,7 @@ public class ResolutionTests
     }
 
     [Fact]
-    public void Records_Should_Support_ValueEquality()
+    public void Equality_SameValues_EvaluatesToTrue()
     {
         // Arrange
         var text = "Full refund provided.";

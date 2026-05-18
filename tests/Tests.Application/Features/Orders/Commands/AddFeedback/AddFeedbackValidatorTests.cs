@@ -1,4 +1,3 @@
-using FluentValidation.TestHelper;
 using MazadZone.Application.Features.Orders.Commands.AddFeedback;
 using MazadZone.Domain.Orders;
 
@@ -9,14 +8,10 @@ public class AddFeedbackValidatorTests
     private readonly AddFeedbackValidator _validator = new();
 
     [Fact]
-    public void Should_Not_Have_Error_When_Command_Is_Valid()
+    public void Validate_ValidCommand_PassesValidation()
     {
         // Arrange
-        var command = new AddFeedbackCommand(
-            OrderId: OrderId.New(), // Assuming your command has an OrderId
-            Rating: OrderConstants.MaxRating, 
-            Comment: "Great transaction, highly recommended!"
-        );
+        var command = OrderHelper.CreateAddFeedbackCommand();
 
         // Act
         var result = _validator.TestValidate(command);
@@ -26,9 +21,9 @@ public class AddFeedbackValidatorTests
     }
 
     [Theory]
-    [InlineData(0)] // Assuming MinRating is 1
-    [InlineData(6)] // Assuming MaxRating is 5
-    public void Should_Have_Error_When_Rating_Is_Out_Of_Bounds(int invalidRating)
+    [InlineData(0)]
+    [InlineData(6)] 
+    public void Validate_RatingIsOutOfBounds_FailsValidation(int invalidRating)
     {
         // Arrange
         var command = new AddFeedbackCommand(OrderId.New(), invalidRating, "Good");
@@ -42,7 +37,7 @@ public class AddFeedbackValidatorTests
     }
 
     [Fact]
-    public void Should_Have_Error_When_Comment_Exceeds_MaxLength()
+    public void Validate_CommentExceedsMaxLength_FailsValidation()
     {
         // Arrange
         var tooLongComment = new string('a', OrderConstants.MaxCommentLength + 1);

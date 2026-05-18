@@ -1,6 +1,7 @@
 using MazadZone.Application.Common.Interfaces;
 using MazadZone.Application.Services;
 using MazadZone.Domain.Repositories;
+using MediatR;
 using NSubstitute.AutoSub;
 
 public abstract class GlobalTestBase
@@ -16,6 +17,8 @@ public abstract class GlobalTestBase
     protected readonly IAuctionRepository _auctionRepository;
     protected readonly IAuctionQueries _auctionQueries;
 
+    protected readonly ISender _sender;
+
 
     protected GlobalTestBase()
     {
@@ -25,6 +28,7 @@ public abstract class GlobalTestBase
         _auctionRepository = AutoMocker.GetSubstituteFor<IAuctionRepository>();
         _auctionQueries = AutoMocker.GetSubstituteFor<IAuctionQueries>();
         _emailService = AutoMocker.GetSubstituteFor<IEmailService>();
+        _sender = AutoMocker.GetSubstituteFor<ISender>();
 
     }
 

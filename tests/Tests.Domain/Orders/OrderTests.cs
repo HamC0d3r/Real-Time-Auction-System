@@ -22,7 +22,7 @@ public class OrderTests
 
 
     [Fact]
-    public void Create_Should_ReturnFailure_When_TotalAmountIsInvalid()
+    public void Create_TotalAmountIsInvalid_ReturnsValidationError()
     {
         // Arrange
         var address = new Address("123 Test St", "Amman", "11118", "Jordan");
@@ -36,7 +36,7 @@ public class OrderTests
     }
 
     [Fact]
-    public void Create_Should_InitializeOrder_And_RaiseEvent_When_Valid()
+    public void Create_ValidParameters_InitializesOrder()
     {
         // Act
         var order = CreateValidPendingOrder();
@@ -54,7 +54,7 @@ public class OrderTests
     // --- 2. STATE MACHINE (Confirm, Ship, Deliver, Cancel) ---
 
     [Fact]
-    public void Cancel_Should_Fail_When_OrderIsNotPending()
+    public void Cancel_OrderIsNotPending_ReturnsCannotCancelError()
     {
         // Arrange
         var order = CreateValidPendingOrder();
@@ -69,7 +69,7 @@ public class OrderTests
     }
 
     [Fact]
-    public void Cancel_Should_Succeed_When_OrderIsPending()
+    public void Cancel_OrderIsPending_CancelsOrder()
     {
         var order = CreateValidPendingOrder();
         var result = order.Cancel();
@@ -80,7 +80,7 @@ public class OrderTests
     }
 
     [Fact]
-    public void Confirm_Should_Fail_When_OrderIsNotPending()
+    public void Confirm_OrderIsNotPending_ReturnsCannotConfirmError()
     {
         var order = CreateValidPendingOrder();
         order.Cancel(); // Move out of Pending
@@ -92,7 +92,7 @@ public class OrderTests
     }
 
 [Fact]
-    public void Confirm_Should_Succeed_And_RaiseEvent_When_OrderIsPending()
+    public void Confirm_OrderIsPending_ConfirmsOrder()
     {
         // Arrange
         var order = CreateValidPendingOrder(); // Status is Pending
@@ -107,7 +107,7 @@ public class OrderTests
     }
 
     [Fact]
-    public void Ship_Should_Fail_When_OrderIsNotConfirmed()
+    public void Ship_OrderIsNotConfirmed_ReturnsCannotShippedError()
     {
         var order = CreateValidPendingOrder(); // Status is Pending
 
@@ -118,7 +118,7 @@ public class OrderTests
     }
 
 [Fact]
-    public void Ship_Should_Succeed_And_RaiseEvent_When_OrderIsConfirmed()
+    public void Ship_OrderIsConfirmed_ShipsOrder()
     {
         // Arrange
         var order = CreateValidPendingOrder();
@@ -134,7 +134,7 @@ public class OrderTests
     }
 
     [Fact]
-    public void Deliver_Should_Succeed_And_RaiseEvent_When_OrderIsShipped()
+    public void Deliver_OrderIsShipped_DeliversOrder()
     {
         // Arrange: Walk the state machine forward
         var order = CreateValidPendingOrder();
@@ -151,7 +151,7 @@ public class OrderTests
     }
 
     [Fact]
-    public void Deliver_Should_Fail_When_OrderIsNotShipped()
+    public void Deliver_OrderIsNotShipped_ReturnsCannotDeliverError()
     {
         // Arrange
         var order = CreateValidPendingOrder();
@@ -168,7 +168,7 @@ public class OrderTests
     // --- 3. FEEDBACK ---
 
     [Fact]
-    public void AddFeedback_Should_Fail_When_OrderIsNotDelivered()
+    public void AddFeedback_OrderIsNotDelivered_ReturnsFeedbackRequiresDeliveredError()
     {
         var order = CreateValidPendingOrder(); // Pending state
 
@@ -179,7 +179,7 @@ public class OrderTests
     }
 
     [Fact]
-    public void AddFeedback_Should_Fail_When_FeedbackAlreadyExists()
+    public void AddFeedback_FeedbackAlreadyExists_ReturnsFeedbackAlreadyExistsError()
     {
         var order = CreateValidPendingOrder();
         order.Confirm(); order.Ship(); order.Deliver(); // Move to valid state
@@ -195,7 +195,7 @@ public class OrderTests
     }
 
     [Fact]
-    public void AddFeedback_Should_Succeed_And_RaiseEvent_When_Valid()
+    public void AddFeedback_ValidParameters_AddsFeedback()
     {
         var order = CreateValidPendingOrder();
         order.Confirm(); order.Ship(); order.Deliver();
@@ -208,7 +208,7 @@ public class OrderTests
     }
 
     [Fact]
-    public void ReplyToFeedback_Should_Fail_When_NoFeedbackExists()
+    public void ReplyToFeedback_NoFeedbackExists_ReturnsNoFeedbackError()
     {
         var order = CreateValidPendingOrder();
 
@@ -219,7 +219,7 @@ public class OrderTests
     }
 
 [Fact]
-    public void ReplyToFeedback_Should_Succeed_And_RaiseEvent_When_FeedbackExists()
+    public void ReplyToFeedback_FeedbackExists_RepliesToFeedback()
     {
         // Arrange: Build the entire state chain required to leave a reply
         var order = CreateValidPendingOrder();
@@ -241,7 +241,7 @@ public class OrderTests
     // --- 4. DISPUTES ---
 
     [Fact]
-    public void OpenDispute_Should_Fail_When_OrderIsPendingOrConfirmed()
+    public void OpenDispute_OrderIsPendingOrConfirmed_ReturnsCannotDisputeError()
     {
         var order = CreateValidPendingOrder(); // Pending
 
@@ -252,7 +252,7 @@ public class OrderTests
     }
 
     [Fact]
-    public void OpenDispute_Should_Fail_When_DisputeAlreadyExists()
+    public void OpenDispute_DisputeAlreadyExists_ReturnsDisputeAlreadyExistsError()
     {
         var order = CreateValidPendingOrder();
         order.Confirm(); order.Ship(); // Valid state for dispute
@@ -266,7 +266,7 @@ public class OrderTests
     }
 
     [Fact]
-    public void OpenDispute_Should_Succeed_And_RaiseEvent_When_Valid()
+    public void OpenDispute_ValidParameters_OpensDispute()
     {
         var order = CreateValidPendingOrder();
         order.Confirm(); order.Ship(); // Shipped status allows disputes
@@ -279,7 +279,7 @@ public class OrderTests
     }
 
     [Fact]
-    public void ResolveDispute_Should_Fail_When_NoDisputeExists()
+    public void ResolveDispute_NoDisputeExists_ReturnsNoDisputeError()
     {
         var order = CreateValidPendingOrder();
 
@@ -290,7 +290,7 @@ public class OrderTests
     }
 
     [Fact]
-    public void ResolveDispute_Should_Succeed_When_Valid()
+    public void ResolveDispute_ValidParameters_ResolvesDispute()
     {
         // Arrange
         var order = CreateValidPendingOrder();
@@ -309,7 +309,7 @@ public class OrderTests
     }
 
 [Fact]
-    public void ResolveDispute_Should_Fail_When_DisputeResolutionFails()
+    public void ResolveDispute_DisputeResolutionFails_ReturnsValidationError()
     {
         // Arrange
         var order = CreateValidPendingOrder();

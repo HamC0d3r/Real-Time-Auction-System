@@ -1,7 +1,5 @@
 using MazadZone.Application.Features.Orders.Commands.ResolveDispute;
-using MazadZone.Domain.Auctions;
 using MazadZone.Domain.Orders;
-using MazadZone.Domain.Shared.ValueObjects;
 using MediatR;
 
 namespace Tests.Application.Features.Orders.Commands.ResolveDispute;
@@ -9,11 +7,11 @@ namespace Tests.Application.Features.Orders.Commands.ResolveDispute;
 public class ResolveDisputeCommandHandlerTests : OrderBaseTest<ResolveDisputeCommandHandler>
 {
     [Fact]
-    public async Task Handle_Should_ReturnNotFound_When_OrderDoesNotExist()
+    public async Task Handle_OrderDoesNotExist_ReturnsNotFoundError()
     {
         // Arrange
-        var command = new ResolveDisputeCommand(OrderId.New(), "Partial refund to bidder.");
-        
+        var command = OrderHelper.CreateResolveDisputeCommand();
+
         // Use ReturnsForAnyArgs to avoid VOG009 issues with null returns
         _orderRepository.GetByIdAsync(default!, default)
             .ReturnsForAnyArgs((Order?)null);
@@ -24,17 +22,17 @@ public class ResolveDisputeCommandHandlerTests : OrderBaseTest<ResolveDisputeCom
         // Assert
         result.IsFailure.ShouldBeTrue();
         result.TopError.ShouldBe(OrderErrors.NotFound);
-        
+
         await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnDomainError_When_OrderIsNotInDispute()
+    public async Task Handle_OrderIsNotInDispute_ReturnsDomainError()
     {
         // Arrange - Create a fresh order (Status: Pending)
-        var order = CreateValidOrder(); 
-        var command = new ResolveDisputeCommand(order.Id, "Full refund.");
-        
+        var order = OrderHelper.CreatePendingOrder();
+        var command = OrderHelper.CreateResolveDisputeCommand() with { OrderId = order.Id };
+
         _orderRepository.GetByIdAsync(command.OrderId.Value, Arg.Any<CancellationToken>())
             .Returns(order);
 
@@ -44,23 +42,20 @@ public class ResolveDisputeCommandHandlerTests : OrderBaseTest<ResolveDisputeCom
 
         // Assert
         result.IsFailure.ShouldBeTrue();
-        result.TopError.ShouldBe(OrderErrors.NoDispute); 
+        result.TopError.ShouldBe(OrderErrors.NoDispute);
 
         await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnSuccess_And_ChangeStatus_When_Valid()
+    public async Task Handle_ValidCommand_ResolvesDisputeAndSavesChanges()
     {
         // Arrange - Move order to 'Disputed' state so it can be resolved
-        var order = CreateValidOrder();
-        order.Confirm();
-        order.Ship();
+        var order = OrderHelper.CreateShippedOrder();
         order.OpenDispute("Item was damaged."); // Transition to Disputed
 
-        var resolution = "Admin approved partial refund.";
-        var command = new ResolveDisputeCommand(order.Id, resolution);
-        
+        var command = OrderHelper.CreateResolveDisputeCommand() with { OrderId = order.Id };
+
         _orderRepository.GetByIdAsync(command.OrderId.Value, Arg.Any<CancellationToken>())
             .Returns(order);
 
@@ -70,22 +65,9 @@ public class ResolveDisputeCommandHandlerTests : OrderBaseTest<ResolveDisputeCom
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldBe(Unit.Value);
-        
+
         // Verify the status changed in the domain
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
-    // --- Helper Methods ---
-
-    private static Order CreateValidOrder()
-    {
-        return Order.Create(
-            AuctionId.New(),
-            BidderId.New(),
-            BidId.New(),
-            new Address("Street", "Amman", "111", "Jordan"),
-            500.00m,
-            "txn_capture_999"
-        ).Value;
-    }
 }

@@ -1,7 +1,5 @@
 using MazadZone.Application.Features.Orders.Commands.AddFeedback;
-using MazadZone.Domain.Auctions;
 using MazadZone.Domain.Orders;
-using MazadZone.Domain.Shared.ValueObjects;
 using MediatR;
 
 namespace Tests.Application.Features.Orders.Commands.AddFeedback;
@@ -9,10 +7,10 @@ namespace Tests.Application.Features.Orders.Commands.AddFeedback;
 public class AddFeedbackCommandHandlerTests : OrderBaseTest<AddFeedbackCommandHandler>
 {
     [Fact]
-    public async Task Handle_Should_ReturnNotFound_When_OrderDoesNotExist()
+    public async Task Handle_OrderDoesNotExist_ReturnsNotFoundError()
     {
         // Arrange
-        var command = new AddFeedbackCommand(OrderId.New(), 5, "Great!");
+        var command = OrderHelper.CreateAddFeedbackCommand();
         
         _orderRepository.GetByIdAsync(command.OrderId.Value, Arg.Any<CancellationToken>())
             .Returns((Order?)null);
@@ -29,14 +27,12 @@ public class AddFeedbackCommandHandlerTests : OrderBaseTest<AddFeedbackCommandHa
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnDomainError_When_AddFeedbackFails()
+    public async Task Handle_OrderIsNotDelivered_ReturnsDomainError()
     {
         // Arrange
-        var command = new AddFeedbackCommand(OrderId.New(), 5, "Great!");
+        var command = OrderHelper.CreateAddFeedbackCommand();
         
-        // Create a fresh order. Fresh orders are in 'Pending' status. 
-        // Adding feedback requires the 'Delivered' status, which triggers a domain error.
-        var order = CreateValidOrder(); 
+        var order = OrderHelper.CreatePendingOrder(); 
         
         _orderRepository.GetByIdAsync(command.OrderId.Value, Arg.Any<CancellationToken>())
             .Returns(order);
@@ -53,18 +49,12 @@ public class AddFeedbackCommandHandlerTests : OrderBaseTest<AddFeedbackCommandHa
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnSuccess_When_FeedbackIsAdded()
+    public async Task Handle_ValidCommand_AddsFeedbackAndSavesChanges()
     {
         // Arrange
-        var command = new AddFeedbackCommand(OrderId.New(), 5, "Excellent transaction.");
+        var command = OrderHelper.CreateAddFeedbackCommand();
         
-        var order = CreateValidOrder(); 
-        
-        // IMPORTANT: We need the order to be in a state that ALLOWS feedback. 
-        // Walk the state machine to Delivered.
-        order.Confirm(); 
-        order.Ship();    
-        order.Deliver(); 
+        var order = OrderHelper.CreateDeliveredOrder(); 
         
         _orderRepository.GetByIdAsync(command.OrderId.Value, Arg.Any<CancellationToken>())
             .Returns(order);
@@ -78,24 +68,5 @@ public class AddFeedbackCommandHandlerTests : OrderBaseTest<AddFeedbackCommandHa
         
         // Verify the database transaction was committed
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
-    }
-
-
-    /// <summary>
-    /// Centralizes the creation of a valid order for testing purposes, 
-    /// fulfilling all required Domain constraints.
-    /// </summary>
-    private static Order CreateValidOrder()
-    {
-        var address = new Address("123 Test St", "Amman", "11118", "Jordan");
-
-        return Order.Create(
-            AuctionId.New(),
-            BidderId.New(),
-            BidId.New(),
-            address,
-            150.00m,
-            "txn_deposit_123"
-        ).Value;
     }
 }

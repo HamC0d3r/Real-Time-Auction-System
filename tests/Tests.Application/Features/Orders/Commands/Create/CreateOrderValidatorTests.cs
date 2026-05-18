@@ -10,15 +10,14 @@ public class CreateOrderValidatorTests
 
     public CreateOrderValidatorTests()
     {
-        // Arrange
         _validator = new CreateOrderValidator();
     }
 
     [Fact]
-    public void Should_Not_Have_Error_When_Command_Is_Valid()
+    public void Validate_ValidCommand_PassesValidation()
     {
         // Arrange
-        var command = CreateValidCommand();
+        var command = OrderHelper.CreateOrderCommand();
 
         // Act
         var result = _validator.TestValidate(command);
@@ -28,10 +27,10 @@ public class CreateOrderValidatorTests
     }
 
     [Fact]
-    public void Should_Have_Error_When_BidderId_Is_Empty()
+    public void Validate_BidderIdIsEmpty_FailsValidation()
     {
         // Arrange
-        var command = CreateValidCommand() with { BidderId = BidderId.Empty };
+        var command = OrderHelper.CreateOrderCommand() with { BidderId = BidderId.Empty };
 
         // Act
         var result = _validator.TestValidate(command);
@@ -41,10 +40,10 @@ public class CreateOrderValidatorTests
     }
 
     [Fact]
-    public void Should_Have_Error_When_WinningBidId_Is_Empty()
+    public void Validate_WinningBidIdIsEmpty_FailsValidation()
     {
         // Arrange
-        var command = CreateValidCommand() with { WinningBidId = BidId.Empty };
+        var command = OrderHelper.CreateOrderCommand() with { WinningBidId = BidId.Empty };
 
         // Act
         var result = _validator.TestValidate(command);
@@ -56,10 +55,10 @@ public class CreateOrderValidatorTests
     [Theory]
     [InlineData(0)]
     [InlineData(-10)]
-    public void Should_Have_Error_When_Amount_Is_Zero_Or_Less(decimal invalidAmount)
+    public void Validate_AmountIsZeroOrLess_FailsValidation(decimal invalidAmount)
     {
         // Arrange
-        var command = CreateValidCommand() with { Amount = invalidAmount };
+        var command = OrderHelper.CreateOrderCommand() with {Amount = invalidAmount};
 
         // Act
         var result = _validator.TestValidate(command);
@@ -69,10 +68,10 @@ public class CreateOrderValidatorTests
     }
 
     [Fact]
-    public void Should_Have_Error_When_TransactionId_Is_Empty()
+    public void Validate_TransactionIdIsEmpty_FailsValidation()
     {
         // Arrange
-        var command = CreateValidCommand() with { DepositCaptureTransactionId = string.Empty };
+        var command = OrderHelper.CreateOrderCommand() with { DepositCaptureTransactionId = string.Empty };
 
         // Act
         var result = _validator.TestValidate(command);
@@ -82,12 +81,12 @@ public class CreateOrderValidatorTests
     }
 
     [Fact]
-    public void Should_Have_Error_When_Address_Is_Invalid()
+    public void Validate_AddressIsInvalid_FailsValidation()
     {
         // Arrange
         // Creating an invalid address DTO (assuming ZipCode or City is required)
         var invalidAddress = new AddressDto(string.Empty, string.Empty, string.Empty, string.Empty);
-        var command = CreateValidCommand() with { ReceiptAddress = invalidAddress };
+        var command = OrderHelper.CreateOrderCommand() with { ReceiptAddress = invalidAddress };
 
         // Act
         var result = _validator.TestValidate(command);
@@ -97,21 +96,5 @@ public class CreateOrderValidatorTests
         result.ShouldHaveValidationErrorFor(x => x.ReceiptAddress.Street); 
         result.ShouldHaveValidationErrorFor(x => x.ReceiptAddress.City); 
         result.Errors.Any(x => x.PropertyName.Contains("ReceiptAddress")).ShouldBeTrue();
-    }
-
-    // --- Helper Methods ---
-
-    private static CreateOrderCommand CreateValidCommand()
-    {
-        var validAddress = new AddressDto("Main St", "Amman", "11118", "Jordan");
-        
-        return new CreateOrderCommand(
-            AuctionId.New(),
-            BidderId.New(),
-            BidId.New(),
-            validAddress,
-            100.00m,
-            "txn_valid_123"
-        );
     }
 }

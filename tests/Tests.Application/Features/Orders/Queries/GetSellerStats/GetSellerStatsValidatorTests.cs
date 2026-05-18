@@ -13,7 +13,7 @@ public class GetSellerStatsValidatorTests
     }
 
     [Fact]
-    public void Should_Not_Have_Error_When_SellerId_Is_Valid()
+    public void Validate_ValidQuery_PassesValidation()
     {
         // Arrange - Create a query with a properly initialized SellerId
         var query = new GetSellerStatsQuery(SellerId.New());
@@ -26,7 +26,7 @@ public class GetSellerStatsValidatorTests
     }
 
     [Fact]
-    public void Should_Have_Error_When_SellerId_Is_Empty()
+    public void Validate_SellerIdIsEmpty_FailsValidation()
     {
         // Arrange
         var query = new GetSellerStatsQuery(SellerId.Empty);

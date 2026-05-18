@@ -1,21 +1,17 @@
 using MazadZone.Application.Features.Orders.Commands.DeliverOrder;
-using MazadZone.Domain.Auctions;
 using MazadZone.Domain.Orders;
-using MazadZone.Domain.Shared.ValueObjects;
 using MediatR;
 
 namespace Tests.Application.Features.Orders.Commands.DeliverOrder;
 
 public class DeliverOrderCommandHandlerTests : OrderBaseTest<DeliverOrderCommandHandler>
 {
-
     [Fact]
-    public async Task Handle_Should_ReturnNotFound_When_OrderDoesNotExist()
+    public async Task Handle_OrderDoesNotExist_ReturnsNotFoundError()
     {
         // Arrange
-        var command = new DeliverOrderCommand(OrderId.New());
+        var command = OrderHelper.CreateDeliverOrderCommand();
         
-        // Using the underscored property from your latest OrderBaseTest
         _orderRepository.GetByIdAsync(command.OrderId.Value, Arg.Any<CancellationToken>())
             .Returns((Order?)null);
 
@@ -31,13 +27,13 @@ public class DeliverOrderCommandHandlerTests : OrderBaseTest<DeliverOrderCommand
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnDomainError_When_DeliveryIsInvalid()
+    public async Task Handle_DeliveryIsInvalid_ReturnsDomainError()
     {
         // 1. Arrange - Create a fresh order (Status: Pending)
-        var order = CreateValidOrder(); 
+        var order = OrderHelper.CreatePendingOrder();
         
         // 2. Arrange - Use the same ID for the command
-        var command = new DeliverOrderCommand(order.Id);
+        var command = OrderHelper.CreateDeliverOrderCommand() with { OrderId = order.Id };
         
         _orderRepository.GetByIdAsync(command.OrderId.Value, Arg.Any<CancellationToken>())
             .Returns(order);
@@ -56,15 +52,13 @@ public class DeliverOrderCommandHandlerTests : OrderBaseTest<DeliverOrderCommand
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnSuccess_When_OrderIsDelivered()
+    public async Task Handle_ValidCommand_DeliversOrderAndSavesChanges()
     {
         // 1. Arrange - Create and prepare the order state
-        var order = CreateValidOrder();
-        order.Confirm();
-        order.Ship(); // Move to Shipped so it can be Delivered
+        var order = OrderHelper.CreateShippedOrder();
 
-        var command = new DeliverOrderCommand(order.Id);
-        
+        var command = OrderHelper.CreateDeliverOrderCommand() with { OrderId = order.Id };
+
         _orderRepository.GetByIdAsync(command.OrderId.Value, Arg.Any<CancellationToken>())
             .Returns(order);
 
@@ -78,21 +72,5 @@ public class DeliverOrderCommandHandlerTests : OrderBaseTest<DeliverOrderCommand
         // Verify the status was actually updated and saved
         order.Status.ShouldBe(OrderStatus.Delivered);
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
-    }
-
-    // --- Helper Methods ---
-
-    private static Order CreateValidOrder()
-    {
-        var address = new Address("123 Test St", "Amman", "11118", "Jordan");
-
-        return Order.Create(
-            AuctionId.New(),
-            BidderId.New(),
-            BidId.New(),
-            address,
-            200.00m,
-            "txn_capture_456"
-        ).Value;
     }
 }

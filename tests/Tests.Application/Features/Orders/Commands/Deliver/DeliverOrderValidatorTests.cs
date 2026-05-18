@@ -9,15 +9,14 @@ public class DeliverOrderValidatorTests
 
     public DeliverOrderValidatorTests()
     {
-        // Arrange
         _validator = new DeliverOrderValidator();
     }
 
     [Fact]
-    public void Should_Not_Have_Error_When_OrderId_IsValid()
+    public void Validate_ValidCommand_PassesValidation()
     {
         // Arrange
-        var command = new DeliverOrderCommand(OrderId.New());
+        var command = OrderHelper.CreateDeliverOrderCommand();
 
         // Act
         var result = _validator.TestValidate(command);
@@ -27,11 +26,11 @@ public class DeliverOrderValidatorTests
     }
 
     [Fact]
-    public void Should_Have_Error_When_OrderId_IsEmpty()
+    public void Validate_OrderIdIsEmpty_FailsValidation()
     {
         // Arrange
         // Using the .Empty property that our extension now correctly invalidates
-        var command = new DeliverOrderCommand(OrderId.Empty);
+        var command = OrderHelper.CreateDeliverOrderCommand() with { OrderId = OrderId.Empty };
 
         // Act
         var result = _validator.TestValidate(command);

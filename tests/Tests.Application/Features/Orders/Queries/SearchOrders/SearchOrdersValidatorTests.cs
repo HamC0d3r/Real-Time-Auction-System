@@ -13,7 +13,7 @@ public class SearchOrdersValidatorTests
     }
 
     [Fact]
-    public void Should_Not_Have_Error_When_Filter_Is_Valid()
+    public void Validate_ValidFilter_PassesValidation()
     {
         // Arrange
         var filter = new OrderSearchFilter(null, "Shipped", 20, 1);
@@ -29,7 +29,7 @@ public class SearchOrdersValidatorTests
     }
 
     [Fact]
-    public void Should_Have_Error_When_PageNumber_Is_Less_Than_One()
+    public void Validate_PageNumberLessThanOne_FailsValidation()
     {
         // Arrange - Testing the GreaterThanOrEqualTo(1) rule
         var filter = new OrderSearchFilter(null, null, 10, 0);
@@ -45,7 +45,7 @@ public class SearchOrdersValidatorTests
     [Theory]
     [InlineData(0)]   // Too small
     [InlineData(101)] // Too large (Greater than 100)
-    public void Should_Have_Error_When_PageSize_Is_Out_Of_Range(int invalidSize)
+    public void Validate_PageSizeOutOfRange_FailsValidation(int invalidSize)
     {
         // Arrange
         var filter = new OrderSearchFilter(null, null, invalidSize, 1);
@@ -59,7 +59,7 @@ public class SearchOrdersValidatorTests
     }
 
     [Fact]
-    public async Task Should_Have_Error_When_Filter_Is_Null()
+    public async Task Validate_FilterIsNull_FailsValidation()
     {
         // Arrange
         var query = new SearchOrdersQuery(null!);

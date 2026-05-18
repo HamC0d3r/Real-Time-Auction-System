@@ -13,10 +13,10 @@ public class GetOrderByWinningBidValidatorTests
     }
 
     [Fact]
-    public void Should_Not_Have_Error_When_WinningBidId_Is_Valid()
+    public void Validate_ValidQuery_PassesValidation()
     {
         // Arrange - Create a valid BidId using the Vogen-generated New() method
-        var query = new GetOrderByWinningBidQuery(BidId.New());
+        var query = OrderHelper.CreateGetOrderByWinningBidQuery();
 
         // Act
         var result = _validator.TestValidate(query);
@@ -26,10 +26,10 @@ public class GetOrderByWinningBidValidatorTests
     }
 
     [Fact]
-    public void Should_Have_Error_When_WinningBidId_Is_Empty()
+    public void Validate_WinningBidIdIsEmpty_FailsValidation()
     {
         // Arrange
-        var query = new GetOrderByWinningBidQuery(BidId.Empty);
+        var query = OrderHelper.CreateGetOrderByWinningBidQuery() with {WinningBidId = BidId.Empty};
 
         // Act
         var result = _validator.TestValidate(query);

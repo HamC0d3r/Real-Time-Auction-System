@@ -7,25 +7,18 @@ namespace Tests.Application.Features.Orders.Queries.SearchOrders;
 public class SearchOrdersQueryHandlerTests : OrderBaseTest<SearchOrdersQueryHandler>
 {
     [Fact]
-    public async Task Handle_Should_ReturnPagedList_When_OrdersMatchFilter()
+    public async Task Handle_OrdersMatchFilter_ReturnsPagedList()
     {
         // 1. Arrange
         // Using the new positional record constructor with named arguments for clarity
-        var filter = new OrderSearchFilter(
-            UserId: Guid.NewGuid(), 
-            Status: "Shipped", 
-            PageSize: 5, 
-            PageNumber: 1);
+        var filter = OrderHelper.CreateOrderSearchFilter();
 
         var query = new SearchOrdersQuery(filter);
 
-        var summaries = new List<OrderSummaryDto>
-        {
-            new(Guid.NewGuid(), "Shipped", 450.00m, "JOD", DateTime.UtcNow, true, false, false)
-        };
+        var summaries = OrderHelper.CreateOrderSummaries();
 
         // Create the paged result expected from the query service
-        var pagedList = new PagedList<OrderSummaryDto>(summaries, 1, 5, 1);
+        var pagedList = new PagedList<OrderSummaryDto>(summaries, filter.PageNumber, filter.PageSize, summaries.Count);
 
         _orderQueries.SearchOrdersAsync(filter, Arg.Any<CancellationToken>())
             .Returns(pagedList);
@@ -36,22 +29,21 @@ public class SearchOrdersQueryHandlerTests : OrderBaseTest<SearchOrdersQueryHand
 
         // 3. Assert
         result.IsSuccess.ShouldBeTrue();
-        result.Value.Items.Count.ShouldBe(1);
-        result.Value.TotalCount.ShouldBe(1);
+        result.Value.TotalCount.ShouldBe(summaries.Count);
         
         // Verify the query service received the exact record values
         await _orderQueries.Received(1).SearchOrdersAsync(filter, Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task Handle_Should_WorkWithDefaultFilterValues()
+    public async Task Handle_DefaultFilterValues_ReturnsEmptyPagedList()
     {
         // 1. Arrange
         // Testing the record's default PageSize (10) and PageNumber (1)
         var filter = new OrderSearchFilter(null, null);
         var query = new SearchOrdersQuery(filter);
 
-        var emptyPagedList = new PagedList<OrderSummaryDto>(new List<OrderSummaryDto>(), 1, 10, 0);
+        var emptyPagedList = new PagedList<OrderSummaryDto>(new List<OrderSummaryDto>(), filter.PageNumber, filter.PageSize, 0);
 
         _orderQueries.SearchOrdersAsync(filter, Arg.Any<CancellationToken>())
             .Returns(emptyPagedList);
