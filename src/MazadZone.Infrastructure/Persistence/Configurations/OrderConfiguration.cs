@@ -52,7 +52,7 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
 
               builder.Property(o => o.DepositCaptureTransactionId)
                      .HasMaxLength(OrderConstants.MaxTransactionIdLength)
-                     .IsRequired();
+                     .IsRequired(); 
 
               builder.Property(o => o.RemainingBalanceTransactionId)
                      .HasMaxLength(OrderConstants.MaxTransactionIdLength)
@@ -71,6 +71,10 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
               builder.Ignore(o => o.IsDisputable);
               builder.Ignore(o => o.CanLeaveFeedback);
               builder.Ignore(o => o.HasActiveDispute);
+
+
+              //Auction Table ItemId
+              //Item Id
 
 
               //  // Assuming OrderStatus.Active/Pending/Confirmed map to 1 or specific integers

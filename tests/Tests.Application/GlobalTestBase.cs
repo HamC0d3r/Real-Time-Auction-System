@@ -17,6 +17,9 @@ public abstract class GlobalTestBase
     protected readonly IAuctionRepository _auctionRepository;
     protected readonly IAuctionQueries _auctionQueries;
 
+    protected readonly IUserRepository _userRepository;
+    protected readonly IBidderRepository _bidderRepository;
+
     protected readonly ISender _sender;
 
 
@@ -29,7 +32,8 @@ public abstract class GlobalTestBase
         _auctionQueries = AutoMocker.GetSubstituteFor<IAuctionQueries>();
         _emailService = AutoMocker.GetSubstituteFor<IEmailService>();
         _sender = AutoMocker.GetSubstituteFor<ISender>();
-
+        _userRepository = AutoMocker.GetSubstituteFor<IUserRepository>();
+        _bidderRepository = AutoMocker.GetSubstituteFor<IBidderRepository>();
     }
 
     // Helper to grab a mock if you need it on the fly

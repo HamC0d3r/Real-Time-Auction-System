@@ -6,8 +6,6 @@ namespace MazadZone.Domain.Sellers;
 
 public sealed class Seller : AggregateRoot<SellerId>, IVerifiableEntity, IAuditableEntity
 {
-
-    #pragma warning disable CS0519
     private Seller() { } 
 
     private Seller(

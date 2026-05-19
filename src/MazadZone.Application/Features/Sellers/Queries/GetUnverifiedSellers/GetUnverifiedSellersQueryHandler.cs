@@ -1,6 +1,6 @@
 namespace MazadZone.Application.Features.Sellers.Queries.GetUnverifiedSellers;
 
-internal sealed class GetUnverifiedSellersQueryHandler 
+public sealed class GetUnverifiedSellersQueryHandler 
     : IQueryHandler<GetUnverifiedSellersQuery, IReadOnlyList<UnverifiedSellerSummaryResponse>>
 {
     private readonly ISellerQueries _sellerQueries;
