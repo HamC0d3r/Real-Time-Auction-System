@@ -13,5 +13,5 @@ public interface ISellerQueries
 {
     Task<PublicSellerProfileResponse?> GetPublicProfileAsync(SellerId sellerId, CancellationToken cancellationToken);
     Task<PrivateSellerDetailsResponse?> GetPrivateProfileAsync(SellerId sellerId, CancellationToken cancellationToken);
-    Task<IReadOnlyList<UnverifiedSellerSummaryResponse>> GetUnverifiedSellersAsync(CancellationToken cancellationToken);
+    Task<IReadOnlyList<UnverifiedSellerSummaryResponse>?> GetUnverifiedSellersAsync(CancellationToken cancellationToken);
 }

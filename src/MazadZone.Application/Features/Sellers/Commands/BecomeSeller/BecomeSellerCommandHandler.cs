@@ -5,7 +5,7 @@ using MazadZone.Domain.Sellers;
 
 namespace MazadZone.Application.Features.Sellers.Commands.BecomeSeller;
 
-internal sealed class BecomeSellerCommandHandler : ICommandHandler<BecomeSellerCommand, Unit>
+public sealed class BecomeSellerCommandHandler : ICommandHandler<BecomeSellerCommand, Unit>
 {
     private readonly ISellerRepository _sellerRepository;
     private readonly IBidderRepository _bidderRepository;
@@ -46,7 +46,7 @@ internal sealed class BecomeSellerCommandHandler : ICommandHandler<BecomeSellerC
             return BidderErrors.NotFound;
         }
 
-        var result = Seller.BecomeSeller(bidderId, nationalId, request.BankAccountNumber);
+        var result = Seller.BecomeSeller(bidderId, bankAccountNumber: request.BankAccountNumber, nationalId: nationalId);
 
         if (result.IsFailure)
         {

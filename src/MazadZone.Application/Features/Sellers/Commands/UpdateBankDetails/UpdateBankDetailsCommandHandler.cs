@@ -3,7 +3,7 @@ using MazadZone.Domain.Sellers;
 
 namespace MazadZone.Application.Features.Sellers.Commands.UpdateBankDetails;
 
-internal sealed class UpdateBankDetailsCommandHandler : ICommandHandler<UpdateBankDetailsCommand, Unit>
+public sealed class UpdateBankDetailsCommandHandler : ICommandHandler<UpdateBankDetailsCommand, Unit>
 {
     private readonly ISellerRepository _sellerRepository;
     private readonly IUnitOfWork _unitOfWork;

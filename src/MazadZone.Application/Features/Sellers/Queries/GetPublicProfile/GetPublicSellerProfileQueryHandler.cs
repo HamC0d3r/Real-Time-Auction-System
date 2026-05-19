@@ -2,7 +2,7 @@ using MazadZone.Domain.Sellers;
 
 namespace MazadZone.Application.Features.Sellers.Queries.GetPublicProfile;
 
-internal sealed class GetPublicSellerProfileQueryHandler 
+public sealed class GetPublicSellerProfileQueryHandler 
     : IQueryHandler<GetPublicSellerProfileQuery, PublicSellerProfileResponse>
 {
     private readonly ISellerQueries _sellerQueries;

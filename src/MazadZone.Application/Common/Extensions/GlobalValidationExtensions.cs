@@ -62,4 +62,6 @@ public static class GlobalValidationExtensions
             .Must(id => id.Value != Guid.Empty)
             .WithMessage("Invalid {PropertyName}."); // This will use the property name in the error message    
     }
+
+    
 }

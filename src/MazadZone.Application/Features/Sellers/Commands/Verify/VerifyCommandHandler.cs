@@ -3,7 +3,7 @@ using MazadZone.Domain.Sellers;
 
 namespace MazadZone.Application.Features.Sellers.Commands.Verify;
 
-internal sealed class VerifyCommandHandler : ICommandHandler<VerifyCommand, Unit>
+public sealed class VerifyCommandHandler : ICommandHandler<VerifyCommand, Unit>
 {
     private readonly ISellerRepository _sellerRepository;
     private readonly IUnitOfWork _unitOfWork;
