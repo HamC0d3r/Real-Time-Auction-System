@@ -1,16 +1,13 @@
-// import { SellerAuctionsPage } from "@/features/seller/components/seller-auctions-page";
+"use client";
 
-/**
- * Seller auctions management page — thin wrapper.
- * TODO: Import and render SellerAuctionsPage from the seller feature.
- */
+import { Suspense } from "react";
+import { SellerDashboardPage } from "@/features/auctions";
+
 export default function Page() {
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-      <h1 className="text-3xl font-bold tracking-tight">My Auctions</h1>
-      <p className="text-muted-foreground">
-        Seller auctions — TODO: wire up feature component
-      </p>
-    </div>
+    <Suspense fallback={<div className="p-8 text-center text-muted-foreground">Loading...</div>}>
+      <SellerDashboardPage />
+    </Suspense>
   );
 }
+

@@ -15,6 +15,7 @@ import {
   fetchClosingSoonAuctions,
   fetchBidHistory,
   fetchSimilarAuctions,
+  fetchSellerAuctions,
 } from "./auctions.api";
 
 // --- Query Keys --------------------------------------------------
@@ -33,6 +34,8 @@ export const auctionKeys = {
   category: (category: AuctionCategory) =>
     [...auctionKeys.all, "category", category] as const,
   bids: (id: string) => [...auctionKeys.detail(id), "bids"] as const,
+  seller: (filters?: any) =>
+    [...auctionKeys.all, "seller", filters ?? {}] as const,
 };
 
 // --- Query Hooks -------------------------------------------------
@@ -107,5 +110,21 @@ export function useGetSimilarAuctions(
     enabled: !!auctionId && !!category,
   });
 }
+
+/**
+ * Hook to get auctions owned by the current seller.
+ */
+export function useGetSellerAuctions(filters?: {
+  status?: string;
+  sortBy?: string;
+  page?: number;
+  pageSize?: number;
+}) {
+  return useQuery<PaginatedResponse<AuctionSummary>>({
+    queryKey: auctionKeys.seller(filters),
+    queryFn: () => fetchSellerAuctions(filters),
+  });
+}
+
 
 

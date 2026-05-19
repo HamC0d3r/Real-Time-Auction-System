@@ -7,10 +7,11 @@ export {
   useGetClosingSoonAuctions,
   useGetBidHistory,
   useGetSimilarAuctions,
+  useGetSellerAuctions,
 } from "./auction.queries";
 
 // Mutations
-export { useCreateAuction, useUpdateAuction } from "./auction.mutations";
+export { useCreateAuction, useUpdateAuction, useDeleteAuction } from "./auction.mutations";
 
 // Raw fetch functions (for non-hook usage or prefetching)
 export {
@@ -20,4 +21,6 @@ export {
   fetchClosingSoonAuctions,
   createAuctionApi,
   updateAuctionApi,
+  fetchSellerAuctions,
+  deleteAuctionApi,
 } from "./auctions.api";

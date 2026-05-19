@@ -374,3 +374,102 @@ export async function updateAuctionApi(
   const { data } = await api.patch<Auction>(`/auctions/${id}`, input);
   return data;
 }
+
+/**
+ * Fetches auctions owned by the current seller.
+ */
+export async function fetchSellerAuctions(
+  filters?: { status?: string; sortBy?: string; page?: number; pageSize?: number }
+): Promise<PaginatedResponse<AuctionSummary>> {
+  await simulateDelay();
+
+  /**
+   * --- REAL API CALL (Uncomment when backend is ready) ---
+   * const { data } = await api.get<PaginatedResponse<AuctionSummary>>("/auctions/seller", { 
+   *   params: filters 
+   * });
+   * return data;
+   */
+
+  const page = filters?.page || 1;
+  const pageSize = filters?.pageSize || 5;
+
+  // Map every 3rd mock auction as owned by the current seller to simulate a rich list of owned auctions
+  let results = getMockAuctions().map((a, idx) => ({
+    ...a,
+    isOwner: idx % 3 === 0,
+  })).filter(a => a.isOwner);
+
+  // Apply status filter: "Active", "Sold", "Pending", "Ended"
+  if (filters?.status && filters.status !== "All" && filters.status !== "All Statuses") {
+    const status = filters.status.toLowerCase();
+    results = results.filter((a) => {
+      if (status === "active") {
+        return a.status === AuctionStatus.ACTIVE;
+      }
+      if (status === "sold") {
+        return a.status === AuctionStatus.ENDED && a.pricing.bidCount > 0;
+      }
+      if (status === "pending") {
+        return a.status === AuctionStatus.UPCOMING;
+      }
+      if (status === "ended") {
+        return a.status === AuctionStatus.ENDED && a.pricing.bidCount === 0;
+      }
+      return true;
+    });
+  }
+
+  // Apply sorting
+  if (filters?.sortBy) {
+    const sortBy = filters.sortBy;
+    const getPrice = (a: AuctionSummary) => a.pricing.currentBid ?? a.pricing.startingPrice;
+    const getTime = (date: string | Date) => new Date(date).getTime();
+
+    if (sortBy === "EndDate") {
+      results.sort((a, b) => getTime(a.timing.endDate) - getTime(b.timing.endDate));
+    } else if (sortBy === "CurrentBid") {
+      results.sort((a, b) => getPrice(b) - getPrice(a));
+    } else if (sortBy === "DateCreated") {
+      results.sort((a, b) => getTime(b.timing.creationDate) - getTime(a.timing.creationDate));
+    }
+  }
+
+  // Pagination
+  const totalCount = results.length;
+  const totalPages = Math.ceil(totalCount / pageSize);
+  const startIndex = (page - 1) * pageSize;
+  const paginatedItems = results.slice(startIndex, startIndex + pageSize);
+
+  return {
+    items: paginatedItems,
+    totalCount,
+    page,
+    pageSize,
+    totalPages,
+    hasNextPage: page < totalPages,
+    hasPreviousPage: page > 1,
+  };
+}
+
+import type { ApiResponse } from "@/types/api.types";
+
+/**
+ * Sends a DELETE request to delete an auction.
+ */
+export async function deleteAuctionApi(id: string): Promise<ApiResponse<void>> {
+  await simulateDelay();
+
+  /**
+   * --- REAL API CALL (Uncomment when backend is ready) ---
+   * return api.delete<void>(`/auctions/${id}`);
+   */
+
+  return {
+    data: undefined as any,
+    message: "Auction listing has been deleted successfully.",
+    success: true,
+    timestamp: new Date().toISOString(),
+  };
+}
+
