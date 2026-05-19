@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { PageWrapper } from "@/components/layout/page-wrapper";
 import { ROUTES } from "@/config/routes.config";
 import { useAuthStore } from "@/stores/auth.store";
+import { useRequireRole } from "@/hooks/use-require-role";
 
 import { useCreateAuction } from "../../api/auction.mutations";
 import { AuctionCategory, AuctionSubcategory, AuctionCondition } from "../../types/auction.types";
@@ -40,6 +41,12 @@ export function CreateAuctionPage() {
   const { user } = useAuthStore();
   const { mutateAsync: createAuction, isPending } = useCreateAuction();
 
+  const { isAuthorized, isLoading: isAuthLoading } = useRequireRole(["seller"], {
+    loginMessage: "Please log in to create a new auction listing.",
+    unauthorizedMessage: "You must activate your seller privileges to list new auctions.",
+    bypassTesting: true, // Keep bypass testing for local development/testing
+  });
+
   // Image preview state tracking
   const [imagePreviews, setImagePreviews] = useState<ImagePreview[]>([]);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -52,6 +59,17 @@ export function CreateAuctionPage() {
     email: "tester@mazadzone.com",
     role: "seller"
   };
+
+  if (isAuthLoading || !isAuthorized) {
+    return (
+      <PageWrapper className="flex items-center justify-center min-h-[70vh]">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto" />
+          <p className="text-muted-foreground font-semibold">Verifying credentials...</p>
+        </div>
+      </PageWrapper>
+    );
+  }
 
   const methods = useForm<CreateAuctionFormValues>({
     resolver: zodResolver(createAuctionSchema),

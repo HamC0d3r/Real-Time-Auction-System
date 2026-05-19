@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { PageWrapper } from "@/components/layout/page-wrapper";
 import { useAuthStore } from "@/stores/auth.store";
 import { ROUTES } from "@/config/routes.config";
+import { useRequireRole } from "@/hooks/use-require-role";
 
 // Sub-component imports
 import { BecomeSellerAccountInfo } from "./BecomeSellerAccountInfo";
@@ -30,6 +31,14 @@ import { useBecomeSeller } from "../api/seller.mutations";
 
 export function BecomeSellerPage() {
   const router = useRouter();
+
+  const { isAuthorized, isLoading: isAuthLoading } = useRequireRole(["bidder"], {
+    redirectToUnauthorized: ROUTES.SELLER.AUCTIONS,
+    unauthorizedMessage: "You are already registered as a seller.",
+    loginMessage: "Please log in to apply for seller privileges.",
+    bypassTesting: true, // Keep bypass testing for local development/testing
+  });
+
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const { user, setUser } = useAuthStore();
@@ -41,6 +50,17 @@ export function BecomeSellerPage() {
   const [payoutDetails, setPayoutDetails] = useState<PayoutDetails | null>(null);
   const [payoutError, setPayoutError] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  if (isAuthLoading || !isAuthorized) {
+    return (
+      <PageWrapper className="flex items-center justify-center min-h-[70vh]">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto" />
+          <p className="text-muted-foreground font-semibold">Verifying credentials...</p>
+        </div>
+      </PageWrapper>
+    );
+  }
 
   const handleSubmitApplication = async (e: React.FormEvent) => {
     e.preventDefault();

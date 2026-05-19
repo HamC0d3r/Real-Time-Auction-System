@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { PageWrapper } from "@/components/layout/page-wrapper";
 import { ROUTES } from "@/config/routes.config";
+import { useRequireRole } from "@/hooks/use-require-role";
 
 import { useGetAuctionById } from "../../api/auction.queries";
 import { EditAuctionForm } from "./EditAuctionForm";
@@ -15,16 +16,26 @@ interface EditAuctionPageProps {
 }
 
 export function EditAuctionPage({ id }: EditAuctionPageProps) {
+  // Authenticate and authorize checks for seller role
+  const { isAuthorized, isLoading: isAuthLoading } = useRequireRole(["seller"], {
+    loginMessage: "Please log in to edit this auction.",
+    unauthorizedMessage: "You must activate your seller privileges to edit auctions.",
+    bypassTesting: true, // Keep bypass testing for local development/testing
+  });
+
   // Fetch existing auction details
   const { data: auction, isLoading: isQueryLoading, isError: isQueryError } = useGetAuctionById(id);
 
   // Loading Boundary
-  if (isQueryLoading) {
+  if (isAuthLoading || !isAuthorized || isQueryLoading) {
+    const loadingText = isAuthLoading || !isAuthorized 
+      ? "Verifying credentials..." 
+      : "Loading auction details...";
     return (
       <PageWrapper className="flex items-center justify-center min-h-[500px]">
         <div className="text-center space-y-3">
           <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto" />
-          <p className="text-muted-foreground font-semibold">Loading auction details...</p>
+          <p className="text-muted-foreground font-semibold">{loadingText}</p>
         </div>
       </PageWrapper>
     );
