@@ -32,7 +32,7 @@ class CancelAuctionHandler(
         }
 
         var auction = auctionResult;
-        var updateResult = auction.MarkAsCancelled(_dateTimeProvider.UtcNow);
+        var updateResult = auction.MarkAsCancelled(_dateTimeProvider.UtcNow, request.Reason);
         
         if (updateResult.IsFailure)
         {

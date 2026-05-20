@@ -6,6 +6,7 @@ using MazadZone.Domain.Orders;
 using MazadZone.Infrastructure.Persistence.Converters;
 using MazadZone.Infrastructure.Common.Constants;
 using MazadZone.Domain.Shared;
+using MazadZone.Domain.Shared.ValueObjects;
 
 public sealed class DisputeConfiguration : IEntityTypeConfiguration<Dispute>
 {

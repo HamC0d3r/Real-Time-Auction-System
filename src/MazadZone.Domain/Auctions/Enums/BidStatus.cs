@@ -1,4 +1,4 @@
-namespace MazadZone.Domain.Orders;
+namespace MazadZone.Domain.Auctions.Enums;
 public enum BidStatus
 {
     Leading = 1,  // The current highest bid

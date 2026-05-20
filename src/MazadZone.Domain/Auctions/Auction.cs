@@ -1,10 +1,13 @@
 
 using System.Runtime;
+using MazadZone.Domain.Auctions.Enums;
 using MazadZone.Domain.Auctions.Events;
 using MazadZone.Domain.Auctions.ValueObjects;
 using MazadZone.Domain.Bidders;
+using MazadZone.Domain.Categories;
 using MazadZone.Domain.Sellers;
 using MazadZone.Domain.Shared.ValueObjects;
+using MazadZone.Domain.Users.ValueObjects;
 using MazadZone.Domain.ValueObjects;
 
 namespace MazadZone.Domain.Auctions;
@@ -20,6 +23,7 @@ public sealed class Auction : AggregateRoot<AuctionId>, IAuditableEntity
     private Auction(
         AuctionId id,
         ItemId itemId,
+        Item item,
         SellerId sellerId,
         Address shippingAddress,
         Money startBidAmount,
@@ -30,6 +34,7 @@ public sealed class Auction : AggregateRoot<AuctionId>, IAuditableEntity
 
         SellerId = sellerId;
         ItemId = itemId;
+        Item = item;
         ShippingAddress = shippingAddress;
         StartBidAmount = startBidAmount;
         MinBidAmount = minBidAmount;
@@ -42,7 +47,10 @@ public sealed class Auction : AggregateRoot<AuctionId>, IAuditableEntity
     }
 
     public ItemId ItemId { get; private set; }
+    public Item Item { get; private set; } 
+
     public SellerId SellerId { get; private set; }
+
     public Address ShippingAddress   { get; private set; }
 
     public Money StartBidAmount { get; private set; }
@@ -88,14 +96,18 @@ public sealed class Auction : AggregateRoot<AuctionId>, IAuditableEntity
         
     // --- Factory Method ---
     public static Result<Auction> Create(
-        ItemId itemId,
         SellerId sellerId,
         Address shippingAddress,
         decimal startBidAmount,
         decimal minBidAmount,
         Currency currency,
         DateTime startTime,
-        DateTime endTime)
+        DateTime endTime,
+        string title,
+        string description,
+        List<Image> images,
+        CategoryId categoryId
+        )
     {
         if (startTime >= endTime) return AuctionErrors.InvalidTimeFrame;
 
@@ -105,16 +117,21 @@ public sealed class Auction : AggregateRoot<AuctionId>, IAuditableEntity
         var startBidResult = Money.Create(startBidAmount, currency);
         if (startBidResult.IsFailure) return AuctionErrors.StartBidTooLow;
 
-
+        var CreateItemResult = Item.Create(categoryId, title, description, images);
+        if (CreateItemResult.IsFailure) 
+            return CreateItemResult.TopError;
+        
         return new Auction(
                 AuctionId.New(),
-                itemId,
+                CreateItemResult.Value.Id,
+                CreateItemResult.Value,
                 sellerId,
                 shippingAddress,
                 startBidResult.Value,
                 minBidResult.Value,
                 startTime,
                 endTime);
+
     }
 
     // --- Operations (State Machine) ---
@@ -143,12 +160,13 @@ public sealed class Auction : AggregateRoot<AuctionId>, IAuditableEntity
         return Result.Success();
     }
 
-    public Result MarkAsCancelled(DateTime utcNow)
+    public Result MarkAsCancelled(DateTime utcNow , string reason)
     {
         if (Status == AuctionStatus.Cancelled) return AuctionErrors.AlreadyCancelled;
 
         if (IsPending(utcNow)) return AuctionErrors.CannotCancel;
 
+        CancellationReason = Reason.Create(reason).Value;
         Status = AuctionStatus.Cancelled;
         RaiseDomainEvent(new AuctionCancelledDomainEvent(Id));
 
@@ -197,19 +215,19 @@ public sealed class Auction : AggregateRoot<AuctionId>, IAuditableEntity
     // --- Bidding Logic ---
     public Result<Bid> CheckPlaceBid(
     BidderId bidderId,
-    Money amount,
+    decimal amount,
     DateTime utcNow)
     {
         if (!IsActive(utcNow)) 
             return AuctionErrors.AlreadyEnded;
 
-        var amountResult = Money.Create(amount.Amount, Currency.Jod);
+        var amountResult = Money.Create(amount, Currency.Jod);
         
         if (amountResult.IsFailure) return 
             BidErrors.InvalidAmount;
         
 
-        var depositAmountResult = Money.Create(amount.Amount * AuctionConstants.BidDepositPercentage, 
+        var depositAmountResult = Money.Create(amount * AuctionConstants.BidDepositPercentage, 
                             Currency.Jod);
         
         if (depositAmountResult.IsFailure) 
@@ -221,7 +239,7 @@ public sealed class Auction : AggregateRoot<AuctionId>, IAuditableEntity
             return AuctionErrors.BidTooLow;
         
         // Create and add the new bid
-        var newBid = Bid.Create(this.Id, bidderId, amount, depositAmountResult.Value, null);
+        var newBid = Bid.Create(bidderId, amountResult.Value, depositAmountResult.Value, null);
         
 
         return Result.Success(newBid);
@@ -255,10 +273,40 @@ public sealed class Auction : AggregateRoot<AuctionId>, IAuditableEntity
                     previousLeadingBid.BidderId,
                     previousLeadingBid.Amount));
         }        
-
+        
         RaiseDomainEvent(new BidPlacedDomainEvent(Id, newBid.Id));
 
         return newBid;
+    }
+
+    public void RemoveBidsByBidder(UserId bidderId)
+    {
+        var bidderBids = _bids.Where(b => b.BidderId == bidderId.Value).ToList();
+
+        if (!bidderBids.Any()) return;
+        
+        bool removedLeadingBid = bidderBids.Any(b => b.Status == BidStatus.Leading);
+
+        // Remove bids for bidder
+        foreach (var bid in bidderBids)
+        {
+            _bids.Remove(bid);
+        }
+
+        //if removed leading bid
+        if (removedLeadingBid)
+        {
+            // search on last bids 
+            var nextLeadingBid = _bids
+                .Where(b => b.Status == BidStatus.Outbid) 
+                .OrderByDescending(b => b.Amount.Amount)
+                .FirstOrDefault();
+
+            if (nextLeadingBid != null)
+            {
+                nextLeadingBid.MarkAsLeading();
+            }
+        }
     }
 
 

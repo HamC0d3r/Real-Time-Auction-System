@@ -1,9 +1,12 @@
 namespace MazadZone.Domain.Auctions;
 
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using MazadZone.Domain.Auctions.ValueObjects;
 using MazadZone.Domain.Categories;
 using MazadZone.Domain.Items;
 using MazadZone.Domain.Primitives;
+using MazadZone.Domain.Shared.ValueObjects;
 
 public sealed class Item : Entity<ItemId>
 {
@@ -19,7 +22,7 @@ public sealed class Item : Entity<ItemId>
         ItemId id,
         CategoryId categoryId,
         string title,
-         string description) : base(id)
+         Description description) : base(id)
     {
         CategoryId = categoryId;
         Title = title;
@@ -29,7 +32,7 @@ public sealed class Item : Entity<ItemId>
     // --- Properties ---
     public CategoryId CategoryId { get; private init; }
     public string Title { get; private set; }
-    public string Description { get; private set; }
+    public Description Description { get; private set; }
 
     // Encapsulated collection
     public IReadOnlyCollection<Image> Images => _images.AsReadOnly();
@@ -38,21 +41,30 @@ public sealed class Item : Entity<ItemId>
     public static Result <Item> Create(
         CategoryId categoryId,
         string title,
-        string description
+        string description,
+        List<Image> images
     )
     {
         if (string.IsNullOrWhiteSpace(title) || title.Length > AuctionConstants.MaxTitleLength)
             return ItemErrors.InvalidTitle;
 
-            if (string.IsNullOrWhiteSpace(description) || description.Length > AuctionConstants.MaxDescriptionLength)
+        var descriptionResult = Description.Create(description);
+        if (descriptionResult.IsFailure)
             return ItemErrors.InvalidDescription;
-
+        
+        foreach (var image in images)
+        {
+            var imageResult = Image.Create(image.Path, image.AltText,image.isMain);
+            
+            if (imageResult.IsFailure)
+                return imageResult.TopError;
+        }
 
         return new Item(
             ItemId.New(),
             categoryId,
             title,
-            description
+            descriptionResult.Value
         );
     }
 
@@ -127,11 +139,12 @@ public Result AddImage(Image image)
         if (string.IsNullOrWhiteSpace(newTitle) || newTitle.Length > AuctionConstants.MaxTitleLength)
             return ItemErrors.InvalidTitle;
 
-        if (string.IsNullOrWhiteSpace(newDescription) || newDescription.Length > AuctionConstants.MaxDescriptionLength)
-            return ItemErrors.InvalidDescription;
+        var descriptionResult = Description.Create(newDescription);
+        if (descriptionResult.IsFailure) 
+        return ItemErrors.InvalidDescription;
 
         Title = newTitle;
-        Description = newDescription;
+        Description = descriptionResult.Value;
 
         return Result.Success();
     }

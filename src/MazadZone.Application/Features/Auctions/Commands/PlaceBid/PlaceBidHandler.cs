@@ -49,7 +49,7 @@ public class PlaceBidHandler(
         }
 
         // Check if the bid can be placed and get the necessary details for placing the bid (like deposit amount)
-        var checkPlaceBidResult = auction.CheckPlaceBid(request.BidderId, request.Amount, _dateTimeProvider.UtcNow);
+        var checkPlaceBidResult = auction.CheckPlaceBid(request.BidderId, request.Amount.Amount, _dateTimeProvider.UtcNow);
 
         if (checkPlaceBidResult.IsFailure)
         {

@@ -1,4 +1,5 @@
 using MazadZone.Domain.Orders;
+using MazadZone.Domain.Shared.ValueObjects;
 using MazadZone.Domain.Users;
 using MazadZone.Domain.Users.Events;
 using MazadZone.Domain.Users.ValueObjects;
