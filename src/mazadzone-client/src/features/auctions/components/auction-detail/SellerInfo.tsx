@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { CheckCircle2, Mail, Star, ChevronRight } from "lucide-react";
+import { ROUTES } from "@/config/routes.config";
 import type { Seller } from "../../types/auction.types";
 
 interface SellerInfoProps {
@@ -15,13 +17,19 @@ export function SellerInfo({ seller }: SellerInfoProps) {
       <div className="flex items-center justify-start gap-12">
         <div className="flex items-center gap-4">
           {/* Avatar */}
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted text-base font-bold text-foreground select-none ring-2 ring-border/50">
+          <Link
+            href={ROUTES.SELLER.PROFILE(seller.id)}
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-muted text-base font-bold text-foreground select-none ring-2 ring-border/50 hover:ring-primary transition-all cursor-pointer"
+          >
             {seller.avatarInitial}
-          </div>
+          </Link>
           <div className="flex flex-col">
-            <span className="text-base font-bold text-foreground">
+            <Link
+              href={ROUTES.SELLER.PROFILE(seller.id)}
+              className="text-base font-bold text-foreground hover:text-primary transition-colors cursor-pointer"
+            >
               {seller.fullName}
-            </span>
+            </Link>
             <div className="flex flex-col gap-2 mt-2">
               {seller.isVerified && (
                 <div className="flex items-center gap-1">
@@ -42,7 +50,10 @@ export function SellerInfo({ seller }: SellerInfoProps) {
         {/* Seller Stats: Rating above Reviews */}
         <div className="flex flex-col items-center gap-4 pl-12 border-l border-border">
           {/* Rating */}
-          <button className="group flex flex-col items-center transition-colors hover:text-primary cursor-pointer">
+          <Link
+            href={ROUTES.SELLER.PROFILE(seller.id)}
+            className="group flex flex-col items-center transition-colors hover:text-primary cursor-pointer"
+          >
             <div className="flex items-center gap-2">
               <span className="text-2xl font-bold tracking-tight">
                 {seller.rating}
@@ -53,10 +64,13 @@ export function SellerInfo({ seller }: SellerInfoProps) {
             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 group-hover:text-primary/70 transition-colors">
               Rating
             </span>
-          </button>
+          </Link>
 
           {/* Reviews */}
-          <button className="group flex flex-col items-center transition-colors hover:text-primary cursor-pointer">
+          <Link
+            href={ROUTES.SELLER.PROFILE(seller.id)}
+            className="group flex flex-col items-center transition-colors hover:text-primary cursor-pointer"
+          >
             <div className="flex items-center gap-2">
               <span className="text-2xl font-bold tracking-tight">
                 {seller.reviews}
@@ -66,7 +80,7 @@ export function SellerInfo({ seller }: SellerInfoProps) {
             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 group-hover:text-primary/70 transition-colors">
               Reviews
             </span>
-          </button>
+          </Link>
         </div>
       </div>
     </div>

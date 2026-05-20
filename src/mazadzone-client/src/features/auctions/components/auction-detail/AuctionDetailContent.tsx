@@ -31,8 +31,8 @@ export function AuctionDetailContent({
   // Mock Data & Derivatives
   // ---------------------------------------------------------------------------
   
-  // In a real app, these would come from the API or be passed as props
-  const seller: Seller = {
+  // Prefer the seller data from the API response, fallback to mock details if unavailable
+  const seller: Seller = auction.seller || {
     id: "seller-123",
     fullName: "Ahmad Al-Rashid",
     email: "ahmad@mazadzone.com",

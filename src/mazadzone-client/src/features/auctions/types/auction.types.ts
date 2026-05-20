@@ -136,6 +136,7 @@ export interface AuctionSummary {
   images: string[];
   /** Pre-loaded bid history for this auction. Empty array if no bids yet. */
   bidHistory: BidHistoryEntry[];
+  seller?: Seller;
 }
 
 export interface BidHistoryEntry {

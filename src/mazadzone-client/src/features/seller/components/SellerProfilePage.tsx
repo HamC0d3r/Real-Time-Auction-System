@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { PageWrapper } from "@/components/layout/page-wrapper";
 import { MessageSquare, ShoppingBag } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   useGetSellerProfile,
   useGetSellerReviews,
@@ -41,13 +43,13 @@ export function SellerProfilePage({ sellerId }: SellerProfilePageProps) {
           <p className="text-lg font-medium text-destructive">
             Failed to load seller profile
           </p>
-          <button
+          <Button
             type="button"
             onClick={() => refetchProfile()}
-            className="rounded-md bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 cursor-pointer"
+            className="px-5 py-2 text-sm font-semibold cursor-pointer h-auto"
           >
             Try Again
-          </button>
+          </Button>
         </div>
       </PageWrapper>
     );
@@ -56,21 +58,21 @@ export function SellerProfilePage({ sellerId }: SellerProfilePageProps) {
   if (isProfileLoading || isReviewsLoading || isAuctionsLoading) {
     return (
       <PageWrapper>
-        <div className="flex flex-col gap-8 px-4 py-6 sm:px-6 lg:px-8 animate-pulse">
+        <div className="flex flex-col gap-8 px-4 py-6 sm:px-6 lg:px-8">
           {/* Header Skeleton */}
-          <div className="h-[200px] w-full rounded-xl bg-card border border-border" />
+          <Skeleton className="h-[200px] w-full rounded-xl" />
 
           {/* Tabs Skeleton */}
           <div className="flex justify-center gap-4 border-b border-border/60 pb-6">
-            <div className="h-11 w-36 rounded-full bg-card border border-border" />
-            <div className="h-11 w-44 rounded-full bg-card border border-border" />
+            <Skeleton className="h-11 w-36 rounded-full" />
+            <Skeleton className="h-11 w-44 rounded-full" />
           </div>
 
           {/* List Skeleton */}
           <div className="flex flex-col gap-4">
-            <div className="h-32 w-full rounded-xl bg-card border border-border" />
-            <div className="h-32 w-full rounded-xl bg-card border border-border" />
-            <div className="h-32 w-full rounded-xl bg-card border border-border" />
+            <Skeleton className="h-32 w-full rounded-xl" />
+            <Skeleton className="h-32 w-full rounded-xl" />
+            <Skeleton className="h-32 w-full rounded-xl" />
           </div>
         </div>
       </PageWrapper>
@@ -103,31 +105,25 @@ export function SellerProfilePage({ sellerId }: SellerProfilePageProps) {
 
         {/* Tab Buttons Container */}
         <div className="flex justify-center gap-4 border-b border-border/60 pb-6">
-          <button
+          <Button
             type="button"
             onClick={() => setActiveTab("reviews")}
-            className={
-              activeTab === "reviews"
-                ? "flex items-center gap-2 bg-primary text-primary-foreground px-6 py-2.5 rounded-full text-sm font-bold shadow-xs hover:bg-primary/95 transition-all cursor-pointer"
-                : "flex items-center gap-2 bg-card hover:bg-muted text-foreground px-6 py-2.5 rounded-full text-sm font-bold border border-border transition-all cursor-pointer"
-            }
+            variant={activeTab === "reviews" ? "default" : "outline"}
+            className="flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold cursor-pointer h-auto"
           >
             <MessageSquare className="size-4 shrink-0" />
             <span>Reviews ({totalReviews})</span>
-          </button>
+          </Button>
 
-          <button
+          <Button
             type="button"
             onClick={() => setActiveTab("auctions")}
-            className={
-              activeTab === "auctions"
-                ? "flex items-center gap-2 bg-primary text-primary-foreground px-6 py-2.5 rounded-full text-sm font-bold shadow-xs hover:bg-primary/95 transition-all cursor-pointer"
-                : "flex items-center gap-2 bg-card hover:bg-muted text-foreground px-6 py-2.5 rounded-full text-sm font-bold border border-border transition-all cursor-pointer"
-            }
+            variant={activeTab === "auctions" ? "default" : "outline"}
+            className="flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold cursor-pointer h-auto"
           >
             <ShoppingBag className="size-4 shrink-0" />
             <span>Seller Auctions ({totalAuctions})</span>
-          </button>
+          </Button>
         </div>
 
         {/* Active Tab Panel */}

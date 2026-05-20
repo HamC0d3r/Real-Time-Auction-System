@@ -17,7 +17,7 @@ import {
   AuctionStatus,
   AuctionSubcategory,
 } from "../types/auction.types";
-import type { AuctionSummary, BidHistoryEntry } from "../types/auction.types";
+import type { AuctionSummary, BidHistoryEntry, Seller } from "../types/auction.types";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -34,6 +34,12 @@ const MOCK_BIDDERS = [
   { name: "Nour A.",  initial: "N" },
   { name: "Tariq M.", initial: "T" },
   { name: "Dina H.",  initial: "D" },
+];
+
+const MOCK_SELLERS: Seller[] = [
+  { id: "seller-123", fullName: "Ahmad Al-Rashid", email: "ahmad@mazadzone.com", role: "seller", isVerified: true, avatarInitial: "A", reviews: 277, rating: 4.6 },
+  { id: "seller-456", fullName: "Fatima Mansour", email: "fatima@mazadzone.com", role: "seller", isVerified: true, avatarInitial: "F", reviews: 142, rating: 4.8 },
+  { id: "seller-789", fullName: "Yousef Hassan", email: "yousef@mazadzone.com", role: "seller", isVerified: false, avatarInitial: "Y", reviews: 89, rating: 4.2 },
 ];
 
 const TIME_AGO_LABELS = [
@@ -440,6 +446,7 @@ export function createMockAuctions(count: number = 100): AuctionSummary[] {
       isOwner: i === 0,
       images,
       bidHistory,
+      seller: MOCK_SELLERS[i % MOCK_SELLERS.length],
     });
   }
 

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Star, Clock, MoreVertical, CornerDownRight, MessageSquare, Loader2 } from "lucide-react";
 import { useAuthStore } from "@/stores/auth.store";
+import { Button } from "@/components/ui/button";
 import { AuctionPagination } from "@/features/auctions";
 import { useCreateReviewReply } from "../api/seller.queries";
 import type { SellerReview } from "../types/seller.types";
@@ -93,9 +94,13 @@ export function SellerReviewsTab({
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Clock className="size-3.5 text-muted-foreground/60" />
                 <span>{review.createdAt}</span>
-                <button className="rounded-full p-1 text-muted-foreground/60 hover:bg-muted hover:text-foreground cursor-pointer">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="rounded-full size-7 text-muted-foreground/60 hover:bg-muted hover:text-foreground cursor-pointer"
+                >
                   <MoreVertical className="size-4" />
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -136,44 +141,44 @@ export function SellerReviewsTab({
                           disabled={replyMutation.isPending}
                         />
                         <div className="flex items-center justify-end gap-2">
-                          <button
+                          <Button
                             type="button"
                             onClick={() => {
                               setReplyingToId(null);
                               setReplyText("");
                             }}
-                            className="rounded-md border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted cursor-pointer"
+                            variant="outline"
+                            className="px-3 py-1.5 h-auto text-xs font-semibold cursor-pointer"
                             disabled={replyMutation.isPending}
                           >
                             Cancel
-                          </button>
-                          <button
+                          </Button>
+                          <Button
                             type="button"
                             onClick={() => handleReplySubmit(review.id)}
-                            className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold 
-                            text-primary-foreground hover:bg-primary/95 
-                            cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 h-auto text-xs font-semibold cursor-pointer"
                             disabled={replyMutation.isPending || !replyText.trim()}
                           >
                             {replyMutation.isPending && (
                               <Loader2 className="size-3 animate-spin" />
                             )}
                             Send Reply
-                          </button>
+                          </Button>
                         </div>
                       </div>
                     ) : (
-                      <button
+                      <Button
                         type="button"
                         onClick={() => {
                           setReplyingToId(review.id);
                           setReplyText("");
                         }}
-                        className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:underline cursor-pointer"
+                        variant="link"
+                        className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:underline cursor-pointer p-0 h-auto"
                       >
                         <MessageSquare className="size-3.5" />
                         <span>Reply</span>
-                      </button>
+                      </Button>
                     )}
                   </div>
                 )
