@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { OrderActivity } from "../../types/orders.types";
 import { formatCurrency } from "@/utils/currency.utils";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ import {
   ActivityItemMeta,
   ActivityItemActions,
 } from "@/components/activity-list";
+import { DisputeDialog } from "@/features/disputes";
 
 interface OrderActivityItemProps {
   activity: OrderActivity;
@@ -29,6 +31,7 @@ interface OrderActivityItemProps {
  * @param activity - The detailed OrderActivity object containing auction, shipping, and order metadata.
  */
 export function OrderActivityItem({ activity }: OrderActivityItemProps) {
+  const [isDisputeOpen, setIsDisputeOpen] = useState(false);
   const detailHref = ROUTES.ORDERS.DETAIL(activity.id);
   const isPending = activity.status === "Pending";
 
@@ -71,21 +74,39 @@ export function OrderActivityItem({ activity }: OrderActivityItemProps) {
       </div>
 
       {/* Column 3: Action Buttons (25% Width) */}
-      <ActivityItemActions className="mt-4 md:mt-0 w-full md:w-[25%] shrink-0 flex justify-start md:justify-end md:pr-6">
+      <ActivityItemActions className="mt-4 md:mt-0 w-full md:w-[25%] shrink-0 flex flex-col sm:flex-row gap-2.5 justify-start md:justify-end md:pr-6">
         <Button
           asChild
           variant={isPending ? "default" : "secondary"}
           className={cn(
-            "font-semibold rounded-xl text-lg w-full md:w-48 h-14 cursor-pointer transition-colors",
+            "font-semibold rounded-xl text-lg w-full h-14 cursor-pointer transition-colors",
             isPending
-              ? "bg-primary text-white hover:bg-primary/90"
-              : "bg-gray-100 text-gray-800 hover:bg-gray-200 border-none"
+              ? "bg-primary text-white hover:bg-primary/90 md:w-[310px]"
+              : "bg-gray-100 text-gray-800 hover:bg-gray-200 border-none md:w-[150px]"
           )}
         >
           <Link href={detailHref}>
             {isPending ? "Complete Payment" : "View Details"}
           </Link>
         </Button>
+        {!isPending && (
+          <Button
+            type="button"
+            onClick={() => setIsDisputeOpen(true)}
+            variant="secondary"
+            className="font-semibold rounded-xl text-lg w-full md:w-[150px] h-14 cursor-pointer bg-warning text-warning-foreground hover:bg-warning/80 border-none transition-colors"
+          >
+            Open Dispute
+          </Button>
+        )}
+
+        <DisputeDialog
+          isOpen={isDisputeOpen}
+          onClose={() => setIsDisputeOpen(false)}
+          orderId={activity.id}
+          orderNumber={activity.orderNumber}
+          itemName={activity.auction.title}
+        />
       </ActivityItemActions>
     </ActivityListItem>
   );
