@@ -10,7 +10,7 @@ public sealed record GetAuctionsQuery(
     Guid? CategoryId = null, // filter by category
     Guid? SubCategoryId = null, // filter by subcategory
 
-    decimal? CurrentBidAmount = null, // filter auctions with Current bid amount greater than or equal to this value
+    CurrentBidAmountRange? CurrentBidAmount = null, // filter auctions with Current bid amount greater than or equal to this value
     string Status = "active", // filter by auction status: "active", "upcoming", "Ended", "all", 
     
     string SortBy = "CreationDate", // "CreationDate","StartTime", "EndTime", "StartAmount" , "CurrentBidAmount"

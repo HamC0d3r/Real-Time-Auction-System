@@ -20,10 +20,15 @@ public sealed class GetAuctionsValidator : AbstractValidator<GetAuctionsQuery>
             .When(x => !string.IsNullOrEmpty(x.SearchTerm))
             .WithMessage("Search term must not exceed 200 characters.");
 
-        RuleFor(x => x.CurrentBidAmount)
+        RuleFor(x => x.CurrentBidAmount.Max)
             .GreaterThanOrEqualTo(0)
-            .When(x => x.CurrentBidAmount.HasValue)
+            .When(x => x.CurrentBidAmount.Max.HasValue)
             .WithMessage("Current bid amount must be zero or positive.");
+        
+        RuleFor(x => x.CurrentBidAmount.Min)
+            .GreaterThanOrEqualTo(0)
+            .When(x => x.CurrentBidAmount.Min.HasValue);
+
 
         RuleFor(x => x.SortBy)
             .Must(x => new[] { "CreationDate", "StartTime", "EndTime", "CurrentBidAmount" }.Contains(x))
