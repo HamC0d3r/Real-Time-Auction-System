@@ -15,7 +15,7 @@ public sealed class CreateAuctionValidator : AbstractValidator<CreateAuctionComm
         RuleFor(x => x.ShippingAddress)
             .NotEmpty();
 
-        RuleFor(x => x.StartBid)    
+        RuleFor(x => x.StartBidAmount)    
             .GreaterThanOrEqualTo(0m)
             .WithMessage("Start bid must be zero or a positive amount.");
 

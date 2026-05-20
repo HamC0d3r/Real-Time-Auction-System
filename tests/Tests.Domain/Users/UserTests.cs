@@ -1,5 +1,6 @@
 using MazadZone.Domain.Orders;
 using MazadZone.Domain.Primitives.Results;
+using MazadZone.Domain.Shared.ValueObjects;
 using MazadZone.Domain.Users;
 using MazadZone.Domain.Users.Errors;
 using MazadZone.Domain.Users.Events;

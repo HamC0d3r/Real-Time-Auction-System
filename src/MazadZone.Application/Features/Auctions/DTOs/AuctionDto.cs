@@ -1,5 +1,6 @@
 using MazadZone.Application.Features.Auctions.Queries.Sellers;
 using MazadZone.Domain.Auctions;
+using MazadZone.Domain.Users;
 
 namespace MazadZone.Application.Features.Auctions.DTOs;
 
@@ -8,16 +9,16 @@ public record AuctionDto(
     string ItemTitle,
     string ItemDescription,
     IReadOnlyList<string> ImageUrls,
-    string Seller,
-    decimal StartBid,
+    string SellerName,
+    string SellerEmail,
+    decimal SellerRating,
+    int ReviewCount,
+    decimal StartBidAmount,
     decimal MinBidAmount,
-    string Currency,
+    decimal CurrentBidAmount,
     DateTime StartTime,
     DateTime EndTime,
-    TimeSpan RemainderTime, // EndTime - DateTime.UtcNow
-    AuctionStatus AuctionStatus,
-    bool IsActive,
+    int AuctionStatus,
     IReadOnlyList<BidDto> Bids
-    
     );
 

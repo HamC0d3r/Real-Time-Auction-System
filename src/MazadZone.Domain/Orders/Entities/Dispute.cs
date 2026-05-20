@@ -1,6 +1,7 @@
 namespace MazadZone.Domain.Orders;
 
 using MazadZone.Domain.Primitives;
+using MazadZone.Domain.Shared.ValueObjects;
 
 public sealed class Dispute : Entity<DisputeId>
 {

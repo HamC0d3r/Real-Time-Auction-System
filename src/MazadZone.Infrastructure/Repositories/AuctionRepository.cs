@@ -2,6 +2,7 @@ using System;
 using MazadZone.Domain.Auctions;
 using MazadZone.Domain.Orders;
 using MazadZone.Domain.Repositories;
+using MazadZone.Domain.Shared.ValueObjects;
 using MazadZone.Domain.Users.ValueObjects;
 using MazadZone.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -48,14 +49,36 @@ public class AuctionRepository : GenericRepository<Auction>, IAuctionRepository
             .Where(a => a.SellerId == sellerId.Value && nonFinalStates.Contains(a.Status))
             .ExecuteUpdateAsync(s => s
                 .SetProperty(a => a.Status, AuctionStatus.Cancelled)
-                .SetProperty(a => a.CancellationReason, Reason.Create($"Seller Banned: {reason})").Value), // I Sure there is no error here
+                .SetProperty(a => a.CancellationReason, Reason.Create($"Seller Banned: {reason}").Value),
             ct);
     }
 
-    public async Task<int> RemoveActiveBidsByBidderIdAsync(UserId bidderId, CancellationToken ct)
-{
-    return await _context.Bids
-        .Where(b => b.BidderId == bidderId.Value && b.Auction.Status == AuctionStatus.Active)
-        .ExecuteDeleteAsync(ct);
-}
+    public Task<int> RemoveActiveBidsByBidderIdAsync(UserId bidderId, CancellationToken ct)
+    {
+        throw new NotImplementedException();
+         // var auctions = await _context.Auctions
+    //     .Include(a => a.Bids)
+    //     .Where(a => a.Bids.Any(b => b.BidderId == bidderId.Value && a.Status == AuctionStatus.Active))
+    //     .ToListAsync(ct);
+
+    // int removedCount = 0;
+
+    // foreach (var auction in auctions)
+    // {
+    //     var bidsToRemove = auction.Bids.Where(b => b.BidderId == bidderId.Value).ToList();
+
+    //     foreach (var bid in bidsToRemove)
+    //     {
+    //         bid.
+    //         removedCount++;
+    //     }
+    // }
+
+    // if (removedCount > 0)
+    // {
+    //     await _context.SaveChangesAsync(ct);
+    // }
+
+    // return removedCount;
+    }
 }

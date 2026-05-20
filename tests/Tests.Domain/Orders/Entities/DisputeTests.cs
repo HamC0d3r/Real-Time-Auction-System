@@ -1,4 +1,5 @@
 using MazadZone.Domain.Orders;
+using MazadZone.Domain.Shared.ValueObjects;
 using Shouldly;
 
 namespace Tests.Domain.Orders.Entities;

@@ -17,16 +17,33 @@ public class CreateAuctionHandler
     public async Task<Result<AuctionId>> Handle(CreateAuctionCommand request, CancellationToken cancellationToken)
     {
         CreateAuctionLog.LogHandlingCreateAuction(_logger, request.ItemId.Value.ToString());
+        
+        var images = new List<Image>();
+
+        foreach (var image in request.Images)
+        {
+            var imageResult = Image.Create(image.Path, image.AltText, image.isMain);
+            if (imageResult.IsFailure)
+            {
+                return Result.Failure<AuctionId>(imageResult.TopError);
+            }
+
+            images.Add(imageResult.Value);
+        }
 
         var createResult = Auction.Create(
-            request.ItemId,
             request.SellerId,
             request.ShippingAddress,
-            request.StartBid,
+            request.StartBidAmount,
             request.MinBidAmount,
-            Currency.Jod,
+            request.Currency,
             request.StartTime,
-            request.EndTime);
+            request.EndTime,
+            request.Title,
+            request.Description,
+            images,
+            request.CatigoryId
+            );
 
         if (createResult.IsFailure) {
             CreateAuctionLog.LogDomainViolation(_logger, request.ItemId.Value.ToString(), createResult.TopError.Message);
