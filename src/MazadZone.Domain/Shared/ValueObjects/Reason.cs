@@ -1,7 +1,7 @@
 using MazadZone.Domain.Shared;
 using MazadZone.Domain.Shared.Errors;
 
-namespace MazadZone.Domain.Orders;
+namespace MazadZone.Domain.Shared.ValueObjects;
 
 // A simple Value Object for the Reason to ensure type safety
 public sealed record Reason
