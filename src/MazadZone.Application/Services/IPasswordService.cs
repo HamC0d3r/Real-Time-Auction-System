@@ -1,9 +1,11 @@
-namespace AuthService.Application.Interfaces;
+using MazadZone.Domain.Shared.Interfaces;
+
+namespace MazadZone.Application.Services;
 
 /// <summary>
 /// Provides methods for validating and hashing user passwords.
 /// </summary>
-public interface IPasswordService
+public interface IPasswordService : IScopedService
 {
     /// <summary>
     /// Validates whether the provided current password matches the stored password hash.

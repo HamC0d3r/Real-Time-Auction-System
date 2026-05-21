@@ -1,6 +1,8 @@
+using MazadZone.Domain.Shared.Interfaces;
+
 namespace MazadZone.Application.Services;
 
-public interface ICacheService
+public interface ICacheService : IScopedService
 {
     Task<T?> GetAsync<T>(string key, CancellationToken ct = default);
     

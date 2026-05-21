@@ -12,16 +12,17 @@ public static class ChangePassword
 {
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/change-password", ChangePasswordAsync)
+        app.MapPost("/change-password", HandleAsync)
+           .WithTags("User Management")
+           .WithSummary("Change user password")
            .Produces(StatusCodes.Status204NoContent)
-           .ProducesProblem(StatusCodes.Status401Unauthorized)
-           .WithSummary("Change user password");
+           .ProducesProblem(StatusCodes.Status401Unauthorized);
     }
 
-    private static async Task<IResult> ChangePasswordAsync(
+    private static async Task<IResult> HandleAsync(
         [FromBody] ChangePasswordRequest request,
-        IHttpContextAccessor context,
-        ISender sender,
+        [FromServices]IHttpContextAccessor context,
+        [FromServices]ISender sender,
         CancellationToken ct)
     {
         var userId = context.HttpContext?.User.GetUserId() ?? Guid.Empty;

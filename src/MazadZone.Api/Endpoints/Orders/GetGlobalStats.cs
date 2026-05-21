@@ -8,14 +8,14 @@ public static class GetGlobalStats
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapGet("/stats/global", HandleAsync)
-           .WithTags("Order Queries")
+           .WithTags("Order Management")
            .WithName("GetGlobalStats")
            .Produces<AdminGlobalStatsDto>(StatusCodes.Status200OK)
            .RequireAuthorization("AdminOnly");
     }
 
     private static async Task<IResult> HandleAsync(
-        ISender sender,
+        [FromServices]ISender sender,
         CancellationToken ct)
     {
         var result = await sender.Send(new GetGlobalStatsQuery(), ct);

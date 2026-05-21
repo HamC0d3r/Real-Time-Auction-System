@@ -8,14 +8,14 @@ public static class Confirm
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost("/{id:guid}/confirm", HandleAsync)
-           .WithTags("Order Commands")
+           .WithTags("Order Management")
            .WithSummary("Confirms an Order")
            .Produces(StatusCodes.Status204NoContent)
            .Produces(StatusCodes.Status404NotFound);
     }
 
     private static async Task<IResult> HandleAsync(
-        OrderId id,
+        [FromRoute]OrderId id,
         [FromServices] ISender sender,
         CancellationToken ct)
     {

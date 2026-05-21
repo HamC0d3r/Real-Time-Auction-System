@@ -1,5 +1,5 @@
-using AuthService.Application.Interfaces;
 using MazadZone.Application.Features.Users.Commands.ChangePassword;
+using MazadZone.Application.Services;
 using MazadZone.Domain.Repositories;
 using MazadZone.Domain.Users.Errors;
 using MazadZone.Domain.Users.ValueObjects;

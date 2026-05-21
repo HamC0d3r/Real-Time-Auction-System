@@ -49,7 +49,7 @@ public class PlaceBidHandler(
         }
 
         // Check if the bid can be placed and get the necessary details for placing the bid (like deposit amount)
-        var checkPlaceBidResult = auction.CheckPlaceBid(request.BidderId, request.Amount.Amount, _dateTimeProvider.UtcNow);
+        var checkPlaceBidResult = auction.CheckPlaceBid(request.BidderId, request.Amount.Amount, _dateTimeProvider.Now);
 
         if (checkPlaceBidResult.IsFailure)
         {
@@ -65,7 +65,7 @@ public class PlaceBidHandler(
             return Result.Failure<Unit>(AuctionErrors.PaymentAuthorizationFailed);
         }
 
-        var placeBidResult = auction.PlaceVerifiedBid(checkPlaceBidResult.Value, authHoldId, _dateTimeProvider.UtcNow);
+        var placeBidResult = auction.PlaceVerifiedBid(checkPlaceBidResult.Value, authHoldId, _dateTimeProvider.Now);
         if (placeBidResult.IsFailure)
         {
             PlaceBidLog.LogDomainViolation(_logger, request.AuctionId.Value, placeBidResult.TopError.Message);

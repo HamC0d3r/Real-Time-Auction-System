@@ -9,7 +9,7 @@ using MazadZone.Domain.Sellers;
 
 namespace MazadZone.Infrastructure.Repositories;
 
-internal sealed class SellerQueries : ISellerQueries
+public sealed class SellerQueries : ISellerQueries
 {
     private readonly ISqlConnectionFactory _connectionFactory;
 
@@ -56,7 +56,7 @@ internal sealed class SellerQueries : ISellerQueries
         return await connection.QuerySingleOrDefaultAsync<PrivateSellerDetailsResponse>(command);
     }
 
-    public async Task<IReadOnlyList<UnverifiedSellerSummaryResponse>> GetUnverifiedSellersAsync(CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<UnverifiedSellerSummaryResponse>?> GetUnverifiedSellersAsync(CancellationToken cancellationToken)
     {
         using var connection = _connectionFactory.CreateConnection();
 

@@ -1,16 +1,14 @@
 using MazadZone.Application.Common.Interfaces;
 using MazadZone.Application.Services;
-using MazadZone.Domain.Repositories;
 using MazadZone.Domain.Shared.Interfaces;
+using MazadZone.Infrastructure.Caching;
 using MazadZone.Infrastructure.Configuration;
 using MazadZone.Infrastructure.Outbox;
 using MazadZone.Infrastructure.Persistence;
 using MazadZone.Infrastructure.Persistence.Interceptors;
-using MazadZone.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Polly;
 
 namespace MazadZone.Infrastructure;
@@ -22,10 +20,9 @@ public static class DependencyInjection
 
         services
             .AddDatabase(configuration)
-            .AddRepositories()
             .AddOutboxPattern(configuration)
             .AddPollyPolicies(configuration)
-            .AddExternalServices(configuration)
+            .AddRedisServices(configuration)
             .AddServiceScanning();
 
         return services;
@@ -64,14 +61,6 @@ public static class DependencyInjection
         return services;
     }
 
-    private static IServiceCollection AddRepositories(this IServiceCollection services)
-    {
-        services.AddScoped<IUnitOfWork, UnitOfWork>();
-        services.AddScoped<IOrderQueries, OrderQueries>();
-        services.AddScoped<IOrderRepository, OrderRepository>();
-
-        return services;
-    }
 
     private static IServiceCollection AddOutboxPattern(this IServiceCollection services, IConfiguration configuration)
     {
@@ -101,9 +90,15 @@ public static class DependencyInjection
         return services;
     }
 
-    private static IServiceCollection AddExternalServices(this IServiceCollection services, IConfiguration configuration)
+    private static IServiceCollection AddRedisServices(this IServiceCollection services, IConfiguration configuration)
     {
-
+services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = configuration.GetConnectionString("Redis");
+            // Optional: Adds a prefix to all keys so you don't clash with other apps sharing the same Redis instance
+            options.InstanceName = "MazadZone_"; 
+        });
+services.AddScoped<ICacheService, RedisCacheService>();
         return services;
     }
 

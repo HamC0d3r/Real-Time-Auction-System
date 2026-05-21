@@ -9,13 +9,15 @@ public static class Login
 {
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("login", LoginAsync)
+        app.MapPost("login", HandleAsync)
+           .WithTags("Authentication Management")
+           .WithSummary("User login to obtain access tokens")
            .Produces<TokenDto>(StatusCodes.Status200OK)
            .ProducesProblem(StatusCodes.Status401Unauthorized)
-           .WithSummary("User login to obtain access tokens");
+           .ProducesProblem(StatusCodes.Status500InternalServerError);
     }
 
-    private static async Task<IResult> LoginAsync(
+    private static async Task<IResult> HandleAsync(
         [FromBody] LoginRequest request,
         [FromServices] ISender sender,
         CancellationToken ct)

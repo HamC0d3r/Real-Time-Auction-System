@@ -13,14 +13,14 @@ public static class AddFeedback
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost("/{id:guid}/feedback", HandleAsync)
-           .WithTags("Order Commands")
+           .WithTags("Order Management")
            .WithSummary("Adds Feedback to a Delivered Order")
            .Produces(StatusCodes.Status204NoContent)
            .Produces(StatusCodes.Status400BadRequest);
     }
 
     private static async Task<IResult> HandleAsync(
-        OrderId id,
+        [FromRoute] OrderId id,
         [FromBody] AddFeedbackRequest? request,
         [FromServices] ISender sender,
         CancellationToken ct)

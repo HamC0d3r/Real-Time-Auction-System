@@ -21,15 +21,13 @@ public sealed class Order : AggregateRoot<OrderId>, IAuditableEntity
         BidderId bidderId,
         BidId winningBidId,
         Address receiptAddressId,
-        Money totalAmount,
-        string depositCaptureTransactionId) : base(id)
+        Money totalAmount) : base(id)
     {
         BidderId = bidderId;
         AuctionId = auctionId;
         WinningBidId = winningBidId;
         ReceiptAddress = receiptAddressId;
         TotalAmount = totalAmount;
-        DepositCaptureTransactionId = depositCaptureTransactionId;
         Status = OrderStatus.Pending;
     }
 
@@ -51,20 +49,10 @@ public sealed class Order : AggregateRoot<OrderId>, IAuditableEntity
     /// <summary>Gets the total monetary amount of the order.</summary>
     public Money TotalAmount { get; private set; }
 
-    /// <summary>Gets the transaction ID for the captured security deposit.</summary>
-    public string DepositCaptureTransactionId { get; private set; }
-
-    /// <summary>Gets the transaction ID for the remaining balance payment, if applicable.</summary>
-    public string? RemainingBalanceTransactionId { get; private set; }
-
-    /// <summary>Gets the unique identifier of the dispute if one has been opened.</summary>
-    public DisputeId? DisputeId { get; private set; }
 
     /// <summary>Gets the dispute entity associated with this order.</summary>
     public Dispute? Dispute { get; private set; }
 
-    /// <summary>Gets the unique identifier of the feedback left for this order.</summary>
-    public FeedbackId? FeedbackId { get; private set; }
 
     /// <summary>Gets the feedback entity associated with this order.</summary>
     public Feedback? Feedback { get; private set; }
@@ -73,11 +61,11 @@ public sealed class Order : AggregateRoot<OrderId>, IAuditableEntity
     public DateTime? ModifiedOnUtc { get ; set ; }
 
 
-    public bool IsDisputable => DisputeId is null && (Status == OrderStatus.Delivered || Status == OrderStatus.Shipped);
+    public bool IsDisputable => Dispute is null && (Status == OrderStatus.Delivered || Status == OrderStatus.Shipped);
 
-    public bool CanLeaveFeedback => FeedbackId is null && Status == OrderStatus.Delivered;
+    public bool CanLeaveFeedback => Feedback is null && Status == OrderStatus.Delivered;
 
-    public bool HasActiveDispute => DisputeId is not null && Dispute?.IsResolved == false;
+    public bool HasActiveDispute => Dispute is not null && Dispute?.IsResolved == false;
 
     
     // --- Static Factory Method ---
@@ -96,8 +84,8 @@ public sealed class Order : AggregateRoot<OrderId>, IAuditableEntity
         BidderId bidderId,
         BidId winningBidId,
         Address receiptAddress,
-        decimal totalAmount,
-        string depositCaptureTransactionId)
+        decimal totalAmount
+    )
     {
         var totalAmountResult = Money.Create(totalAmount, Currency.Jod);
         if (totalAmountResult.IsFailure) return OrderErrors.TotalAmountTooLow;
@@ -108,8 +96,7 @@ public sealed class Order : AggregateRoot<OrderId>, IAuditableEntity
             bidderId,
             winningBidId,
             receiptAddress,
-            totalAmountResult.Value,
-            depositCaptureTransactionId);
+            totalAmountResult.Value);
 
         order.RaiseDomainEvent(new OrderCreatedDomainEvent(order.Id, order.BidderId));
 
@@ -169,14 +156,13 @@ public sealed class Order : AggregateRoot<OrderId>, IAuditableEntity
     /// <returns>A result indicating success or the specific validation error.</returns>
     public Result AddFeedback(int ratingValue, string comment)
     {
-        if (FeedbackId is not null) return OrderErrors.FeedbackAlreadyExists;
+        if (Feedback is not null) return OrderErrors.FeedbackAlreadyExists;
         if (Status != OrderStatus.Delivered) return OrderErrors.FeedbackRequiresDelivered;
 
         var feedbackResult = Feedback.Create(this.Id, ratingValue, comment);
         if (feedbackResult.IsFailure) return feedbackResult.TopError;
 
         Feedback = feedbackResult.Value;
-        FeedbackId = feedbackResult.Value.Id;
         RaiseDomainEvent(new FeedbackLeftDomainEvent(Id, AuctionId, ratingValue, comment));
         return Result.Success();
     }
@@ -188,14 +174,13 @@ public sealed class Order : AggregateRoot<OrderId>, IAuditableEntity
     /// <returns>A result representing the outcome of the operation.</returns>
     public Result OpenDispute(string reasonText)
     {
-        if (DisputeId is not null) return OrderErrors.DisputeAlreadyExists;
+        if (Dispute is not null) return OrderErrors.DisputeAlreadyExists;
         if (Status == OrderStatus.Pending || Status == OrderStatus.Confirmed) return OrderErrors.CannotDispute;
 
         var disputeResult = Dispute.Create(this.Id, reasonText);
         if (disputeResult.IsFailure) return disputeResult.TopError;
 
         Dispute = disputeResult.Value;
-        DisputeId = disputeResult.Value.Id;
         RaiseDomainEvent(new DisputeOpenedDomainEvent(Id, disputeResult.Value.Id));
         return Result.Success();
     }

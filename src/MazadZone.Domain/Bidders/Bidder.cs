@@ -10,12 +10,7 @@ public sealed class Bidder : AggregateRoot<BidderId>, IAuditableEntity, IVerifia
 {
     public IReadOnlyCollection<AuctionId> UnpaidAuctions => _unpaidAuctions;
 
-    #pragma warning disable CS8618 
-    #pragma warning disable CS0519
     private Bidder() { } 
-    #pragma warning restore CS8618
-
-
     private Bidder(BidderId id, string nationalId, Address defaultShippingAddress) : base(id)
     {
         DefaultShippingAddress = defaultShippingAddress;
@@ -41,7 +36,11 @@ public sealed class Bidder : AggregateRoot<BidderId>, IAuditableEntity, IVerifia
 
     private readonly HashSet<AuctionId> _unpaidAuctions = new();
 
-    public void RecordPaymentSuccess() => SuccessfulPayments++;
+    public void RecordPaymentSuccess(Money amount)
+    {
+        SuccessfulPayments++;
+        TotalAmountSpent += amount;
+    }
     
 
     public void RecordNonPayment(AuctionId auctionId)
@@ -63,6 +62,17 @@ public sealed class Bidder : AggregateRoot<BidderId>, IAuditableEntity, IVerifia
         return Result.Success();
     }
     
+    public void ReleaseActiveBid(Money amount)
+    {
+        ActiveBidsTotal -= amount;
+        if (ActiveBidsTotal.Amount < 0) ActiveBidsTotal = Money.Zero();
+    }
+
+    public void RecordWin()
+    {
+        TotalWins++;
+    }
+
     public static Result<Bidder> CompleteProfile(UserId userId,string nationalId, Address defaultShippingAddress)
     {
         var bidderId = BidderId.Load(userId.Value);

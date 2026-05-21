@@ -1,10 +1,11 @@
 using MazadZone.Domain.Auctions;
 using MazadZone.Domain.Notifications;
+using MazadZone.Domain.Shared.Interfaces;
 using MazadZone.Domain.Users.ValueObjects;
 
 namespace MazadZone.Domain.Repositories;
 
-public interface INotificationRepository : IGenericRepository<Notification>
+public interface INotificationRepository : IGenericRepository<Notification>, IScopedService
 {
     Task<Notification?> GetByIdAsync(NotificationId id, CancellationToken ct = default);
     Task<IEnumerable<Notification>> GetByUserIdAsync(UserId userId, CancellationToken ct = default);

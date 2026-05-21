@@ -7,7 +7,7 @@ public static class AddSubCategory
 {
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/{parentId:guid}/sub-categories/{subCategoryId:guid}", AddSubCategoryAsync)
+        app.MapPost("/{parentId:guid}/sub-categories/{subCategoryId:guid}", HandleAsync)
            .WithTags("Category Commands")
            .WithSummary("Links a sub-category to a parent category")
            .Produces(StatusCodes.Status204NoContent)
@@ -17,9 +17,9 @@ public static class AddSubCategory
            .Produces(StatusCodes.Status500InternalServerError);
     }
 
-    private static async Task<IResult> AddSubCategoryAsync(
-        CategoryId parentId,
-        CategoryId subCategoryId,
+    private static async Task<IResult> HandleAsync(
+        [FromRoute]CategoryId parentId,
+        [FromRoute]CategoryId subCategoryId,
         [FromServices] ISender sender,
         CancellationToken ct)
     {

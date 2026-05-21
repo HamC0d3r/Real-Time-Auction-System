@@ -1,4 +1,4 @@
-using MazadZone.Domain.Payments;
+using MazadZone.Domain.ValueObjects;
 using MazadZone.Infrastructure.Common.Constants;
 using MazadZone.Infrastructure.Persistence.Converters;
 using Microsoft.EntityFrameworkCore;
@@ -30,19 +30,33 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.ComplexProperty(p => p.CapturedHoldedAmount, money =>
         {
             money.Property(m => m.Amount)
-                .HasColumnName("CapturedHoldedAmount");
+                .HasColumnName("CapturedHoldedAmount")
+                .IsRequired();
 
             money.Property(m => m.Currency)
-                .HasConversion<string>();
+                    .HasColumnName("CapturedHoldedCurrency")
+                    .HasMaxLength(3) // Optional but recommended
+                    .HasConversion(
+                        currency => currency.Code,
+                        code => Currency.FromCode(code)
+                    )
+                    .IsRequired();
         });
 
         builder.ComplexProperty(p => p.CapturedRemainingAmount, money =>
         {
             money.Property(m => m.Amount)
-                .HasColumnName("CapturedRemainingAmount");
+                .HasColumnName("CapturedRemainingAmount")
+                .IsRequired();
 
             money.Property(m => m.Currency)
-                .HasConversion<string>();
+        .HasColumnName("CapturedRemainingCurrency")
+        .HasMaxLength(3)
+        .HasConversion(
+            currency => currency.Code,
+            code => Currency.FromCode(code)
+        )
+        .IsRequired();
         });
 
         builder.Property(p => p.Status)
@@ -53,11 +67,18 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.Property(p => p.CompletedAtUtc).IsRequired(false);
         builder.Property(p => p.CapturedAuthHoldAtUtc).IsRequired(false);
 
+
+        // Relationship with Transactions
         builder.HasMany(p => p.Transactions)
             .WithOne()
-            .HasForeignKey("PaymentId")
+            .HasForeignKey(t => t.PaymentId) 
             .IsRequired()
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(p => p.Transactions)
+            .HasField("_transactions")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
+
 
         builder.Ignore(p => p.TotalCapturedAmount);
     }

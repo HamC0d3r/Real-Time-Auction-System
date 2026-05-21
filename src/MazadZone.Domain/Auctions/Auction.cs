@@ -1,8 +1,5 @@
-
-using System.Runtime;
 using MazadZone.Domain.Auctions.Enums;
 using MazadZone.Domain.Auctions.Events;
-using MazadZone.Domain.Auctions.ValueObjects;
 using MazadZone.Domain.Bidders;
 using MazadZone.Domain.Categories;
 using MazadZone.Domain.Sellers;
@@ -22,7 +19,6 @@ public sealed class Auction : AggregateRoot<AuctionId>, IAuditableEntity
 
     private Auction(
         AuctionId id,
-        ItemId itemId,
         Item item,
         SellerId sellerId,
         Address shippingAddress,
@@ -33,7 +29,6 @@ public sealed class Auction : AggregateRoot<AuctionId>, IAuditableEntity
 {
 
         SellerId = sellerId;
-        ItemId = itemId;
         Item = item;
         ShippingAddress = shippingAddress;
         StartBidAmount = startBidAmount;
@@ -46,7 +41,6 @@ public sealed class Auction : AggregateRoot<AuctionId>, IAuditableEntity
         RaiseDomainEvent(new AuctionCreatedDomainEvent(id));
     }
 
-    public ItemId ItemId { get; private set; }
     public Item Item { get; private set; } 
 
     public SellerId SellerId { get; private set; }
@@ -117,13 +111,15 @@ public sealed class Auction : AggregateRoot<AuctionId>, IAuditableEntity
         var startBidResult = Money.Create(startBidAmount, currency);
         if (startBidResult.IsFailure) return AuctionErrors.StartBidTooLow;
 
-        var CreateItemResult = Item.Create(categoryId, title, description, images);
+        var auctionId = AuctionId.New();
+
+
+        var CreateItemResult = Item.Create(auctionId,categoryId, title, description, images);
         if (CreateItemResult.IsFailure) 
             return CreateItemResult.TopError;
         
         return new Auction(
-                AuctionId.New(),
-                CreateItemResult.Value.Id,
+                auctionId,
                 CreateItemResult.Value,
                 sellerId,
                 shippingAddress,
@@ -239,7 +235,7 @@ public sealed class Auction : AggregateRoot<AuctionId>, IAuditableEntity
             return AuctionErrors.BidTooLow;
         
         // Create and add the new bid
-        var newBid = Bid.Create(bidderId, amountResult.Value, depositAmountResult.Value, null);
+        var newBid = Bid.Create(Id,bidderId, amountResult.Value, depositAmountResult.Value, null);
         
 
         return Result.Success(newBid);

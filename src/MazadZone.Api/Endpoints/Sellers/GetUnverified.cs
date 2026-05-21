@@ -6,12 +6,12 @@ public static class GetUnverified
 {
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("unverified", GetUnverifiedSellersAsync)
+        app.MapGet("unverified", HandleAsync)
            .WithSummary("Retrieves all unverified sellers")
            .Produces<IReadOnlyList<UnverifiedSellerSummaryResponse>>(StatusCodes.Status200OK);
     }
 
-    private static async Task<IResult> GetUnverifiedSellersAsync(
+    private static async Task<IResult> HandleAsync(
         [FromServices] ISender sender,
         CancellationToken ct)
     {

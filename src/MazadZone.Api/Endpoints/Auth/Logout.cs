@@ -10,14 +10,15 @@ public static class Logout
 {
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("logout", LogoutAsync)
+        app.MapPost("logout", HandleAsync)
            .RequireAuthorization()
+           .WithTags("Authentication Management")
+           .WithSummary("Invalidate user session")
            .Produces(StatusCodes.Status204NoContent)
-           .ProducesProblem(StatusCodes.Status401Unauthorized)
-           .WithSummary("Invalidate user session");
+           .ProducesProblem(StatusCodes.Status401Unauthorized);
     }
 
-    private static async Task<IResult> LogoutAsync(
+    private static async Task<IResult> HandleAsync(
         [FromBody] LogoutRequest request,
         [FromServices] ISender sender,
         ClaimsPrincipal userPrincipal,

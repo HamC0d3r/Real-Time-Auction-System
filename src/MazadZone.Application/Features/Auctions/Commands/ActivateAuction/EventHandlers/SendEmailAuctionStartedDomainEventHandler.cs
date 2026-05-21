@@ -31,7 +31,7 @@ public class SendEmailAuctionStartedDomainEventHandler
             return;
         }
 
-        var item = await _itemRepository.GetItemByIdAsync(auction.ItemId.Value, cancellationToken);
+        var item = await _itemRepository.GetItemByIdAsync(auction.Item.Id.Value, cancellationToken);
         
         if (item is null)
         {

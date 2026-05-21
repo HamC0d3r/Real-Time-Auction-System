@@ -12,13 +12,12 @@ public sealed class Dispute : Entity<DisputeId>
         OrderId = orderId;
         Reason = reason;
         Status = DisputeStatus.Open; 
-        Resolution = null;
         CreatedAtUtc = DateTime.UtcNow; 
     }
 
     public OrderId OrderId { get; private init; }
     public Reason Reason { get; private set; }
-    public Resolution? Resolution { get; private set; }
+    public Resolution Resolution { get; private set; } = Resolution.Empty;
     public DisputeStatus Status { get; private set; }
     
     public DateTime CreatedAtUtc { get; private init; }

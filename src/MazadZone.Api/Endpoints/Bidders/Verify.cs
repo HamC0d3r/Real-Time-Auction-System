@@ -17,7 +17,7 @@ public static class Verify
     }
 
     private static async Task<IResult> HandleAsync(
-        BidderId id,
+        [FromRoute] BidderId id,
         [FromServices] ISender sender,
         CancellationToken ct)
     {

@@ -9,7 +9,7 @@ public static class Update
 {
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPut("/{id}", UpdateCategoryAsync)
+        app.MapPut("/{id}", HandleAsync)
            .WithTags("Category Commands")
            .WithSummary("Updates category details")
            .Produces(StatusCodes.Status204NoContent)
@@ -19,7 +19,7 @@ public static class Update
            .Produces(StatusCodes.Status500InternalServerError);
     }
 
-    private static async Task<IResult> UpdateCategoryAsync(
+    private static async Task<IResult> HandleAsync(
         [FromRoute] CategoryId id,
         [FromBody] UpdateCategoryRequest request,
         [FromServices] ISender sender,

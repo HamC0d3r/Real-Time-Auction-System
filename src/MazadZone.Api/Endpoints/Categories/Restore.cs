@@ -7,7 +7,7 @@ public static class Restore
 {
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/{id}/restore", RestoreCategoryAsync)
+        app.MapPost("/{id}/restore", HandleAsync)
            .WithTags("Category Commands")
            .WithSummary("Restores a soft-deleted category")
            .Produces(StatusCodes.Status204NoContent)
@@ -16,7 +16,7 @@ public static class Restore
            .Produces(StatusCodes.Status500InternalServerError);
     }
 
-    private static async Task<IResult> RestoreCategoryAsync(
+    private static async Task<IResult> HandleAsync(
         [FromRoute] CategoryId id,
         [FromServices] ISender sender,
         CancellationToken ct)

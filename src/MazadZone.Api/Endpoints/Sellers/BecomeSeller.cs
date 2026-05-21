@@ -9,15 +9,15 @@ public static class BecomeSeller
 {
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("{id:guid}/become-seller", BecomeSellerAsync)
+        app.MapPost("{id:guid}/become-seller", HandleAsync)
            .WithSummary("Promotes a bidder to a seller")
            .Produces(StatusCodes.Status204NoContent)
            .Produces(StatusCodes.Status400BadRequest)
            .Produces(StatusCodes.Status404NotFound);
     }
 
-    private static async Task<IResult> BecomeSellerAsync(
-        UserId id,
+    private static async Task<IResult> HandleAsync(
+        [FromRoute]UserId id,
         [FromBody] BecomeSellerRequest request,
         [FromServices] ISender sender,
         CancellationToken ct)

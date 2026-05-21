@@ -9,6 +9,10 @@ public sealed record Comment
     // Private constructor forces usage of the static Create method
     private Comment(string value) => Value = value;
 
+    public static Comment Empty => new Comment(string.Empty);
+
+
+
     public static Result<Comment> Create(string value)
     {
         if (string.IsNullOrWhiteSpace(value)) return FeedbackErrors.Comment.Empty;

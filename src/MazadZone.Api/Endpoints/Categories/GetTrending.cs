@@ -9,7 +9,7 @@ public static class GetTrending
 {
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/trending", GetTrendingAsync)
+        app.MapGet("/trending", HandleAsync)
            .WithTags("Category Queries")
            .WithSummary("Retrieves categories with the highest activity")
            .Produces<IReadOnlyList<TrendingCategoryResponse>>(StatusCodes.Status200OK)
@@ -17,8 +17,8 @@ public static class GetTrending
            .Produces(StatusCodes.Status500InternalServerError);
     }
 
-    private static async Task<IResult> GetTrendingAsync(
-        GetTrendingRequest request,
+    private static async Task<IResult> HandleAsync(
+        [FromBody]GetTrendingRequest request,
         [FromServices] ISender sender,
         CancellationToken ct)
 

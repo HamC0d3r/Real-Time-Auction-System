@@ -1,8 +1,6 @@
 using MazadZone.Application.Features.Bidders.DTOs;
 using MazadZone.Domain.Auctions;
-using AutoMapper;
 using MazadZone.Application.Features.Orders.Commands.Create;
-using MazadZone.Domain.Shared.ValueObjects;
 using MazadZone.Domain.Bidders;
 
 namespace MazadZone.Api.Endpoints.Orders;
@@ -12,16 +10,14 @@ public record CreateOrderRequest(
     BidderId BidderId,
     BidId WinningBidId,
     AddressDto ReceiptAddress,
-    decimal Amount,
-    string DepositCaptureTransactionId)
+    decimal Amount)
 {
     public CreateOrderCommand ToCommand() => new(
         AuctionId,
         BidderId,
         WinningBidId,
         ReceiptAddress,
-        Amount,
-        DepositCaptureTransactionId);
+        Amount);
 }
 
 public static class Create
@@ -29,7 +25,7 @@ public static class Create
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost("/", HandleAsync)
-           .WithTags("Order Commands")
+           .WithTags("Order Management")
            .WithSummary("Creates a new Order")
            .WithDescription("Initiates a post-auction order transaction.")
            .Produces<Guid>(StatusCodes.Status201Created)

@@ -43,7 +43,7 @@ public class NotifyAuctionEndedEventHandler
         }
         
         
-        var item = await _itemRepository.GetItemByIdAsync(auction.ItemId.Value, cancellationToken);
+        var item = await _itemRepository.GetItemByIdAsync(auction.Item.Id.Value, cancellationToken);
         var itemTitle = item?.Title ?? "your auction item";
 
         var title = $"Auction Ended: {itemTitle}";

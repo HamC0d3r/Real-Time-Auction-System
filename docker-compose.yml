@@ -1,14 +1,70 @@
 services:
   seq:
     image: datalust/seq:latest
-    container_name: seq
+    container_name: mazadzone-seq
     environment:
       - ACCEPT_EULA=Y
     ports:
-      - "5341:5341"
-      - "8081:80"
+      - "5341:5341" # Ingestion port
+      - "8081:80"   # UI port
     volumes:
       - seq-data:/data
+    networks:
+      - backend_network
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: mazadzone-sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong@Passw0rd! # Must be strong to boot
+      - MSSQL_PID=Developer
+    ports:
+      - "2222:1433" 
+    volumes:
+      - sql-data:/var/opt/mssql
+    networks:
+      - backend_network
+    restart: unless-stopped
+
+  redis:
+    image: redis:alpine
+    container_name: mazadzone-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - backend_network
+
+  # api:
+  #   build:
+  #     context: . # Execute build from the solution root
+  #     dockerfile: MazadZone.Api/Dockerfile
+  #   container_name: mazadzone-api
+  #   environment:
+  #     - ASPNETCORE_ENVIRONMENT=Development
+  #     # Use internal Docker hostnames (sqlserver, redis) for the connection strings
+  #     - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=MazadZoneDb;User Id=sa;Password=YourStrong@Passw0rd!;TrustServerCertificate=True;
+  #     - ConnectionStrings__Redis=redis:6379
+  #   ports:
+  #     - "8080:8080"
+  #   depends_on:
+  #     - sqlserver
+  #     - redis
+  #     - seq
+  #   networks:
+  #     - frontend_network
+  #     - backend_network # API sits in both so it can bridge the outside world to the DB
 
 volumes:
   seq-data:
+  sql-data:
+  redis-data:
+
+networks:
+  frontend_network:
+    driver: bridge
+  backend_network:
+    driver: bridge
+    # internal: true 

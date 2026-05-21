@@ -9,5 +9,4 @@ public record CreateOrderCommand(
     BidderId BidderId,
     BidId WinningBidId,
     AddressDto ReceiptAddress,
-    decimal Amount,
-    string DepositCaptureTransactionId) : ICommand<OrderId>;
+    decimal Amount) : ICommand<OrderId>;

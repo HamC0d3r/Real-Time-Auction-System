@@ -10,15 +10,15 @@ public static class GetByWinningBid
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapGet("/by-bid/{bidId:guid}", HandleAsync)
-           .WithTags("Order Queries")
+           .WithTags("Order Management")
            .WithName("GetOrderByWinningBid")
            .Produces<OrderDetailsDto>(StatusCodes.Status200OK)
            .Produces(StatusCodes.Status404NotFound);
     }
 
     private static async Task<IResult> HandleAsync(
-        BidId bidId,
-        ISender sender,
+        [FromRoute]BidId bidId,
+        [FromServices]ISender sender,
         CancellationToken ct)
     {
         var result = await sender.Send(new GetOrderByWinningBidQuery(bidId), ct);

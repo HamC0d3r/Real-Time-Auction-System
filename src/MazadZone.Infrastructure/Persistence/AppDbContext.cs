@@ -3,9 +3,13 @@ using MazadZone.Domain.Bidders;
 using MazadZone.Domain.Categories;
 using MazadZone.Domain.Orders;
 using MazadZone.Domain.Sellers;
+using MazadZone.Domain.Shared.ValueObjects;
 using MazadZone.Domain.Users;
+using MazadZone.Domain.ValueObjects;
 using MazadZone.Infrastructure.Authentication;
+using MazadZone.Infrastructure.Persistence.Converters;
 using Microsoft.EntityFrameworkCore;
+using MzadZone.Domain.Payments;
 
 namespace MazadZone.Infrastructure.Persistence;
 
@@ -30,11 +34,17 @@ public class AppDbContext : DbContext
     public DbSet<Bid> Bids { get; set; } = null!;
 
 
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        base.OnModelCreating(modelBuilder);
+        modelBuilder.Ignore<Reason>();
+        modelBuilder.Ignore<Resolution>();
+        modelBuilder.Ignore<Rating>();
+        modelBuilder.Ignore<Comment>();
         
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+
+        base.OnModelCreating(modelBuilder);
+
+
     }
 }

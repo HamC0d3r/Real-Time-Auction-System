@@ -8,7 +8,7 @@ public static class GetBreadcrumbs
 {
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/{id}/breadcrumbs", GetBreadcrumbsAsync)
+        app.MapGet("/{id}/breadcrumbs", HandleAsync)
            .WithTags("Category Queries")
            .WithSummary("Retrieves the hierarchical path (breadcrumbs) for a category")
            .Produces<IReadOnlyList<BreadcrumbResponse>>(StatusCodes.Status200OK)
@@ -17,7 +17,7 @@ public static class GetBreadcrumbs
            .Produces(StatusCodes.Status500InternalServerError);
     }
 
-    private static async Task<IResult> GetBreadcrumbsAsync(
+    private static async Task<IResult> HandleAsync(
         [FromRoute] CategoryId id,
         [FromServices] ISender sender,
         CancellationToken ct)

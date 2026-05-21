@@ -10,7 +10,7 @@ public static class MoveToParent
 {
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPatch("/{id}/move", MoveToParentAsync)
+        app.MapPatch("/{id}/move", HandleAsync)
            .WithTags("Category Commands")
            .WithSummary("Moves a category to a different parent")
            .Produces(StatusCodes.Status204NoContent)
@@ -20,7 +20,7 @@ public static class MoveToParent
            .Produces(StatusCodes.Status500InternalServerError);
     }
 
-    private static async Task<IResult> MoveToParentAsync(
+    private static async Task<IResult> HandleAsync(
         [FromRoute] CategoryId id,
         [FromBody] MoveToParentRequest request,
         [FromServices] ISender sender,

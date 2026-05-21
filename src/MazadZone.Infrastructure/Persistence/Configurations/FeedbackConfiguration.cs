@@ -38,8 +38,12 @@ public sealed class FeedbackConfiguration : IEntityTypeConfiguration<Feedback>
                 value => Comment.Create(value).Value); 
 
         builder.Property(f => f.Reply)
-            .IsRequired(false) 
-            .HasMaxLength(OrderConstants.MaxCommentLength); 
+            .IsRequired() 
+            .HasMaxLength(OrderConstants.MaxCommentLength)
+            .HasColumnName("Reply")
+             .HasConversion(
+                comment => comment.Value, 
+                value => Comment.Create(value).Value); 
 
         builder.Property(f => f.CreatedAtUtc)
             .IsRequired();

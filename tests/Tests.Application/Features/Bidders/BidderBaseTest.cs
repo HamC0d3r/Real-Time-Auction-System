@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Logging;
 using MazadZone.Application.Services;
-using AuthService.Application.Interfaces;
 
 namespace Tests.Application.Features.Bidders;
 

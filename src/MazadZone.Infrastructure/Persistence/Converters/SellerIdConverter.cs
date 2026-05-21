@@ -1,10 +1,10 @@
-using MazadZone.Domain.Users.ValueObjects;
+using MazadZone.Domain.Sellers;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace MazadZone.Infrastructure.Persistence.Converters;
 
-class SellerIdConverter : ValueConverter<UserId, Guid>
+class SellerIdConverter : ValueConverter<SellerId, Guid>
 {
     public SellerIdConverter() 
-        : base(id => id.Value, guid =>  UserId.From(guid)) { }
+        : base(id => id.Value, guid =>  SellerId.From(guid)) { }
 }

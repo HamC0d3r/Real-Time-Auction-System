@@ -1,9 +1,10 @@
 using MazadZone.Domain.Auctions;
+using MazadZone.Domain.Shared.Interfaces;
 using MazadZone.Domain.ValueObjects;
 using MzadZone.Domain.Payments;
 
 namespace MazadZone.Application.Services;
-public interface IPaymentService
+public interface IPaymentService : IScopedService
 {
     Task<string> AuthorizeAsync(BidId bidId, Money depositAmount, CancellationToken cancellationToken);
     Task UnAuthorizeAsync(string gatewayAuthHoldId, CancellationToken cancellationToken);

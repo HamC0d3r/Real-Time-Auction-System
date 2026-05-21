@@ -1,10 +1,12 @@
 using MazadZone.Domain.Auctions;
-using MazadZone.Domain.Shared;
 using MazadZone.Infrastructure.Common.Constants;
 using MazadZone.Infrastructure.Persistence.Converters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using MazadZone.Infrastructure.Persistence.Extensions;
+using MazadZone.Domain.Shared.ValueObjects;
+using MazadZone.Domain.Shared;
+using MazadZone.Domain.ValueObjects;
 
 
 namespace MazadZone.Infrastructure.Persistence.Configurations;
@@ -21,9 +23,6 @@ class AuctionsConfiguration : IEntityTypeConfiguration<Auction>
             .HasConversion( new AuctionIdConverter() )
             .ValueGeneratedNever();
         
-        builder.Property(a => a.ItemId)
-            .HasConversion(new ItemIdConverter())
-            .IsRequired();
             
         builder.Property(a => a.SellerId)
             .HasConversion(new SellerIdConverter())
@@ -31,36 +30,53 @@ class AuctionsConfiguration : IEntityTypeConfiguration<Auction>
         
         builder.HasOne(a => a.Item)
             .WithOne() 
-            .HasForeignKey<Auction>(a => a.ItemId) 
+            .HasForeignKey<Item>(i => i.AuctionId) 
             .IsRequired()
             .OnDelete(DeleteBehavior.Restrict);
         
         
         builder.HasMany(a => a.Bids)
             .WithOne()
-            .HasForeignKey("AuctionId") // Shadow FK in Bids table
+            .HasForeignKey(b => b.AuctionId) 
             .IsRequired()
             .OnDelete(DeleteBehavior.Cascade);
 
         
 
-        builder.ComplexProperty(a => a.StartBidAmount, money =>
-        {
-            money.Property(m => m.Amount)
-                .HasColumnName("StartBidAmount");
+        builder.ComplexProperty(a => a.StartBidAmount, moneyBuilder =>
+{
+    moneyBuilder.Property(m => m.Amount)
+        .HasColumnName("StartBidAmount")
+        .HasColumnType("decimal(18, 4)")
+        .IsRequired();
 
-            money.Property(m => m.Currency)
-                .HasConversion<string>();
-        });
-        
-        builder.ComplexProperty(a => a.MinBidAmount, money =>
-        {
-            money.Property(m => m.Amount)
-                .HasColumnName("MinBidAmount");
+    moneyBuilder.Property(m => m.Currency)
+        .HasColumnName("StartBidCurrency")
+        .HasMaxLength(3) // Assuming 3-letter currency code (e.g., JOD)
+        .HasConversion(
+            currency => currency.Code, // Convert to string for DB (or .HasConversion<string>() if it's an enum)
+            code => Currency.FromCode(code) // Convert back to Currency object (adjust to match your Currency class logic)
+        )
+        .IsRequired();
+});
 
-            money.Property(m => m.Currency)
-                .HasConversion<string>();
-        });
+// 2. Configure MinBidAmount
+builder.ComplexProperty(a => a.MinBidAmount, moneyBuilder =>
+{
+    moneyBuilder.Property(m => m.Amount)
+        .HasColumnName("MinBidAmount")
+        .HasColumnType("decimal(18, 4)")
+        .IsRequired();
+
+    moneyBuilder.Property(m => m.Currency)
+        .HasColumnName("MinBidCurrency")
+        .HasMaxLength(3)
+        .HasConversion(
+            currency => currency.Code, 
+            code => Currency.FromCode(code)
+        )
+        .IsRequired();
+});
 
         builder.Property(a => a.StartTime)
             .IsRequired();
@@ -78,9 +94,17 @@ class AuctionsConfiguration : IEntityTypeConfiguration<Auction>
         builder.Property(a => a.ModifiedOnUtc)
             .IsRequired(false);
 
-        builder.Property(a=> a.CancellationReason)
-            .HasMaxLength(AuctionConstants.MaxCancellationReasonLength)
-            .IsRequired(false);
+        builder.Property(a => a.CancellationReason)
+       .HasConversion(
+           // 1. Convert to string when saving to the database
+           reason => reason.Text, // (Or reason.Text, depending on your Reason class property)
+           
+           // 2. Convert back to Reason object when reading from the database
+           value => Reason.Create(value).Value
+       )
+       .HasColumnName("CancellationReason")
+       .HasMaxLength(SharedConstainst.MaxReasonLength) // Set this to whatever max length your Reason validates against
+       .IsRequired(false); // Explicitly mark it as nullable in the DB
         
 
         builder.ComplexProperty(a => a.ShippingAddress, addressBuilder =>

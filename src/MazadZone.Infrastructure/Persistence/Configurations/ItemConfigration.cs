@@ -1,4 +1,6 @@
 using MazadZone.Domain.Auctions;
+using MazadZone.Domain.Shared;
+using MazadZone.Domain.Shared.ValueObjects;
 using MazadZone.Infrastructure.Common.Constants;
 using MazadZone.Infrastructure.Persistence.Converters;
 using Microsoft.EntityFrameworkCore;
@@ -26,12 +28,17 @@ class ItemConfiguration : IEntityTypeConfiguration<Item>
             .IsRequired();
 
         builder.Property(i => i.Description)
-            .HasMaxLength(AuctionConstants.MaxDescriptionLength)
-            .IsRequired(false);
+    .HasColumnName("Description")
+    .HasConversion(
+        description => description.Value, // Convert to string (adjust .Value if your property is named .Text)
+        value => Description.Create(value).Value // Convert back to Description object (adjust method to match your domain)
+    )
+    .HasMaxLength(SharedConstainst.MaxDescriptionLength) // Descriptions are usually long, set a generous max length
+    .IsRequired();
 
     builder.OwnsMany(i => i.Images, imageBuilder =>
     {
-        imageBuilder.ToTable("Images");
+        imageBuilder.ToTable(TableNames.Images);
 
         imageBuilder.WithOwner().HasForeignKey("ItemId");
 
@@ -40,7 +47,7 @@ class ItemConfiguration : IEntityTypeConfiguration<Item>
             
         imageBuilder.HasKey("Id");
 
-        imageBuilder.Property(img => img.Path) 
+        imageBuilder.Property(img => img.Path)
             .HasColumnName("ImageUrl")
             .HasMaxLength(2048)
             .IsRequired();

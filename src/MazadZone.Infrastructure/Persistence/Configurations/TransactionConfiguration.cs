@@ -1,9 +1,10 @@
 using MzadZone.Domain.Payments.Entities;
-using MazadZone.Domain.Payments.ValueObjects;
 using MazadZone.Infrastructure.Persistence.Converters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using MazadZone.Domain.Shared;
+using MazadZone.Infrastructure.Common.Constants;
+using MazadZone.Domain.Payments;
 
 namespace MazadZone.Infrastructure.Persistence.Configurations;
 
@@ -11,12 +12,12 @@ public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
 {
     public void Configure(EntityTypeBuilder<Transaction> builder)
     {
-        builder.ToTable("Transactions");        
+        builder.ToTable(TableNames.Transactions);        
 
         builder.HasKey(t => t.Id);
 
         builder.Property(t => t.Id)
-            .HasConversion(new ValueConverter<TransactionId, Guid>(id => id.Value, guid => TransactionId.From(guid)))
+            .HasConversion(new TransactionIdConverter())
             .ValueGeneratedNever();
 
         builder.Property(t => t.PaymentId)
@@ -24,7 +25,7 @@ public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
             .IsRequired();
 
         builder.Property(t => t.GatewayIntentId)
-            .HasMaxLength(200)
+            .HasMaxLength(PaymentConstants.GatewayIntentIdMaxLength)
             .IsRequired();
 
         builder.Property(t => t.Type)
@@ -36,7 +37,7 @@ public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
             .IsRequired();
 
         builder.Property(t => t.FailureReason)
-            .HasMaxLength(1000)
+            .HasMaxLength(SharedConstainst.MaxReasonLength)
             .IsRequired(false);
 
         builder.Property(t => t.CreatedAtUtc).IsRequired();

@@ -8,14 +8,14 @@ public static class Verify
 {
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("{id:guid}/verify", VerifySellerAsync)
+        app.MapPost("{id:guid}/verify", HandleAsync)
            .WithSummary("Verifies a seller")
            .Produces(StatusCodes.Status204NoContent)
            .Produces(StatusCodes.Status404NotFound);
     }
 
-    private static async Task<IResult> VerifySellerAsync(
-        SellerId id,
+    private static async Task<IResult> HandleAsync(
+        [FromRoute]SellerId id,
         [FromServices] ISender sender,
         CancellationToken ct)
     {

@@ -12,7 +12,7 @@ public static class Search
 {
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/search", SearchAsync)
+        app.MapGet("/search", HandleAsync)
            .WithTags("Category Queries")
            .WithSummary("Searches categories by name")
            .Produces<IReadOnlyList<CategoryResponse>>(StatusCodes.Status200OK)
@@ -20,7 +20,7 @@ public static class Search
            .Produces(StatusCodes.Status500InternalServerError);
     }
 
-    private static async Task<IResult> SearchAsync(
+    private static async Task<IResult> HandleAsync(
         [AsParameters] SearchCategoriesRequest request,
         [FromServices] ISender sender,
         CancellationToken ct)

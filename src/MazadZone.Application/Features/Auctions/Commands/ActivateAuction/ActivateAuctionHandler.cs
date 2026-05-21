@@ -35,7 +35,7 @@ public class ActivateAuctionHandler
         }
 
         var auction = auctionResult;
-        var updateResult = auction.MarkAsActive(_dateTimeProvider.UtcNow);
+        var updateResult = auction.MarkAsActive(_dateTimeProvider.Now);
 
         if (updateResult.IsFailure)
         {

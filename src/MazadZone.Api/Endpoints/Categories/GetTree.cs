@@ -7,7 +7,7 @@ public static class GetTree
 {
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/tree", GetTreeAsync)
+        app.MapGet("/tree", HandleAsync)
            .WithTags("Category Queries")
            .WithSummary("Retrieves the full hierarchical category tree")
            .Produces<IReadOnlyList<CategoryTreeResponse>>(StatusCodes.Status200OK)
@@ -15,7 +15,7 @@ public static class GetTree
            .Produces(StatusCodes.Status500InternalServerError);
     }
 
-    private static async Task<IResult> GetTreeAsync(
+    private static async Task<IResult> HandleAsync(
         [FromServices] ISender sender,
         CancellationToken ct)
     {

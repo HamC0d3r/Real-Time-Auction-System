@@ -46,8 +46,7 @@ public class CreateOrderCommandHandler : ICommandHandler<CreateOrderCommand, Ord
             command.BidderId,
             command.WinningBidId,
             command.ReceiptAddress.ToAddress(),
-            command.Amount,
-            command.DepositCaptureTransactionId
+            command.Amount
         );
     }
 }

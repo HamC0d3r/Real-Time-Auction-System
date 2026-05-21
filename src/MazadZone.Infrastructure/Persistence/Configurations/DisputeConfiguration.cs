@@ -30,15 +30,15 @@ public sealed class DisputeConfiguration : IEntityTypeConfiguration<Dispute>
             .HasMaxLength(SharedConstainst.MaxReasonLength)       
             .HasConversion(
                 reason => reason.Text,
-                value => Reason.Create(value).Value); 
+                value => Reason.Create(value).Value);
 
         builder.Property(d => d.Resolution)
-            .IsRequired(false) 
+            .IsRequired()
             .HasColumnName("Resolution")
-            .HasMaxLength(OrderConstants.MaxResolutionLength) 
+            .HasMaxLength(OrderConstants.MaxResolutionLength)
             .HasConversion(
-                resolution => resolution == null ? null : resolution.Value,
-                value => value == null ? null : Resolution.Create(value).Value); 
+                resolution => resolution.Value, 
+                value => Resolution.Create(value).Value);
 
         builder.Property(d => d.Status)
             .IsRequired(); 

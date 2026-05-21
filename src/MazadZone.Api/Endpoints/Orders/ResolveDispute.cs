@@ -13,14 +13,14 @@ public static class ResolveDispute
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost("/{id:guid}/dispute/resolve", HandleAsync)
-           .WithTags("Order Commands")
+           .WithTags("Order Management")
            .WithSummary("Resolves an open Dispute")
            .Produces(StatusCodes.Status204NoContent)
            .Produces(StatusCodes.Status400BadRequest);
     }
 
     private static async Task<IResult> HandleAsync(
-        OrderId id,
+        [FromRoute]OrderId id,
         [FromBody] ResolveDisputeRequest? request,
         [FromServices] ISender sender,
         CancellationToken ct)

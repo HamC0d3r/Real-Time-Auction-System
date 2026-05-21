@@ -10,7 +10,7 @@ public static class GetSub
 {
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/{id}/sub-categories", GetSubCategoriesAsync)
+        app.MapGet("/{id}/sub-categories", HandleAsync)
            .WithTags("Category Queries")
            .WithSummary("Retrieves all direct sub-categories for a given parent")
            .Produces<IReadOnlyList<CategoryResponse>>(StatusCodes.Status200OK)
@@ -19,7 +19,7 @@ public static class GetSub
            .Produces(StatusCodes.Status500InternalServerError);
     }
 
-    private static async Task<IResult> GetSubCategoriesAsync(
+    private static async Task<IResult> HandleAsync(
         [FromRoute] CategoryId id,
         [FromServices] ISender sender,
         CancellationToken ct)

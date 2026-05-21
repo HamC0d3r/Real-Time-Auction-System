@@ -1,5 +1,7 @@
+using MazadZone.Domain.Shared.Interfaces;
+
 namespace MazadZone.Application.Services;
-public interface IDateTimeProvider 
+public interface IDateTimeProvider : IScopedService
 {
-    DateTime UtcNow { get; }
+    DateTime Now { get; }
 }

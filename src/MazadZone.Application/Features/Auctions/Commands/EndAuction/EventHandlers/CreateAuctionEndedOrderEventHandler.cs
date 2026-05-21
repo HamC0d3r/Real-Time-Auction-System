@@ -39,7 +39,7 @@ public class CreateAuctionEndedOrderEventHandler
     IAuctionRepository _auctionRepository,
     IUnitOfWork _unitOfWork,
     ISender _sender,
-    ILogger _logger,
+    ILogger<CreateAuctionEndedOrderEventHandler> _logger,
     IUserQueries _userQueries
 ) : INotificationHandler<AuctionEndedDomainEvent>
 {
@@ -69,8 +69,7 @@ public class CreateAuctionEndedOrderEventHandler
             BidderId: auction.CurrentLeadingBid!.BidderId,
             WinningBidId: WiningBidId,
             ReceiptAddress: AddressDto.FromAddress(address.Value),
-            Amount: FinalAmount.Amount,
-            DepositCaptureTransactionId: auction.CurrentLeadingBid.GatewayAuthHoldId
+            Amount: FinalAmount.Amount
         ), cancellationToken);
         
         if (result.IsFailure)
@@ -98,7 +97,7 @@ public class CreateAuctionEndedOrderEventHandler
             return;
         }
 
-        await _paymentRepository.AddAsync(payment, cancellationToken);
+         _paymentRepository.Add(payment);
 
         // 4. Capture the authorized hold amount using Payment Command
         var captureHoldResult = await _sender.Send(

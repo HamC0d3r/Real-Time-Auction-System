@@ -7,6 +7,7 @@ public static class UserConstants
     public const int PasswordMinLength = 6;
     public const int PasswordMaxLenght = 100;
     public const int PhoneNumberLength = 10;
+    public const int PasswordHashLength = 1024;
     public const int UserNameMinLength = 3;
     public const int UserNameMaxLength = 20;
     public const int RefreshTokenExpiresInDays = 7;

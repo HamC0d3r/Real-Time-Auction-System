@@ -1,6 +1,8 @@
 using MazadZone.Domain.Categories;
 using MazadZone.Domain.Shared;
+using MazadZone.Domain.Shared.ValueObjects;
 using MazadZone.Infrastructure.Common.Constants;
+using MazadZone.Infrastructure.Persistence.Converters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -15,42 +17,34 @@ public sealed class CategoryConfiguration : IEntityTypeConfiguration<Category>
         builder.HasKey(c => c.Id);
 
         builder.Property(c => c.Id)
+            .HasConversion(new CategoryIdConverter());
+
+        builder.Property(c => c.ParentCategoryId)
+            .HasConversion(new CategoryIdConverter())
+            .IsRequired(false);
+
+        builder.Property(c => c.Name)
             .HasConversion(
-                id => id.Value,
-                value => CategoryId.From(value));
+                n => n.Value, // Write to DB
+                value => Name.Create(value).Value) // Read from DB
+            .HasColumnName("Name")
+            .HasMaxLength(SharedConstainst.MaxNameLength)
+            .IsRequired();
 
-        // Configure Name Value Object
-        builder.OwnsOne(c => c.Name, nameBuilder =>
-        {
-            nameBuilder.Property(n => n.Value)
-                .HasColumnName("Name")
-                .HasMaxLength(SharedConstainst.MaxNameLength)
-                .IsRequired();
-        });
-
-        // Configure Description Value Object
-        builder.OwnsOne(c => c.Description, descBuilder =>
-        {
-            descBuilder.Property(d => d.Value)
-                .HasColumnName("Description")
-                .HasMaxLength(SharedConstainst.MaxDescriptionLength);
-        });
-
-        // --- Self-Referencing Relationship ---
+        builder.Property(c => c.Description)
+            .HasConversion(
+                d => d.Value, // Write to DB
+                value => Description.Create(value).Value) // Read from DB
+            .HasColumnName("Description")
+            .HasMaxLength(SharedConstainst.MaxDescriptionLength);
 
         builder.HasOne<Category>()
             .WithMany(c => c.SubCategories)
             .HasForeignKey(c => c.ParentCategoryId)
             .OnDelete(DeleteBehavior.Restrict); 
-            // Restrict prevents deleting a parent if children exist. 
-            // Since you use Soft Delete, this is the safest approach.
-
-        // --- Query Filters ---
         
-        // Automatically hide soft-deleted categories from all queries
         builder.HasQueryFilter(c => !c.IsDeleted);
 
-        // Access the private backing field for the HashSet
         builder.Metadata
             .FindNavigation(nameof(Category.SubCategories))!
             .SetPropertyAccessMode(PropertyAccessMode.Field);

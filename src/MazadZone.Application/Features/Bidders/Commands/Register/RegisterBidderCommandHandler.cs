@@ -1,5 +1,4 @@
-﻿using AuthService.Application.Interfaces;
-using AutoMapper;
+﻿using AutoMapper;
 using MazadZone.Application.Features.Authentication.DTOs;
 using MazadZone.Application.Features.Bidders.DTOs;
 using MazadZone.Application.Services;

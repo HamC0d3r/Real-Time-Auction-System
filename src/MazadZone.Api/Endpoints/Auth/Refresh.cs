@@ -9,13 +9,14 @@ public static class Refresh
 {
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("refresh", RefreshAsync)
+        app.MapPost("refresh", HandleAsync)
+            .WithTags("Authentication Management")
+           .WithSummary("Refresh an expired access token")
            .Produces<TokenDto>(StatusCodes.Status200OK)
-           .ProducesProblem(StatusCodes.Status401Unauthorized)
-           .WithSummary("Refresh an expired access token");
+           .ProducesProblem(StatusCodes.Status401Unauthorized);
     }
 
-    private static async Task<IResult> RefreshAsync(
+    private static async Task<IResult> HandleAsync(
         [FromBody] RefreshTokenRequest request,
         [FromServices] ISender sender,
         CancellationToken ct)

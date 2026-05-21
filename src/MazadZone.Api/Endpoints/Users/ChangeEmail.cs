@@ -9,16 +9,17 @@ public static class ChangeEmail
 {
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPut("/users/email", ChangeEmailAsync)
+        app.MapPut("/users/email", HandleAsync)
+           .WithTags("User Management")
+           .WithSummary("Change user email")
            .Produces(StatusCodes.Status204NoContent)
-           .ProducesProblem(StatusCodes.Status409Conflict)
-           .WithSummary("Change user email");
+           .ProducesProblem(StatusCodes.Status409Conflict);
     }
 
-    private static async Task<IResult> ChangeEmailAsync(
+    private static async Task<IResult> HandleAsync(
         [FromBody] ChangeEmailRequest request,
-        IHttpContextAccessor context,
-        ISender sender,
+        [FromServices]IHttpContextAccessor context,
+        [FromServices]ISender sender,
         CancellationToken ct)
     {
         var userId = context.HttpContext?.User.GetUserId() ?? Guid.Empty;

@@ -3,10 +3,11 @@ namespace MazadZone.Infrastructure.Repositories;
 using System;
 using System.Threading.Tasks;
 using MazadZone.Application.Common.Interfaces;
+using MazadZone.Domain.Shared.Interfaces;
 using Polly;
 
 // Abstract means you can't instantiate it directly; it must be inherited.
-public abstract class ResilientRepository
+public abstract class ResilientRepository : IScopedService
 {
     protected readonly ISqlConnectionFactory _connectionFactory;
     private readonly IAsyncPolicy _resiliencePolicy;

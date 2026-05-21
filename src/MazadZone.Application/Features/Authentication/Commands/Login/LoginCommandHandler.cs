@@ -1,5 +1,4 @@
-﻿using AuthService.Application.Interfaces;
-using MazadZone.Application.Features.Authentication.Commands.Login;
+﻿using MazadZone.Application.Features.Authentication.Commands.Login;
 using MazadZone.Application.Features.Authentication.DTOs;
 using MazadZone.Application.Services;
 using MazadZone.Domain.Repositories;

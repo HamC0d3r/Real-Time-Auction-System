@@ -10,7 +10,7 @@ public static class ReplyToFeedback
     {
         app.MapPost("/api/orders/{orderId:guid}/feedback/reply", HandleAsync)
             .WithName("ReplyToOrderFeedback")
-            .WithTags("Orders", "Feedback")
+            .WithTags("Order Management")
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status400BadRequest)
             .WithOpenApi();

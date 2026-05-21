@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using MazadZone.Domain.Payments.Enums;
 using MazadZone.Domain.Payments.Errors;
 using MazadZone.Domain.Payments.Events;
@@ -29,8 +28,8 @@ public sealed class Payment : AggregateRoot<PaymentId>
 
     public OrderId OrderId { get; private init; }
     public UserId UserId { get; private init; }
-    public Money? CapturedHoldedAmount { get; private set; }
-    public Money? CapturedRemainingAmount {get; private set; }
+    public Money CapturedHoldedAmount { get; private set; } = Money.Zero();
+    public Money CapturedRemainingAmount {get; private set; } = Money.Zero();
     public PaymentStatus Status { get; private set; }
     public DateTime CreatedAtUtc { get; private init; }
     public DateTime? CompletedAtUtc { get; private set; }

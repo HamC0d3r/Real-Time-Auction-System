@@ -1,6 +1,8 @@
+using MazadZone.Domain.Shared.Interfaces;
+
 namespace MazadZone.Domain.Repositories;
 
-public interface IGenericRepository<T> where T : class
+public interface IGenericRepository<T> : IScopedService  where T : class 
 {
     Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     

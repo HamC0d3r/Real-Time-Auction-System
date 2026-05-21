@@ -10,7 +10,7 @@ public static class Delete
 {
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapDelete("/{id:guid}", DeleteCategoryAsync)
+        app.MapDelete("/{id:guid}", HandleAsync)
            .WithTags("Category Commands")
            .WithSummary("Deletes a category and its subcategories")
            .WithDescription("Will fail with a Conflict if the category has active auctions.")
@@ -21,12 +21,12 @@ public static class Delete
            .Produces(StatusCodes.Status500InternalServerError); 
     }
 
-    private static async Task<IResult> DeleteCategoryAsync(
-        CategoryId categoryId,
+    private static async Task<IResult> HandleAsync(
+        [FromRoute] CategoryId id,
         [FromServices] ISender sender,
         CancellationToken ct)
     {
-        var command = new DeleteCategoryCommand(categoryId);
+        var command = new DeleteCategoryCommand(id);
 
         var result = await sender.Send(command, ct);
 

@@ -10,15 +10,15 @@ public static class UpdateBankDetails
 {
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPatch("{id:guid}/bank-details", UpdateBankDetailsAsync)
+        app.MapPatch("{id:guid}/bank-details", HandleAsync)
            .WithSummary("Updates seller bank account details")
            .Produces(StatusCodes.Status204NoContent)
            .Produces(StatusCodes.Status400BadRequest)
            .Produces(StatusCodes.Status404NotFound);
     }
 
-    private static async Task<IResult> UpdateBankDetailsAsync(
-        SellerId id,
+    private static async Task<IResult> HandleAsync(
+        [FromRoute]SellerId id,
         [FromBody] UpdateBankDetailsRequest request,
         [FromServices] ISender sender,
         CancellationToken ct)

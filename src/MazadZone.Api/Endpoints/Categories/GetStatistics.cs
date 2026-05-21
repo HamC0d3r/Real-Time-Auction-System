@@ -7,7 +7,7 @@ public static class GetStatistics
 {
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/statistics", GetStatsAsync)
+        app.MapGet("/statistics", HandleAsync)
            .WithTags("Category Queries")
            .WithSummary("Retrieves analytical statistics for all categories")
            .Produces<IReadOnlyList<CategoryStatResponse>>(StatusCodes.Status200OK)
@@ -15,7 +15,7 @@ public static class GetStatistics
            .Produces(StatusCodes.Status500InternalServerError);
     }
 
-    private static async Task<IResult> GetStatsAsync(
+    private static async Task<IResult> HandleAsync(
         [FromServices] ISender sender,
         CancellationToken ct)
     {

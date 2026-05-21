@@ -1,8 +1,9 @@
+using MazadZone.Domain.Shared.Interfaces;
 using MazadZone.Domain.Users;
 using MazadZone.Domain.Users.ValueObjects;
 
 namespace MazadZone.Domain.Repositories;
-public interface IUserRepository : IGenericRepository<User>
+public interface IUserRepository : IGenericRepository<User>, IScopedService
 {
      Task<User?> GetByEmailAsync(Email email, CancellationToken cancellationToken);
      Task<bool> IsEmailInUseAsync(Email email, CancellationToken cancellationToken);

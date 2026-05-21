@@ -18,7 +18,7 @@ public static class GetProfile
     }
 
     private static async Task<IResult> HandleAsync(
-        BidderId id,
+        [FromRoute] BidderId id,
         [FromServices] ISender sender,
         CancellationToken ct)
     {

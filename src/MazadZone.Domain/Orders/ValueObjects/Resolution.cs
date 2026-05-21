@@ -2,13 +2,16 @@ namespace MazadZone.Domain.Orders;
 
 public sealed record Resolution
 {
-
+    public Resolution(){}
     public string Value { get; init; }
 
     private Resolution(string value)
     {
         Value = value;
     }
+
+    public static Resolution Empty => new Resolution(string.Empty);
+
 
     /// <summary>
     /// Factory method to enforce domain invariants before creating a Resolution.

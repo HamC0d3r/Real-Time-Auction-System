@@ -8,7 +8,7 @@ public static class GetById
 {
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/{id}", GetCategoryAsync)
+        app.MapGet("/{id}", HandleAsync)
            .WithTags("Category Queries")
            .WithSummary("Gets a category by its unique ID")
            .Produces<CategoryResponse>(StatusCodes.Status200OK)
@@ -17,7 +17,7 @@ public static class GetById
            .Produces(StatusCodes.Status500InternalServerError);
     }
 
-    private static async Task<IResult> GetCategoryAsync(
+    private static async Task<IResult> HandleAsync(
         [FromRoute] CategoryId id,
         [FromServices] ISender sender,
         CancellationToken ct)

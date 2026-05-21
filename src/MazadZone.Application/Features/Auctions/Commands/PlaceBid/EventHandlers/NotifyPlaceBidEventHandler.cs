@@ -42,7 +42,7 @@ public class NotifyPlaceBidEventHandler
         }
 
         var item = await _itemRepository
-            .GetItemByIdAsync(auction.ItemId.Value, cancellationToken);
+            .GetItemByIdAsync(auction.Item.Id.Value, cancellationToken);
 
         var itemTitle = item?.Title ?? "your auction item";
 

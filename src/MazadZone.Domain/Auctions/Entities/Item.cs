@@ -12,25 +12,24 @@ public sealed class Item : Entity<ItemId>
 {
     private readonly List<Image> _images = new();
 
-    #pragma warning disable CS8618
-    #pragma warning disable CS0519
     private Item() { }
-    #pragma warning restore CS8618
-
 
     private Item(
         ItemId id,
+        AuctionId auctionId,
         CategoryId categoryId,
         string title,
          Description description) : base(id)
     {
+        AuctionId = auctionId;
         CategoryId = categoryId;
         Title = title;
         Description = description;
     }
 
     // --- Properties ---
-    public CategoryId CategoryId { get; private init; }
+    public CategoryId CategoryId { get; private set; }
+    public AuctionId AuctionId { get; private set; }
     public string Title { get; private set; }
     public Description Description { get; private set; }
 
@@ -39,6 +38,7 @@ public sealed class Item : Entity<ItemId>
 
     // --- Factory Method ---
     public static Result <Item> Create(
+        AuctionId auctionId,
         CategoryId categoryId,
         string title,
         string description,
@@ -62,6 +62,7 @@ public sealed class Item : Entity<ItemId>
 
         return new Item(
             ItemId.New(),
+            auctionId,
             categoryId,
             title,
             descriptionResult.Value

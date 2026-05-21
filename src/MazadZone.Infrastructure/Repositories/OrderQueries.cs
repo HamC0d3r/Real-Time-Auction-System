@@ -26,6 +26,8 @@ public class OrderQueries : ResilientRepository , IOrderQueries
            o.Currency,
            o.BidderId,
            o.WinningBidId,
+           o.AuctionId,
+ 
 
            CASE o.Status
                WHEN 1 THEN 'Pending'
@@ -36,13 +38,13 @@ public class OrderQueries : ResilientRepository , IOrderQueries
                ELSE 'Unknown'
            END AS Status,
 
-          CAST(CASE WHEN o.DisputeId IS NOT NULL AND d.Status != @ResolvedDisputeStatus THEN 1 ELSE 0 END AS BIT) AS HasActiveDispute,
-           CAST(CASE WHEN o.DisputeId IS NULL AND o.Status IN (@ShippedStatus, @DeliveredStatus) THEN 1 ELSE 0 END AS BIT) AS IsDisputable,
-           CAST(CASE WHEN o.FeedbackId IS NULL AND o.Status = @DeliveredStatus THEN 1 ELSE 0 END AS BIT) AS CanLeaveFeedback
+          CAST(CASE WHEN d.OrderId IS NOT NULL AND d.Status != @ResolvedDisputeStatus THEN 1 ELSE 0 END AS BIT) AS HasActiveDispute,
+           CAST(CASE WHEN d.OrderId IS NULL AND o.Status IN (@ShippedStatus, @DeliveredStatus) THEN 1 ELSE 0 END AS BIT) AS IsDisputable,
+           CAST(CASE WHEN f.OrderId IS NULL AND o.Status = @DeliveredStatus THEN 1 ELSE 0 END AS BIT) AS CanLeaveFeedback
 
         FROM Orders o
-        LEFT JOIN Disputes d ON o.DisputeId = d.Id
-        LEFT JOIN Feedbacks f ON o.FeedbackId = f.Id
+        LEFT JOIN Disputes d ON o.Id = d.OrderId
+        LEFT JOIN Feedbacks f ON o.Id = f.OrderId
         WHERE o.Id = @OrderId";
 
        return await ExecuteResilientAsync(connection => 

@@ -5,6 +5,7 @@ namespace MazadZone.Domain.Shared.ValueObjects;
 
 public sealed record Description
 {
+    public Description(){}
     public string Value { get; init; }
 
     private Description(string value) => Value = value;

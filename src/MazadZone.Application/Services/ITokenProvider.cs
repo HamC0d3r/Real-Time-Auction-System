@@ -1,3 +1,4 @@
+using MazadZone.Domain.Shared.Interfaces;
 using MazadZone.Domain.Users;
 
 namespace MazadZone.Application.Services;  
@@ -7,7 +8,7 @@ namespace MazadZone.Application.Services;
 /// as well as hashing refresh tokens for secure storage.
 /// </summary>
 
-public interface ITokenProvider
+public interface ITokenProvider : IScopedService
 {
      /// <summary>
     /// Generates a JSON Web Token (JWT) for the specified user and client.

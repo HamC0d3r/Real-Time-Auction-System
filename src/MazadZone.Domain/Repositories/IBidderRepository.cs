@@ -1,4 +1,3 @@
-using MazadZone.Domain.Auctions;
 using MazadZone.Domain.Bidders;
 using MazadZone.Domain.Shared.Interfaces;
 

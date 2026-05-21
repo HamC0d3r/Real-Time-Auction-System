@@ -3,11 +3,12 @@ using MazadZone.Application.Features.Auctions.DTOs;
 using MazadZone.Application.Features.Auctions.Queries;
 using MazadZone.Application.Features.Users.Commands.Ban.Models;
 using MazadZone.Application.Features.Users.DTOs;
+using MazadZone.Domain.Shared.Interfaces;
 using MazadZone.Domain.Users.ValueObjects;
 using MzadZone.Domain.Payments;
 
 namespace MazadZone.Application.Services;
-public interface IAuctionQueries
+public interface IAuctionQueries : IScopedService
 {
     Task<AuctionDto?> GetAuctionByIdAsync(Guid auctionId, CancellationToken ct);
     Task<PagedList<AuctionsListDto>> SearchAuctionsAsync(AuctionQueryParameters queryParameters, CancellationToken ct);

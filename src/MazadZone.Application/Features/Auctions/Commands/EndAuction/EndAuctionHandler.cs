@@ -32,7 +32,7 @@ public class EndAuctionHandler
             return Result.Failure<Unit>(AuctionErrors.NotFound);
         }
 
-        var endResult = auctionResult.MarkAsEnded(_dateTimeProvider.UtcNow);
+        var endResult = auctionResult.MarkAsEnded(_dateTimeProvider.Now);
         
         if (endResult.IsFailure)
         {

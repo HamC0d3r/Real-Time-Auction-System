@@ -1,4 +1,3 @@
-using MazadZone.Domain.Shared;
 using MazadZone.Domain.Shared.Errors;
 
 namespace MazadZone.Domain.Shared.ValueObjects;
@@ -6,6 +5,7 @@ namespace MazadZone.Domain.Shared.ValueObjects;
 // A simple Value Object for the Reason to ensure type safety
 public sealed record Reason
 {
+    public Reason(){}
     public string Text { get; }
 
     public static Result<Reason> Create(string text)

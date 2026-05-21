@@ -1,3 +1,4 @@
+using MazadZone.Infrastructure.Common.Constants;
 using MazadZone.Infrastructure.Outbox;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -7,7 +8,7 @@ public sealed class OutboxMessageConfiguration : IEntityTypeConfiguration<Outbox
 {
     public void Configure(EntityTypeBuilder<OutboxMessage> builder)
     {
-        builder.ToTable("OutboxMessages");
+        builder.ToTable(TableNames.OutboxMessages);
         builder.HasKey(m => m.Id);
         
         // Good idea to index this since the background worker will query it constantly

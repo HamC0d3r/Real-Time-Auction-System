@@ -7,7 +7,7 @@ public static class GetRoots
 {
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/roots", GetRootCategoriesAsync)
+        app.MapGet("/roots", HandleAsync)
            .WithTags("Category Queries")
            .WithSummary("Retrieves all top-level (root) categories")
            .Produces<IReadOnlyList<CategoryResponse>>(StatusCodes.Status200OK)
@@ -15,7 +15,7 @@ public static class GetRoots
            .Produces(StatusCodes.Status500InternalServerError);
     }
 
-    private static async Task<IResult> GetRootCategoriesAsync(
+    private static async Task<IResult> HandleAsync(
         [FromServices] ISender sender,
         CancellationToken ct)
     {

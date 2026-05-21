@@ -9,15 +9,16 @@ public static class GetDetails
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapGet("/{id:guid}", HandleAsync)
-           .WithTags("Order Queries")
+           .WithTags("Order Management")
            .WithName("GetOrderDetails")
+           .WithSummary("Gets Order Details")
            .Produces<OrderDetailsDto>(StatusCodes.Status200OK)
            .Produces(StatusCodes.Status404NotFound);
     }
 
     private static async Task<IResult> HandleAsync(
-        OrderId id,
-        ISender sender,
+        [FromRoute]OrderId id,
+        [FromServices]ISender sender,
         CancellationToken ct)
     {
         var result = await sender.Send(new GetOrderDetailsQuery(id), ct);

@@ -2,6 +2,8 @@ namespace MazadZone.Domain.Shared.ValueObjects;
 
 public sealed record Image 
 {
+    public Image(){}
+    
     public string Path { get; }
     public string? AltText { get; }
     public bool isMain { get; init; } // This can be used to maintain the order of images if needed

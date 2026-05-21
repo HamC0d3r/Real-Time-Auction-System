@@ -5,6 +5,7 @@ using AuthService.Domain.Constants;
 
 public sealed record Email
 {
+    public Email(){}
     private static readonly Regex EmailRegex = new(
         @"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$", 
         RegexOptions.Compiled);
