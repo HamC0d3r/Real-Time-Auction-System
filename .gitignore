@@ -20,6 +20,8 @@ contracts/
 Thumbs.db
 
 # --- Environment Variables & Secrets (CRITICAL) ---
+appsettings.json
+appsettings.*.json
 
 # --- Test Results ---
 TestResults/
