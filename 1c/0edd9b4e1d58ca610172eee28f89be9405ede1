@@ -1,0 +1,16 @@
+src/MazadZone.Infrastructure/DependencyInjection.cs
+  h_3c745a955bab22 216
+src/MazadZone.Api/Program.cs
+  h_3c745a955bab22 75-77,79-83,85-86,88-89,91-93,95-99,101-105,107-109,111-113,115-122,124-133
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "1c0edd9b4e1d58ca610172eee28f89be9405ede1",
+  "prompts": {},
+  "humans": {
+    "h_3c745a955bab22": {
+      "author": "khaled0x1 <120220612151@st.ahu.edu.jo>"
+    }
+  }
+}
