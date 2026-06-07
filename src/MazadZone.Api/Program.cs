@@ -64,6 +64,7 @@ try
             var options = (DbContextOptions<AppDbContext>)originalFactory(sp);
             var builderWithOptions = new DbContextOptionsBuilder<AppDbContext>(options);
             builderWithOptions.ReplaceService<Microsoft.EntityFrameworkCore.Infrastructure.IModelCustomizer, SeedingModelCustomizer>();
+            builderWithOptions.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
             return builderWithOptions.Options;
         });
         
@@ -73,65 +74,65 @@ try
     var app = builder.Build();
 
 
-    // using (var scope = app.Services.CreateScope())
-    // {
-    //     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    using (var scope = app.Services.CreateScope())
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         
-    //     Log.Information("UserId Fields:");
-    //     foreach (var field in typeof(MazadZone.Domain.Users.ValueObjects.UserId).GetFields(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public))
-    //     {
-    //         Log.Information("- Field: {Name} ({Type})", field.Name, field.FieldType.Name);
-    //     }
+        Log.Information("UserId Fields:");
+        foreach (var field in typeof(MazadZone.Domain.Users.ValueObjects.UserId).GetFields(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public))
+        {
+            Log.Information("- Field: {Name} ({Type})", field.Name, field.FieldType.Name);
+        }
 
-    //     // Log.Information("Deleting old database content (EnsureDeleted)...");
-    //     // await dbContext.Database.EnsureDeletedAsync();
+        // Log.Information("Deleting old database content (EnsureDeleted)...");
+        // await dbContext.Database.EnsureDeletedAsync();
         
-    //     Log.Information("Applying migrations (Migrate)...");
-    //     await dbContext.Database.MigrateAsync();
+        Log.Information("Applying migrations (Migrate)...");
+        await dbContext.Database.MigrateAsync();
         
-    //     Log.Information("Running Database Seeder...");
-    //     var seeder = scope.ServiceProvider.GetRequiredService<IDatabaseSeeder>();
-    //     await seeder.SeedAsync();
+        Log.Information("Running Database Seeder...");
+        var seeder = scope.ServiceProvider.GetRequiredService<IDatabaseSeeder>();
+        await seeder.SeedAsync();
         
-    //     Log.Information("Verifying database integrity and mappings...");
-    //     var userCount = await dbContext.Users.CountAsync();
-    //     var bidderCount = await dbContext.Bidders.CountAsync();
-    //     var sellerCount = await dbContext.Sellers.CountAsync();
-    //     var auctionCount = await dbContext.Auctions.CountAsync();
+        Log.Information("Verifying database integrity and mappings...");
+        var userCount = await dbContext.Users.CountAsync();
+        var bidderCount = await dbContext.Bidders.CountAsync();
+        var sellerCount = await dbContext.Sellers.CountAsync();
+        var auctionCount = await dbContext.Auctions.CountAsync();
         
-    //     Log.Information("=== Database Verification Report ===");
-    //     Log.Information("- Users count: {UserCount}", userCount);
-    //     Log.Information("- Bidders count: {BidderCount}", bidderCount);
-    //     Log.Information("- Sellers count: {SellerCount}", sellerCount);
-    //     Log.Information("- Auctions count: {AuctionCount}", auctionCount);
+        Log.Information("=== Database Verification Report ===");
+        Log.Information("- Users count: {UserCount}", userCount);
+        Log.Information("- Bidders count: {BidderCount}", bidderCount);
+        Log.Information("- Sellers count: {SellerCount}", sellerCount);
+        Log.Information("- Auctions count: {AuctionCount}", auctionCount);
         
-    //     var biddersWithoutUser = await dbContext.Bidders
-    //         .Where(b => !dbContext.Users.Any(u => u.Id == b.Id))
-    //         .CountAsync();
+        var biddersWithoutUser = await dbContext.Bidders
+            .Where(b => !dbContext.Users.Any(u => u.Id == b.Id))
+            .CountAsync();
             
-    //     var sellersWithoutUser = await dbContext.Sellers
-    //         .Where(s => !dbContext.Users.Any(u => u.Id == s.Id))
-    //         .CountAsync();
+        var sellersWithoutUser = await dbContext.Sellers
+            .Where(s => !dbContext.Users.Any(u => u.Id == s.Id))
+            .CountAsync();
             
-    //     if (biddersWithoutUser > 0)
-    //     {
-    //         Log.Error("DATABASE INTEGRITY ERROR: Found {Count} Bidders with no matching User record!", biddersWithoutUser);
-    //     }
-    //     else
-    //     {
-    //         Log.Information("All Bidders successfully map to User records.");
-    //     }
+        if (biddersWithoutUser > 0)
+        {
+            Log.Error("DATABASE INTEGRITY ERROR: Found {Count} Bidders with no matching User record!", biddersWithoutUser);
+        }
+        else
+        {
+            Log.Information("All Bidders successfully map to User records.");
+        }
         
-    //     if (sellersWithoutUser > 0)
-    //     {
-    //         Log.Error("DATABASE INTEGRITY ERROR: Found {Count} Sellers with no matching User record!", sellersWithoutUser);
-    //     }
-    //     else
-    //     {
-    //         Log.Information("All Sellers successfully map to User records.");
-    //     }
-    //     Log.Information("====================================");
-    // }
+        if (sellersWithoutUser > 0)
+        {
+            Log.Error("DATABASE INTEGRITY ERROR: Found {Count} Sellers with no matching User record!", sellersWithoutUser);
+        }
+        else
+        {
+            Log.Information("All Sellers successfully map to User records.");
+        }
+        Log.Information("====================================");
+    }
 
 
     // Middlewares Configuration
