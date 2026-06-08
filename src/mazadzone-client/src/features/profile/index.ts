@@ -17,4 +17,5 @@ export type { AddressSelectStepProps } from "./components/AddressSelectStep";
 export { UserProfilePage } from "./components/Profile/UserProfilePage";
 export { useGetPublicUserProfile, getPublicUserProfile } from "./api/get-public-user-profile";
 export type { PublicUserProfile, UserRole } from "./types/user-profile.types";
+export type { BidderProfileDto } from "./api";
 

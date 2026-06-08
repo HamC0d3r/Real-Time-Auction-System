@@ -9,11 +9,18 @@ export interface BidderProfileDto {
   fullName: string;
   email: string;
   phoneNumber: string;
-  address: AddressDto;
-  totalBidsPlaced: number;
-  reliabilityScore: number;
-  nationalId: string;
+  status: string;
+  isVerified: boolean;
   memberSince: string;
+  lastLogin: string;
+  city: string;
+  street: string;
+  building: string;
+  landmark: string;
+  totalBidsPlaced: number;
+  auctionParticipatedCount: number;
+  auctionsWonCount: number;
+  completedPurchasesCount: number;
 }
 
 export interface ChangeEmailRequest {
