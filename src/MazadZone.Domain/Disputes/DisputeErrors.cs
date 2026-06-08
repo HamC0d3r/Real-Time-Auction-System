@@ -10,6 +10,11 @@ public static class DisputeErrors
         "Dispute.NotFound",
         "The dispute was not found."
     );
+
+    public static readonly Error OrderHasOpenDispute = Error.Conflict(
+        "Dispute.OrderHasOpenDispute",
+        "The order already has an open dispute. Please resolve the existing dispute before opening a new one."
+    );
 }
 
 public static class DisputeErrorCodes

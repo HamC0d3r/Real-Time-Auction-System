@@ -16,6 +16,7 @@ using MazadZone.Infrastructure.Services;
 using MazadZone.Infrastructure.Common;
 using Quartz;
 using MazadZone.Infrastructure.BackgroundJobs;
+using MazadZone.Infrastructure.Scheduling;
 
 namespace MazadZone.Infrastructure;
 
@@ -180,8 +181,8 @@ public static class DependencyInjection
 
         services.AddHangfireServer();
 
-        // services.AddScoped<IOrderJobScheduler, HangfireOrderJobScheduler>();
-        // services.AddScoped<IAuctionJobScheduler, HangfireAuctionJobScheduler>();
+        services.AddScoped<IOrderJobScheduler, HangfireOrderJobScheduler>();
+        services.AddScoped<IAuctionJobScheduler, HangfireAuctionJobScheduler>();
 
         return services;
     }
