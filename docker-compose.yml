@@ -15,6 +15,19 @@ services:
         aliases:
           - seq
 
+  # 1. ADDED: The GELF Forwarder Sidecar for Seq
+  seq-input-gelf:
+    image: datalust/seq-input-gelf:latest
+    container_name: mazadzone-seq-gelf
+    depends_on:
+      - seq
+    ports:
+      - "12201:12201/udp" # UDP port required for GELF
+    environment:
+      - SEQ_ADDRESS=http://seq:5341 # Points to Seq on the internal network
+    networks:
+      - backend_network
+
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: mazadzone-sqlserver
@@ -31,6 +44,12 @@ services:
         aliases:
           - sqlserver
     restart: unless-stopped
+    # 2. ADDED: Routing SQL logs to Seq
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://127.0.0.1:12201"
+        tag: "sqlserver"
 
   redis:
     image: redis:alpine
@@ -43,6 +62,12 @@ services:
       backend_network:
         aliases:
           - redis
+    # 2. ADDED: Routing Redis logs to Seq
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://127.0.0.1:12201"
+        tag: "redis"
 
   api:
     build:
@@ -62,10 +87,11 @@ services:
     networks:
       frontend_network:
         aliases:
-          - mazadzone-api # <--- Registered explicit network naming visibility
+          - mazadzone-api
       backend_network:
         aliases:
           - mazadzone-api
+    # Note: No GELF here. Use Serilog in the .NET code to send directly to http://seq:5341
 
   client:
     build:
@@ -76,14 +102,18 @@ services:
       - "3000:3000"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      # For Server-Side Rendering (Internal Docker Network)
       - NEXT_PUBLIC_SERVER_API_URL=http://mazadzone-api:8080
-      # For Browser-Side requests (Your local laptop environment)
       - NEXT_PUBLIC_CLIENT_API_URL=http://localhost:5108
     depends_on:
       - api
     networks:
       - frontend_network
+    # 2. ADDED: Routing Next.js server-side terminal logs to Seq
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://127.0.0.1:12201"
+        tag: "nextjs-frontend"
 
 volumes:
   seq-data:
