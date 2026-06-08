@@ -7,7 +7,7 @@ public static class CreateAdmin
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost("/admin", HandleAsync)
-           // .RequireAuthorization("AdminOnly") // Uncomment when auth policies are ready
+           .RequireAuthorization(Policies.AdminOnly) // Ensure only Admins can access this endpoint
            .WithSummary("Create an Admin user account")
            .WithDescription("Registers a new user with administrative privileges. Validates incoming payload constraints and returns the newly created User ID upon success.")
            .Produces<Guid>(StatusCodes.Status201Created)
