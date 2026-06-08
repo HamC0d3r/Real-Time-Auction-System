@@ -20,6 +20,7 @@ import { SubmitSellerReviewDialog } from "./SubmitSellerReviewDialog";
 
 interface OrderActivityItemProps {
   activity: OrderActivity;
+  onPaymentComplete?: () => void;
 }
 
 /**
@@ -31,7 +32,7 @@ interface OrderActivityItemProps {
  * 
  * @param activity - The detailed OrderActivity object containing auction, shipping, and order metadata.
  */
-export function OrderActivityItem({ activity }: OrderActivityItemProps) {
+export function OrderActivityItem({ activity, onPaymentComplete }: OrderActivityItemProps) {
   const [isDisputeOpen, setIsDisputeOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isReviewOpen, setIsReviewOpen] = useState(false);
@@ -149,6 +150,7 @@ export function OrderActivityItem({ activity }: OrderActivityItemProps) {
           imageUrl={activity.auction.imageUrl}
           isOpen={isPaymentModalOpen}
           onClose={() => setIsPaymentModalOpen(false)}
+          onPaymentSuccess={onPaymentComplete}
         />
 
         {isDelivered && activity.sellerId && (

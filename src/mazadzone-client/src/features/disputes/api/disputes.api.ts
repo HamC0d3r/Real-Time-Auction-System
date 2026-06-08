@@ -1,10 +1,14 @@
 import { api } from "@/lib/api/client";
+import { generateUUID } from "@/utils/uuid.utils";
 import type { ImageModelDto } from "@/features/auctions/api/auction.contracts";
 import type { CreateDisputeInput, Dispute } from "../types/disputes.types";
 import type {
   CreateDisputeTypeRequest,
   DisputeTypeDto,
   OpenDisputeRequest,
+  AdminDisputesQueryParams,
+  DisputeListItemDto,
+  DisputeDetailsDto,
 } from "./disputes.contracts";
 
 interface UploadFilesResponse {
@@ -60,11 +64,13 @@ async function cleanupUploadedFiles(
   );
 }
 
+
+
 /**
  * Files a new dispute for a given order on the ASP.NET Core backend.
  */
 export async function fileDispute(input: CreateDisputeInput): Promise<Dispute> {
-  const uploadEntityId = `${input.orderId}-${globalThis.crypto.randomUUID()}`;
+  const uploadEntityId = `${input.orderId}-${generateUUID()}`;
   let uploadedImages: ImageModelDto[] = [];
 
   try {
@@ -139,4 +145,42 @@ export async function updateDisputeTypeApi(id: string, request: CreateDisputeTyp
  */
 export async function deleteDisputeTypeApi(id: string): Promise<void> {
   await api.delete(`/dispute-types/${id}`);
+}
+
+// ─── Admin Dispute Management ────────────────────────────────────────────────
+
+/**
+ * Fetches paginated list of disputes for admin review.
+ * Endpoint: GET /api/v1/disputes
+ */
+export async function fetchAdminDisputesApi(
+  params: AdminDisputesQueryParams,
+): Promise<DisputeListItemDto[]> {
+  const response = await api.get<DisputeListItemDto[]>("/disputes", { params });
+  return response.data;
+}
+
+/**
+ * Fetches full details for a single dispute.
+ * Endpoint: GET /api/v1/disputes/{id}
+ */
+export async function fetchDisputeDetailsApi(id: string): Promise<DisputeDetailsDto> {
+  const response = await api.get<DisputeDetailsDto>(`/disputes/${id}`);
+  return response.data;
+}
+
+/**
+ * Resolves a dispute as an admin (accepted or rejected).
+ * Endpoint: POST /api/v1/disputes/{id}/resolve
+ */
+export async function resolveDisputeApi(id: string, resolution: string): Promise<void> {
+  await api.post(`/disputes/${id}/resolve`, { resolution });
+}
+
+/**
+ * Marks a dispute as Under Review.
+ * Endpoint: POST /api/v1/disputes/{id}/under-review
+ */
+export async function markDisputeUnderReviewApi(id: string): Promise<void> {
+  await api.post(`/disputes/${id}/under-review`);
 }

@@ -23,7 +23,10 @@ export const registerSchema = z
       .refine((val) => /[^a-zA-Z0-9]/.test(val), "Password must include at least one special character"),
     confirmPassword: z.string().min(8, "Please confirm your password"),
     phoneNumber: z.string().min(10, "Please enter a valid phone number"),
-    address: z.string().min(5, "Please enter your full address"),
+    city: z.string().min(2, "City is required"),
+    street: z.string().min(2, "Street is required"),
+    building: z.string().min(1, "Building/House number is required"),
+    landmark: z.string().min(2, "Landmark is required"),
     nationalId: z.string().min(10, "Please enter a valid national ID"),
     nationalCardFile: z
       .any()

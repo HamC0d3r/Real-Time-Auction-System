@@ -61,9 +61,12 @@ export function parseUtcDate(dateStr: string | Date): Date {
   if (!dateStr) return new Date();
   
   if (typeof dateStr === "string") {
-    // Strip timezone offsets and Z to parse literally as local time, preserving selected hours
-    const cleanStr = dateStr.replace(/Z|[-+]\d{2}:\d{2}$/i, "");
-    return new Date(cleanStr);
+    // If the date string does not specify timezone information (no Z and no offset),
+    // append 'Z' so it gets parsed correctly as a UTC datetime and converted to local time.
+    if (!dateStr.includes("Z") && !dateStr.match(/[-+]\d{2}:\d{2}$/)) {
+      return new Date(`${dateStr}Z`);
+    }
+    return new Date(dateStr);
   }
   return new Date(dateStr);
 }

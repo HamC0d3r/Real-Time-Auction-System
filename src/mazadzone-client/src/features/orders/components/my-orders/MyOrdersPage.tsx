@@ -114,7 +114,13 @@ export function MyOrdersPage() {
       ) : (
         <ActivityList>
           {orders.map((order) => (
-            <OrderActivityItem key={order.id} activity={order} />
+            <OrderActivityItem
+              key={order.id}
+              activity={order}
+              onPaymentComplete={() => {
+                void refetch();
+              }}
+            />
           ))}
         </ActivityList>
       )}

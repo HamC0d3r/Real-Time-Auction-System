@@ -100,13 +100,6 @@ export function SellerReviewsTab({
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Clock className="size-3.5 text-muted-foreground/60" />
                 <span>{review.createdAt}</span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="rounded-full size-7 text-muted-foreground/60 hover:bg-muted hover:text-foreground cursor-pointer"
-                >
-                  <MoreVertical className="size-4" />
-                </Button>
               </div>
             </div>
 

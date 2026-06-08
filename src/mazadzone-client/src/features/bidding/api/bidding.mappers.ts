@@ -4,17 +4,17 @@ import type { MyBidAuctionDto } from "./bidding.contracts";
 import { AuctionStatus, type AuctionStatus as AuctionStatusValue } from "@/features/auctions";
 
 /**
- * Maps backend enum integers to standard frontend BidStatus strings.
+ * Maps backend enum strings to standard frontend BidStatus strings.
  */
-function mapIntegerToBidStatus(statusNum: number): BidStatus {
-  switch (statusNum) {
-    case 0:
+function mapStringToBidStatus(statusStr: string): BidStatus {
+  switch (statusStr) {
+    case "Leading":
       return "Leading";
-    case 1:
+    case "Outbid":
       return "Outbid";
-    case 2:
+    case "Won":
       return "Won";
-    case 3:
+    case "Lost":
       return "Lost";
     default:
       return "Leading";
@@ -34,11 +34,11 @@ function mapDtoToAuctionStatus(dto: MyBidAuctionDto): AuctionStatusValue {
     return AuctionStatus.UPCOMING;
   }
 
-  if (dto.auctionStatus === 1) {
+  if (dto.auctionStatus === "Pending") {
     return AuctionStatus.UPCOMING;
   }
 
-  if (dto.auctionStatus === 3 || dto.auctionStatus === 4) {
+  if (dto.auctionStatus === "Ended" || dto.auctionStatus === "Cancelled") {
     return AuctionStatus.ENDED;
   }
 
@@ -70,7 +70,7 @@ export function mapMyBidAuctionDtoToBidActivity(
 ): BidActivity {
   const auctionStatus = mapDtoToAuctionStatus(dto);
   const bidStatus = normalizeBidStatusForAuction(
-    mapIntegerToBidStatus(dto.yourBidStatus),
+    mapStringToBidStatus(dto.yourBidStatus),
     auctionStatus,
   );
 

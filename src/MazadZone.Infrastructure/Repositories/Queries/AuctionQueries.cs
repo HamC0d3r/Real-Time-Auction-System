@@ -279,27 +279,42 @@ public partial class AuctionQueries(
 
         var totalCount = await query.CountAsync(ct);
 
-        var items = await query
+        var queryResult = await query
             .Skip((parameters.Page - 1) * parameters.PageSize)
             .Take(parameters.PageSize)
-            .Select(a => new MyBidAuctionDto(
-                a.Id.Value,
-                a.Item.Images.Where(img => img.IsMain).Select(img => img.Path).FirstOrDefault() ?? string.Empty,
-                a.Item.Title,
-                a.Bids.Where(b => b.BidderId == bidderId)
+            .Select(a => new
+            {
+                Id = a.Id.Value,
+                ImageUrl = a.Item.Images.Where(img => img.IsMain).Select(img => img.Path).FirstOrDefault() ?? string.Empty,
+                Title = a.Item.Title,
+                YourBidAmount = a.Bids.Where(b => b.BidderId == bidderId)
                     .OrderByDescending(b => b.PlacedAtUtc)
                     .Select(b => b.Amount.Amount)
                     .FirstOrDefault(),
-                a.Bids.Where(b => b.Status == BidStatus.Leading).Select(b => b.Amount.Amount).FirstOrDefault(),
-                (int)a.Status,
-                a.Bids.Where(b => b.BidderId == bidderId)
+                CurrentBidAmount = a.Bids.Where(b => b.Status == BidStatus.Leading).Select(b => b.Amount.Amount).FirstOrDefault(),
+                Status = a.Status,
+                YourBidStatus = a.Bids.Where(b => b.BidderId == bidderId)
                     .OrderByDescending(b => b.PlacedAtUtc)
-                    .Select(b => (int)b.Status)
+                    .Select(b => (BidStatus?)b.Status)
                     .FirstOrDefault(),
-                a.StartTime,
-                a.EndTime,
-                a.Bids.Count()))
+                StartTime = a.StartTime,
+                EndTime = a.EndTime,
+                BidsCount = a.Bids.Count()
+            })
             .ToListAsync(ct);
+
+        var items = queryResult.Select(a => new MyBidAuctionDto(
+            a.Id,
+            a.ImageUrl,
+            a.Title,
+            a.YourBidAmount,
+            a.CurrentBidAmount,
+            a.Status.ToString(),
+            a.YourBidStatus?.ToString() ?? string.Empty,
+            a.StartTime,
+            a.EndTime,
+            a.BidsCount
+        )).ToList();
 
         return new PagedList<MyBidAuctionDto>(items, parameters.Page, parameters.PageSize, totalCount);
     }

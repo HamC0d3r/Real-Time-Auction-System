@@ -49,11 +49,41 @@ function createEnv() {
   }
 
   // Fallback to raw process.env values when validation fails (e.g. during build)
-  return (parsed.data ?? {
+  const rawEnv = (parsed.data ?? {
     NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5108",
     NEXT_PUBLIC_SIGNALR_HUB_URL: process.env.NEXT_PUBLIC_SIGNALR_HUB_URL ?? "http://localhost:5108/hubs",
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
   }) as z.infer<typeof envSchema>;
+
+  // Dynamically replace localhost/127.0.0.1 with the actual hostname of the client browser
+  // to support accessing the site from other devices (e.g. mobile) on the local network.
+  const getDynamicUrl = (url: string) => {
+    if (typeof window !== "undefined") {
+      const hostname = window.location.hostname;
+      if (hostname && hostname !== "localhost" && hostname !== "127.0.0.1") {
+        return url.replace(/localhost|127\.0\.0\.1/g, hostname);
+      }
+    }
+    return url;
+  };
+
+  return {
+    get NEXT_PUBLIC_API_BASE_URL() {
+      return getDynamicUrl(rawEnv.NEXT_PUBLIC_API_BASE_URL);
+    },
+    get NEXT_PUBLIC_SIGNALR_HUB_URL() {
+      return getDynamicUrl(rawEnv.NEXT_PUBLIC_SIGNALR_HUB_URL);
+    },
+    get NEXT_PUBLIC_APP_URL() {
+      if (typeof window !== "undefined") {
+        const origin = window.location.origin;
+        if (origin && !origin.includes("localhost") && !origin.includes("127.0.0.1")) {
+          return origin;
+        }
+      }
+      return rawEnv.NEXT_PUBLIC_APP_URL;
+    },
+  };
 }
 
 export const env = createEnv();

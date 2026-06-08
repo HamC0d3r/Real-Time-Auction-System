@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from "react";
 import { MoreVertical } from "lucide-react";
 import {
@@ -17,13 +19,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
-import { AdminDispute, AdminDisputeStatus } from "../types/admin-disputes.types";
 import { ModerateUsersPagination } from "../../admin/components/users/ModerateUsersPagination";
 import { ViewDisputeSheet } from "./ViewDisputeSheet";
+import type { DisputeListItemDto } from "../api/disputes.contracts";
+import { format } from "date-fns";
 
 interface AdminDisputesTableProps {
-  data: AdminDispute[];
+  data: DisputeListItemDto[];
   isLoading: boolean;
   page: number;
   pageSize: number;
@@ -32,33 +34,34 @@ interface AdminDisputesTableProps {
   onPageSizeChange: (pageSize: number) => void;
 }
 
-export function AdminDisputesTable({ 
-  data, 
+function getStatusBadgeVariant(status: string) {
+  const s = status.toLowerCase().replace(/\s+/g, "-");
+  if (s === "open") return "info";
+  if (s === "under-review") return "review";
+  if (s === "awaiting-response") return "warning";
+  if (s === "resolved") return "success";
+  if (s === "rejected") return "destructive";
+  return "outline";
+}
+
+function formatSubmittedDate(raw: string): string {
+  try {
+    return format(new Date(raw), "MMM d, yyyy h:mm a");
+  } catch {
+    return raw;
+  }
+}
+
+export function AdminDisputesTable({
+  data,
   isLoading,
   page,
   pageSize,
   totalPages,
   onPageChange,
-  onPageSizeChange
+  onPageSizeChange,
 }: AdminDisputesTableProps) {
-  const [selectedDispute, setSelectedDispute] = useState<AdminDispute | null>(null);
-
-  const getStatusBadgeVariant = (status: AdminDisputeStatus) => {
-    switch (status) {
-      case AdminDisputeStatus.Open:
-        return "info";
-      case AdminDisputeStatus.UnderReview:
-        return "review";
-      case AdminDisputeStatus.AwaitingResponse:
-        return "warning";
-      case AdminDisputeStatus.Resolved:
-        return "success";
-      case AdminDisputeStatus.Rejected:
-        return "destructive";
-      default:
-        return "outline";
-    }
-  };
+  const [selectedDisputeId, setSelectedDisputeId] = useState<string | null>(null);
 
   if (isLoading) {
     return <div className="p-8 text-center text-muted-foreground">Loading disputes...</div>;
@@ -77,7 +80,7 @@ export function AdminDisputesTable({
               <Checkbox className="rounded-[4px] border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary" />
             </TableHead>
             <TableHead className="font-bold text-foreground">Parties</TableHead>
-            <TableHead className="font-bold text-foreground">Category</TableHead>
+            <TableHead className="font-bold text-foreground">Dispute Type</TableHead>
             <TableHead className="font-bold text-foreground">Status</TableHead>
             <TableHead className="font-bold text-foreground">Submitted Date</TableHead>
             <TableHead className="font-bold text-foreground text-right pr-6">Actions</TableHead>
@@ -91,9 +94,9 @@ export function AdminDisputesTable({
               </TableCell>
               <TableCell>
                 <div className="flex flex-col">
-                  <span className="text-sm font-bold">{dispute.parties.claimant}</span>
+                  <span className="text-sm font-bold">{dispute.bidderName}</span>
                   <span className="text-sm text-muted-foreground">vs</span>
-                  <span className="text-sm font-bold">{dispute.parties.respondent}</span>
+                  <span className="text-sm font-bold">{dispute.sellerName}</span>
                 </div>
               </TableCell>
               <TableCell className="text-sm font-medium">
@@ -105,18 +108,15 @@ export function AdminDisputesTable({
                 </Badge>
               </TableCell>
               <TableCell>
-                <div className="flex flex-col">
-                  <span className="text-sm">{dispute.submittedDate.split(' ').slice(0, 3).join(' ')}</span>
-                  <span className="text-sm text-muted-foreground">{dispute.submittedDate.split(' ').slice(3).join(' ')}</span>
-                </div>
+                <span className="text-sm">{formatSubmittedDate(dispute.submittedDate)}</span>
               </TableCell>
               <TableCell className="text-right pr-4 align-middle">
                 <div className="flex items-center justify-end gap-2 ml-auto w-[80px]">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     className="h-8 w-full font-bold text-xs bg-card hover:bg-muted"
-                    onClick={() => setSelectedDispute(dispute)}
+                    onClick={() => setSelectedDisputeId(dispute.id)}
                   >
                     View
                   </Button>
@@ -127,9 +127,9 @@ export function AdminDisputesTable({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem>View Details</DropdownMenuItem>
-                      <DropdownMenuItem>Contact Parties</DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive">Escalate</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setSelectedDisputeId(dispute.id)}>
+                        View Details
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -138,7 +138,7 @@ export function AdminDisputesTable({
           ))}
         </TableBody>
       </Table>
-      
+
       {!isLoading && data.length > 0 && (
         <ModerateUsersPagination
           page={page}
@@ -149,11 +149,11 @@ export function AdminDisputesTable({
         />
       )}
 
-      {selectedDispute && (
-        <ViewDisputeSheet 
-          dispute={selectedDispute}
-          isOpen={!!selectedDispute} 
-          onClose={() => setSelectedDispute(null)} 
+      {selectedDisputeId && (
+        <ViewDisputeSheet
+          disputeId={selectedDisputeId}
+          isOpen={!!selectedDisputeId}
+          onClose={() => setSelectedDisputeId(null)}
         />
       )}
     </div>

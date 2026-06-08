@@ -1,17 +1,12 @@
 import { api } from "@/lib/api/client";
 import type { SellerProfile, SellerReview, ReviewReply } from "../types/seller.types";
+import { mapAuctionsListDtoToSummary } from "@/features/auctions";
 import type { AuctionSummary } from "@/features/auctions";
 import type { PaginatedResult } from "@/types/api.types";
 import { getMockSellerReviews, addMockReviewReply } from "../testing/mock-seller";
 import type { PublicSellerProfileResponse } from "./seller.contracts";
-
-interface BidderProfileDto {
-  id: string;
-  fullName: string;
-  email: string;
-  phoneNumber: string;
-  totalBidsPlaced: number;
-}
+import type { BidderProfileDto } from "@/features/profile";
+import { useAuthStore } from "@/stores/auth.store";
 
 /**
  * Fetches the public seller profile information by combining the public seller stats
@@ -26,6 +21,8 @@ export async function fetchSellerProfile(id: string): Promise<SellerProfile> {
   const seller = sellerRes.data;
   const bidder = bidderRes.data;
 
+  const joinedDate = new Date(seller.memberSince || bidder.memberSince || new Date());
+
   return {
     id: bidder.id,
     fullName: bidder.fullName,
@@ -36,35 +33,76 @@ export async function fetchSellerProfile(id: string): Promise<SellerProfile> {
     isVerified: seller.isVerified,
     rating: seller.rating,
     reviewsCount: seller.reviewsCount,
-    memberSince: new Date(seller.joinedOnUtc).toLocaleDateString("en-US", { year: "numeric", month: "short" }),
-    salesCount: bidder.totalBidsPlaced || 0,
-    bio: `Active MazadZone registered seller since ${new Date(seller.joinedOnUtc).toLocaleDateString()}.`,
+    memberSince: joinedDate.toLocaleDateString("en-US", { year: "numeric", month: "short" }),
+    salesCount: seller.completedPurchasesCount || bidder.completedPurchasesCount || 0,
+    bio: `Active MazadZone registered seller since ${joinedDate.toLocaleDateString()}.`,
   };
 }
 
 /**
  * Fetches the paginated reviews list of a specific seller.
- * Falls back to local presentational reviews since there is no bulk feedback GET endpoint in the schema.
+ * Retrieves real feedbacks from the backend API if available, otherwise falls back to local mocks.
  */
 export async function fetchSellerReviews(
   id: string,
   page: number,
   pageSize: number
 ): Promise<PaginatedResult<SellerReview>> {
-  const allReviews = getMockSellerReviews(id);
-  const startIndex = (page - 1) * pageSize;
-  const paginatedReviews = allReviews.slice(startIndex, startIndex + pageSize);
-  const totalPages = Math.ceil(allReviews.length / pageSize);
+  try {
+    const response = await api.get<any>(`/sellers/${id}/feedbacks`, {
+      params: { page, pageSize },
+    });
+    const pagedList = response.data;
+    const items = (pagedList.items || []).map((item: any) => ({
+      id: item.id || "",
+      reviewerName: item.authorName || "Anonymous",
+      reviewerInitial: (item.authorName || "A")
+        .split(" ")
+        .map((n: string) => n[0])
+        .join("")
+        .substring(0, 2)
+        .toUpperCase(),
+      rating: item.rating || 5,
+      comment: item.comment || "",
+      createdAt: new Date(item.createdAt).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      }),
+      reply: item.reply
+        ? {
+            comment: item.reply,
+            createdAt: "Just now",
+          }
+        : null,
+    }));
 
-  return {
-    items: paginatedReviews,
-    page,
-    pageSize,
-    totalCount: allReviews.length,
-    totalPages,
-    hasNextPage: page < totalPages,
-    hasPreviousPage: page > 1,
-  };
+    return {
+      items,
+      page: pagedList.pageNumber || page,
+      pageSize: pagedList.pageSize || pageSize,
+      totalCount: pagedList.totalCount || items.length,
+      totalPages: pagedList.totalPages || 1,
+      hasNextPage: pagedList.hasNextPage || false,
+      hasPreviousPage: pagedList.hasPreviousPage || false,
+    };
+  } catch (error) {
+    console.warn("Failed to fetch seller reviews, falling back to mock reviews:", error);
+    const allReviews = getMockSellerReviews(id);
+    const startIndex = (page - 1) * pageSize;
+    const paginatedReviews = allReviews.slice(startIndex, startIndex + pageSize);
+    const totalPages = Math.ceil(allReviews.length / pageSize);
+
+    return {
+      items: paginatedReviews,
+      page,
+      pageSize,
+      totalCount: allReviews.length,
+      totalPages,
+      hasNextPage: page < totalPages,
+      hasPreviousPage: page > 1,
+    };
+  }
 }
 
 /**
@@ -80,17 +118,12 @@ export async function fetchSellerAuctions(
   });
 
   const pagedList = response.data;
+  const currentUserId = useAuthStore.getState().user?.id;
+  const isOwner = id === currentUserId;
+
   const items = (pagedList.items || []).map((item: any) => ({
-    id: item.id?.value || item.id || "",
-    title: item.title || "",
-    description: item.description || "",
-    category: item.categoryName || "",
-    currentBid: item.currentBidAmount || item.startingPrice || 0,
-    startingPrice: item.startingPrice || 0,
-    endTime: item.endTime || "",
-    status: item.status === 1 ? "Active" : item.status === 2 ? "Ended" : "Pending",
-    image: item.images?.[0]?.url || item.imageUrl || "/placeholder-auction.jpg",
-    isOwner: true,
+    ...mapAuctionsListDtoToSummary(item),
+    isOwner,
   }));
 
   return {

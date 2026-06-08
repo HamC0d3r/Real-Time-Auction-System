@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { Inbox, Filter, ArrowUpDown, Download } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Inbox, ArrowUpDown, Download, Search } from "lucide-react";
 import { AuctionPagination } from "@/features/auctions";
 import type { SellerAuctionSummaryDto } from "@/features/seller";
 import { SellerAuctionsTableRow } from "./SellerAuctionsTableRow";
 import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { StatusPillBar, type StatusPillItem } from "@/components/ui/status-pill-bar";
 import {
   Select,
@@ -43,10 +44,12 @@ interface SellerAuctionsTableProps {
   isLoading: boolean;
   activeStatus: string;
   sortBy: string;
+  searchTerm: string;
   onStatusChange: (status: string) => void;
   onSortChange: (sort: string) => void;
   onPageChange: (page: number) => void;
   onDeleteAuction: (id: string) => Promise<void>;
+  onSearchChange: (search: string) => void;
   activeCount: number;
   pendingCount: number;
   soldCount: number;
@@ -61,10 +64,12 @@ export function SellerAuctionsTable({
   isLoading,
   activeStatus,
   sortBy,
+  searchTerm,
   onStatusChange,
   onSortChange,
   onPageChange,
   onDeleteAuction,
+  onSearchChange,
   activeCount,
   pendingCount,
   soldCount,
@@ -72,6 +77,22 @@ export function SellerAuctionsTable({
 }: SellerAuctionsTableProps) {
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [isDeletingInProgress, setIsDeletingInProgress] = useState(false);
+
+  // Local debounced search
+  const [localSearch, setLocalSearch] = useState(searchTerm);
+
+  useEffect(() => {
+    setLocalSearch(searchTerm);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (localSearch !== searchTerm) {
+        onSearchChange(localSearch);
+      }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [localSearch, searchTerm, onSearchChange]);
 
   const handleDeleteClick = (id: string) => {
     setDeleteTargetId(id);
@@ -97,6 +118,17 @@ export function SellerAuctionsTable({
 
   return (
     <div className="space-y-5">
+
+      {/* Search Input */}
+      <div className="relative max-w-sm">
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          value={localSearch}
+          onChange={(e) => setLocalSearch(e.target.value)}
+          placeholder="Search auctions by title..."
+          className="pl-9 h-9 text-xs bg-card border-border focus-visible:ring-primary/20"
+        />
+      </div>
 
       {/* Toolbar: Status Pills + Sort + Export */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -176,7 +208,9 @@ export function SellerAuctionsTable({
                     <Inbox className="h-8 w-8 text-muted-foreground/40" />
                     <h3 className="text-sm font-bold text-foreground">No auctions found</h3>
                     <p className="text-xs text-muted-foreground">
-                      No auctions match the selected filter.
+                      {localSearch
+                        ? `No auctions matched "${localSearch}"`
+                        : "No auctions match the selected filter."}
                     </p>
                   </div>
                 </td>

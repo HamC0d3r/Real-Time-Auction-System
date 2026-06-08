@@ -24,6 +24,8 @@ export async function getPublicUserProfile(userId: string): Promise<PublicUserPr
     roles.push("Seller");
   }
 
+  const joinedDate = new Date(bidder.memberSince || new Date());
+
   return {
     id: bidder.id,
     fullName: bidder.fullName,
@@ -37,19 +39,19 @@ export async function getPublicUserProfile(userId: string): Promise<PublicUserPr
       .substring(0, 2)
       .toUpperCase(),
     roles,
-    isVerified: seller ? seller.isVerified : true, // Bidders are generally verified by default or we can leave true
-    memberSince: new Date(bidder.memberSince || new Date()).toLocaleDateString("en-US", { year: "numeric", month: "short" }),
-    status: "Active",
+    isVerified: seller ? seller.isVerified : bidder.isVerified,
+    memberSince: joinedDate.toLocaleDateString("en-US", { year: "numeric", month: "short" }),
+    status: bidder.status || "Active",
     bio: seller 
-      ? `Active MazadZone registered seller since ${new Date(seller.joinedOnUtc).toLocaleDateString()}.` 
+      ? `Active MazadZone registered seller since ${new Date(seller.memberSince || bidder.memberSince).toLocaleDateString()}.` 
       : `A registered bidder on MazadZone.`,
     biddingActivityCount: bidder.totalBidsPlaced || 0,
     bidsPlacedCount: bidder.totalBidsPlaced || 0,
-    wonAuctionsCount: 0,
-    completedPurchasesCount: 0,
+    wonAuctionsCount: bidder.auctionsWonCount || 0,
+    completedPurchasesCount: bidder.completedPurchasesCount || 0,
     sellerRating: seller?.rating,
     reviewsCount: seller?.reviewsCount,
-    salesCount: 0, 
+    salesCount: seller?.completedPurchasesCount || 0, 
   };
 }
 

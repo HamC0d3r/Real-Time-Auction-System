@@ -21,11 +21,7 @@ export function mapRegisterFormToRequest(
   // All remaining names are grouped into the lastName slot
   const lastName = names.slice(3).join(" ") || "";
 
-  const addressParts = form.address.trim().split(/\s+/);
-  const city = addressParts[0] || "Amman";
-  const street = addressParts[1] || "";
-  const building = addressParts[2] || "1";
-  const landmark = addressParts.slice(3).join(" ") || "";
+  const { city, street, building, landmark } = form;
 
   if (!form.nationalCardFile) {
     throw new Error("National card file is required");

@@ -98,7 +98,22 @@ export async function fetchModerateUsers(filters: UseModerateUsersFilters): Prom
     },
   });
 
-  return mapPagedUsersToViewModel(response.data);
+  const result = mapPagedUsersToViewModel(response.data);
+
+  let filtered = [...result.data];
+  if (filters.role && filters.role !== "All Roles") {
+    filtered = filtered.filter((u) => u.role === filters.role);
+  }
+  if (filters.status && filters.status !== "All Statuses") {
+    filtered = filtered.filter((u) => u.status === filters.status);
+  }
+
+  return {
+    ...result,
+    data: filtered,
+    totalCount: filtered.length,
+    totalPages: Math.ceil(filtered.length / filters.pageSize) || 1,
+  };
 }
 
 export async function banUserApi(userId: string, reason: string): Promise<void> {

@@ -61,7 +61,8 @@ function mapBackendStatusToAuctionStatus(status?: string): AuctionStatus {
   if (
     normalized === "ended" ||
     normalized === "endedsold" ||
-    normalized === "endedunsold"
+    normalized === "endedunsold" ||
+    normalized === "cancelled"
   ) {
     return "Ended";
   }
@@ -176,10 +177,24 @@ export function mapAuctionDtoToSummary(dto: AuctionDto): AuctionSummary {
 export function convertLocalToUtcIsoString(localDateTimeStr: string): string {
   if (!localDateTimeStr) return "";
   
-  // localDateTimeStr is in the format "YYYY/MM/DD HH:mm"
+  // localDateTimeStr is in the format "YYYY/MM/DD HH:mm" or "YYYY-MM-DDTHH:mm"
   const clean = localDateTimeStr.replace(/\//g, "-").replace(" ", "T");
-  // Formats literally as "YYYY-MM-DDTHH:mm:00" keeping the exact hours selected
-  return `${clean}:00`;
+  const [datePart, timePart] = clean.split("T");
+  if (!datePart || !timePart) {
+    return clean;
+  }
+  const [year, month, day] = datePart.split("-").map(Number);
+  const [hours, minutes] = timePart.split(":").map(Number);
+  
+  if (isNaN(year) || isNaN(month) || isNaN(day) || isNaN(hours) || isNaN(minutes)) {
+    return clean;
+  }
+
+  // Construct Date object in browser local time
+  const localDate = new Date(year, month - 1, day, hours, minutes, 0, 0);
+  
+  // Convert to UTC ISO string (which includes the Z offset)
+  return localDate.toISOString();
 }
 
 /**

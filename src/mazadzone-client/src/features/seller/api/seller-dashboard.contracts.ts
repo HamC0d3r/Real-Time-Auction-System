@@ -42,7 +42,7 @@ export interface SellerOrderSummaryDto {
   orderStatus: string;
   orderDateUtc: string;
   totalAmount: number;
-  buyerName: string;
+  bidderName: string;
 }
 
 export interface SellerOrdersResponse {

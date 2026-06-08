@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { User, Mail, Phone, MapPin, IdCard } from "lucide-react";
+import { User, Mail, Phone, MapPin, IdCard, Building, Navigation, Map } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -44,7 +44,10 @@ export function RegisterForm() {
       password: "",
       confirmPassword: "",
       phoneNumber: "",
-      address: "",
+      city: "",
+      street: "",
+      building: "",
+      landmark: "",
       nationalId: "",
       nationalCardFile: null,
       agreeToTerms: false,
@@ -186,21 +189,8 @@ export function RegisterForm() {
           {errors.phoneNumber && <p className="text-xs text-red-500 mt-1">{errors.phoneNumber.message}</p>}
         </div>
 
-        {/* Address */}
-        <div className="space-y-2">
-          <Label htmlFor="address" className="text-sm font-medium text-foreground">Address</Label>
-          <InputWithIcon
-            id="address"
-            placeholder="Enter your Address"
-            icon={<MapPin className="h-5 w-5" />}
-            className="border-foreground"
-            {...register("address")}
-          />
-          {errors.address && <p className="text-xs text-red-500 mt-1">{errors.address.message}</p>}
-        </div>
-
         {/* National ID */}
-        <div className="space-y-2 md:col-span-2">
+        <div className="space-y-2">
           <Label htmlFor="nationalId" className="text-sm font-medium text-foreground">National Id</Label>
           <InputWithIcon
             id="nationalId"
@@ -210,6 +200,61 @@ export function RegisterForm() {
             {...register("nationalId")}
           />
           {errors.nationalId && <p className="text-xs text-red-500 mt-1">{errors.nationalId.message}</p>}
+        </div>
+
+        {/* Address Fields */}
+        <div className="col-span-1 md:col-span-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-5">
+          {/* City */}
+          <div className="space-y-2">
+            <Label htmlFor="city" className="text-sm font-medium text-foreground">City</Label>
+            <InputWithIcon
+              id="city"
+              placeholder="Enter City"
+              icon={<Map className="h-5 w-5" />}
+              className="border-foreground"
+              {...register("city")}
+            />
+            {errors.city && <p className="text-xs text-red-500 mt-1">{errors.city.message}</p>}
+          </div>
+
+          {/* Street */}
+          <div className="space-y-2">
+            <Label htmlFor="street" className="text-sm font-medium text-foreground">Street</Label>
+            <InputWithIcon
+              id="street"
+              placeholder="Enter Street"
+              icon={<MapPin className="h-5 w-5" />}
+              className="border-foreground"
+              {...register("street")}
+            />
+            {errors.street && <p className="text-xs text-red-500 mt-1">{errors.street.message}</p>}
+          </div>
+
+          {/* Building */}
+          <div className="space-y-2">
+            <Label htmlFor="building" className="text-sm font-medium text-foreground">Building No.</Label>
+            <InputWithIcon
+              id="building"
+              placeholder="Enter Building Number or Name"
+              icon={<Building className="h-5 w-5" />}
+              className="border-foreground"
+              {...register("building")}
+            />
+            {errors.building && <p className="text-xs text-red-500 mt-1">{errors.building.message}</p>}
+          </div>
+
+          {/* Landmark */}
+          <div className="space-y-2">
+            <Label htmlFor="landmark" className="text-sm font-medium text-foreground">Landmark</Label>
+            <InputWithIcon
+              id="landmark"
+              placeholder="e.g., Near City Mall"
+              icon={<Navigation className="h-5 w-5" />}
+              className="border-foreground"
+              {...register("landmark")}
+            />
+            {errors.landmark && <p className="text-xs text-red-500 mt-1">{errors.landmark.message}</p>}
+          </div>
         </div>
 
         {/* National Card Upload */}
