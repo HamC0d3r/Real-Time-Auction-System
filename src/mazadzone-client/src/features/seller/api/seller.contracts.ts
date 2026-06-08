@@ -3,11 +3,20 @@
  */
 
 export interface PublicSellerProfileResponse {
-  sellerId: { value?: string };
+  id: string;
+  fullName: string;
+  email: string;
+  phoneNumber: string;
+  isVerified: boolean;
+  memberSince: string;
+  lastLogin: string;
   rating: number;
   reviewsCount: number;
-  isVerified: boolean;
-  joinedOnUtc: string;
+  listedAuctionsCount: number;
+  totalBidsPlaced: number;
+  auctionParticipatedCount: number;
+  auctionsWonCount: number;
+  completedPurchasesCount: number;
 }
 
 export interface ReplyToFeedbackRequest {

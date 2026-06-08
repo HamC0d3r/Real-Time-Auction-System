@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
 import { useUrlFilters } from "@/hooks/use-url-filters";
 import { Plus, Loader2, Download, Gavel, Box, DollarSign } from "lucide-react";
@@ -10,9 +10,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { ROUTES } from "@/config/routes.config";
 import { useRequireRole } from "@/hooks/use-require-role";
-import {
-  useDeleteAuction,
-} from "@/features/auctions";
+import { useDeleteAuction } from "@/features/auctions";
 import {
   useGetSellerDashboardAuctions,
   useGetSellerDashboardFinancials,
@@ -33,30 +31,51 @@ const TABS = [
 type TabKey = (typeof TABS)[number]["key"];
 
 export function SellerDashboardPage() {
-  const { searchParams, setFilters } = useUrlFilters<{ status: string; sortBy: string; page: number }>();
+  const { searchParams, setFilters } = useUrlFilters<{
+    status: string;
+    sortBy: string;
+    page: number;
+  }>();
   const [activeTab, setActiveTab] = useState<TabKey>("auctions");
-  
-  // Local state for orders filtering to prevent URL clashes with auctions
+
+  // ─── Auction tab state ────────────────────────────────────────────────────
+  const [auctionSearch, setAuctionSearch] = useState("");
+
+  // ─── Orders tab state (local to avoid URL clashes with auction filters) ───
   const [activeOrderStatus, setActiveOrderStatus] = useState<string>("All");
   const [orderSortBy, setOrderSortBy] = useState<string>("OrderDate");
   const [orderPage, setOrderPage] = useState<number>(1);
+  const [orderSearch, setOrderSearch] = useState("");
 
-  // Local state for financials pagination
+  // ─── Financials tab state ─────────────────────────────────────────────────
   const [financialsPage, setFinancialsPage] = useState<number>(1);
 
-  // Authenticated route protection check via reusable hook
+  // ─── Auth guard ───────────────────────────────────────────────────────────
   const { isAuthorized, isLoading: isAuthLoading } = useRequireRole(["seller"], {
     loginMessage: "Please log in to access the Seller Dashboard.",
     unauthorizedMessage: "You must activate your seller privileges to view this page.",
     bypassTesting: false,
   });
 
-  // Table Filtering, Sorting, Pagination from URL for Auctions
+  // ─── URL-derived auction filters ──────────────────────────────────────────
   const activeStatus = searchParams.get("status") || "All";
   const sortBy = searchParams.get("sortBy") || "EndTime";
   const tablePage = parseInt(searchParams.get("page") || "1", 10);
 
-  // 1. Fetch current page of seller auctions for table display
+  // ─── Map UI sort values to backend column names ───────────────────────────
+  const resolveAuctionSortBy = (sort: string): string => {
+    if (sort === "EndTime") return "endDateUtc";
+    if (sort === "CreationDate") return "creationDate";
+    return sort; // bidsCount, lastBidAmount pass through
+  };
+
+  const resolveOrderSortBy = (sort: string): string => {
+    if (sort === "OrderDate") return "orderDateUtc";
+    if (sort === "TotalAmount") return "totalAmount";
+    return sort;
+  };
+
+  // 1. Current page of seller auctions (table display, filtered)
   const {
     data: auctionsResponse,
     isLoading: isAuctionsLoading,
@@ -64,10 +83,11 @@ export function SellerDashboardPage() {
     Page: tablePage,
     PageSize: 5,
     Status: activeStatus === "All" ? undefined : activeStatus,
-    SortBy: sortBy === "EndTime" ? "endDateUtc" : sortBy === "CreationDate" ? "creationDate" : sortBy,
+    SortBy: resolveAuctionSortBy(sortBy),
+    SearchTerm: auctionSearch || undefined,
   });
 
-  // 1b. Fetch overall seller auctions summary metrics (stable unfiltered query for dashboard stats)
+  // 1b. Stable unfiltered auctions query for dashboard stats (no status/search filter)
   const {
     data: statsAuctionsResponse,
     isLoading: isStatsAuctionsLoading,
@@ -76,23 +96,22 @@ export function SellerDashboardPage() {
     PageSize: 1,
   });
 
-  // 2. Fetch seller financials summary metrics
+  // 2. Seller financials summary metrics
   const {
     data: financialsResponse,
     isLoading: isFinancialsLoading,
   } = useGetSellerDashboardFinancials();
 
-
-
-  // 4. Fetch ALL seller orders to calculate capsule numbers dynamically
+  // 3. All seller orders (up to 200) for client-side status pill counts
+  //    The backend has no per-status count endpoint for seller orders.
   const {
     data: allOrdersResponse,
   } = useGetSellerDashboardOrders({
     Page: 1,
-    PageSize: 100,
+    PageSize: 200,
   });
 
-  // 5. Fetch current page of seller orders for table display (with filters & sorting applied)
+  // 4. Current page of seller orders for table display (filtered + sorted)
   const {
     data: ordersTableResponse,
     isLoading: isOrdersTableLoading,
@@ -100,10 +119,11 @@ export function SellerDashboardPage() {
     Page: orderPage,
     PageSize: 5,
     Status: activeOrderStatus === "All" ? undefined : activeOrderStatus,
-    SortBy: orderSortBy === "OrderDate" ? "orderDateUtc" : orderSortBy === "TotalAmount" ? "totalAmount" : orderSortBy,
+    SortBy: resolveOrderSortBy(orderSortBy),
+    SearchTerm: orderSearch || undefined,
   });
 
-  // 6. Fetch paginated list of completed orders to represent completed payout transactions
+  // 5. Completed orders — used in the financials tab transaction ledger
   const {
     data: completedOrdersResponse,
     isLoading: isCompletedOrdersLoading,
@@ -113,13 +133,14 @@ export function SellerDashboardPage() {
     Status: "Completed",
   });
 
-  // Delete Auction Mutation
+  // ─── Delete auction mutation ───────────────────────────────────────────────
   const { mutateAsync: deleteAuction } = useDeleteAuction();
 
   const handleDeleteAuction = async (id: string) => {
     await deleteAuction(id).catch(() => {});
   };
 
+  // ─── Auction tab handlers ─────────────────────────────────────────────────
   const handleStatusChange = (status: string) => {
     setFilters({ status, page: 1 });
   };
@@ -132,7 +153,18 @@ export function SellerDashboardPage() {
     setFilters({ page });
   };
 
-  // Guard loading screen (prevent flash of protected content)
+  const handleAuctionSearchChange = useCallback((search: string) => {
+    setAuctionSearch(search);
+    setFilters({ page: 1 });
+  }, [setFilters]);
+
+  // ─── Orders tab handlers ──────────────────────────────────────────────────
+  const handleOrderSearchChange = useCallback((search: string) => {
+    setOrderSearch(search);
+    setOrderPage(1);
+  }, []);
+
+  // ─── Auth loading guard ───────────────────────────────────────────────────
   if (isAuthLoading || !isAuthorized) {
     return (
       <PageWrapper className="flex items-center justify-center min-h-[70vh]">
@@ -144,35 +176,50 @@ export function SellerDashboardPage() {
     );
   }
 
-  // Aggregate stats metrics (from stable, unfiltered queries to avoid filter resets)
-  const activeCount = statsAuctionsResponse?.activeAuctions || 0;
-  const pendingCount = statsAuctionsResponse?.pending || 0;
-  const soldCount = statsAuctionsResponse?.soldItems || 0;
-  const unsoldCount = statsAuctionsResponse?.unsold || 0;
-  const grossRevenue = financialsResponse?.totalGrossRevenue || 0;
-  const platformFees = financialsResponse?.totalPlatformFees || 0;
-  const netProfit = financialsResponse?.totalNetProfit || 0;
+  // ─── Aggregate stats (from stable, unfiltered queries) ────────────────────
+  const activeCount = statsAuctionsResponse?.activeAuctions ?? 0;
+  const pendingCount = statsAuctionsResponse?.pending ?? 0;
+  const soldCount = statsAuctionsResponse?.soldItems ?? 0;
+  const unsoldCount = statsAuctionsResponse?.unsold ?? 0;
+  const grossRevenue = financialsResponse?.totalGrossRevenue ?? 0;
+  const platformFees = financialsResponse?.totalPlatformFees ?? 0;
+  const netProfit = financialsResponse?.totalNetProfit ?? 0;
 
-  // Auctions calculations (from current page/filtered query for table display)
-  const auctionsList = auctionsResponse?.auctions || [];
-  const totalCount = auctionsResponse?.totalCount || 0;
+  // ─── Auction table data ───────────────────────────────────────────────────
+  const auctionsList = auctionsResponse?.auctions ?? [];
+  const totalCount = auctionsResponse?.totalCount ?? 0;
   const totalPages = Math.ceil(totalCount / 5) || 1;
 
-  // Orders calculations for capsules
-  const allOrdersList = allOrdersResponse?.orders || [];
-  const allOrdersCount = allOrdersResponse?.totalCount || 0;
-  const pendingOrdersCount = allOrdersList.filter(o => o.orderStatus.toLowerCase() === "pending").length;
-  const shippedOrdersCount = allOrdersList.filter(o => o.orderStatus.toLowerCase() === "shipped").length;
-  const deliveredOrdersCount = allOrdersList.filter(o => o.orderStatus.toLowerCase() === "delivered").length;
-  const completedOrdersCount = allOrdersList.filter(o => o.orderStatus.toLowerCase() === "completed" || o.orderStatus.toLowerCase() === "success").length;
-  const canceledOrdersCount = allOrdersList.filter(o => o.orderStatus.toLowerCase() === "canceled" || o.orderStatus.toLowerCase() === "refunded" || o.orderStatus.toLowerCase() === "cancelled").length;
+  // ─── Order status pill counts (client-side from the 200-item fetch) ───────
+  const allOrdersList = allOrdersResponse?.orders ?? [];
+  const allOrdersCount = allOrdersResponse?.totalCount ?? 0;
+  const pendingOrdersCount = allOrdersList.filter(
+    (o) => o.orderStatus.toLowerCase() === "pending",
+  ).length;
+  const shippedOrdersCount = allOrdersList.filter(
+    (o) => o.orderStatus.toLowerCase() === "shipped",
+  ).length;
+  const deliveredOrdersCount = allOrdersList.filter(
+    (o) => o.orderStatus.toLowerCase() === "delivered",
+  ).length;
+  const completedOrdersCount = allOrdersList.filter(
+    (o) =>
+      o.orderStatus.toLowerCase() === "completed" ||
+      o.orderStatus.toLowerCase() === "success",
+  ).length;
+  const canceledOrdersCount = allOrdersList.filter(
+    (o) =>
+      o.orderStatus.toLowerCase() === "canceled" ||
+      o.orderStatus.toLowerCase() === "refunded" ||
+      o.orderStatus.toLowerCase() === "cancelled",
+  ).length;
 
   const isStatsLoading = isStatsAuctionsLoading || isFinancialsLoading;
 
   return (
     <PageWrapper className="bg-background min-h-screen">
       <DashboardShell>
-        
+
         {/* Dashboard Header */}
         <PageHeader
           title="Seller Dashboard"
@@ -245,10 +292,12 @@ export function SellerDashboardPage() {
                 isLoading={isAuctionsLoading}
                 activeStatus={activeStatus}
                 sortBy={sortBy}
+                searchTerm={auctionSearch}
                 onStatusChange={handleStatusChange}
                 onSortChange={handleSortChange}
                 onPageChange={handlePageChange}
                 onDeleteAuction={handleDeleteAuction}
+                onSearchChange={handleAuctionSearchChange}
                 activeCount={activeCount}
                 pendingCount={pendingCount}
                 soldCount={soldCount}
@@ -258,13 +307,14 @@ export function SellerDashboardPage() {
 
             {activeTab === "orders" && (
               <SellerOrdersTable
-                orders={ordersTableResponse?.orders || []}
-                totalCount={ordersTableResponse?.totalCount || 0}
+                orders={ordersTableResponse?.orders ?? []}
+                totalCount={ordersTableResponse?.totalCount ?? 0}
                 currentPage={orderPage}
-                totalPages={Math.ceil((ordersTableResponse?.totalCount || 0) / 5) || 1}
+                totalPages={Math.ceil((ordersTableResponse?.totalCount ?? 0) / 5) || 1}
                 isLoading={isOrdersTableLoading}
                 activeStatus={activeOrderStatus}
                 sortBy={orderSortBy}
+                searchTerm={orderSearch}
                 onStatusChange={(status) => {
                   setActiveOrderStatus(status);
                   setOrderPage(1);
@@ -274,6 +324,7 @@ export function SellerDashboardPage() {
                   setOrderPage(1);
                 }}
                 onPageChange={setOrderPage}
+                onSearchChange={handleOrderSearchChange}
                 allCount={allOrdersCount}
                 pendingCount={pendingOrdersCount}
                 shippedCount={shippedOrdersCount}
@@ -285,16 +336,26 @@ export function SellerDashboardPage() {
 
             {activeTab === "financials" && (
               <SellerFinancialsTable
-                orders={completedOrdersResponse?.orders || []}
-                totalCount={completedOrdersResponse?.totalCount || financialsResponse?.completedOrdersCount || 0}
+                orders={completedOrdersResponse?.orders ?? []}
+                totalCount={
+                  completedOrdersResponse?.totalCount ??
+                  financialsResponse?.completedOrdersCount ??
+                  0
+                }
                 currentPage={financialsPage}
-                totalPages={Math.ceil((completedOrdersResponse?.totalCount || financialsResponse?.completedOrdersCount || 0) / 5) || 1}
+                totalPages={
+                  Math.ceil(
+                    (completedOrdersResponse?.totalCount ??
+                      financialsResponse?.completedOrdersCount ??
+                      0) / 5,
+                  ) || 1
+                }
                 isLoading={isFinancialsLoading || isCompletedOrdersLoading}
                 onPageChange={setFinancialsPage}
                 grossRevenue={grossRevenue}
                 platformFees={platformFees}
                 netProfit={netProfit}
-                completedCount={financialsResponse?.completedOrdersCount || 0}
+                completedCount={financialsResponse?.completedOrdersCount ?? 0}
               />
             )}
           </div>

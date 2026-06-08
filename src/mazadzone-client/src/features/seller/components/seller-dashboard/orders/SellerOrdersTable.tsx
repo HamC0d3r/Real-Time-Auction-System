@@ -1,11 +1,13 @@
 "use client";
 
-import { Inbox, ArrowUpDown, Download } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Inbox, ArrowUpDown, Download, Search } from "lucide-react";
 import { AuctionPagination } from "@/features/auctions";
 import type { SellerOrderSummaryDto } from "@/features/seller";
 import { SellerOrdersTableRow } from "./SellerOrdersTableRow";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { StatusPillBar, type StatusPillItem } from "@/components/ui/status-pill-bar";
 import {
   Select,
@@ -22,8 +24,8 @@ const SORT_OPTIONS = [
 
 const TABLE_HEADERS = [
   { key: "orderId", label: "Order ID", className: "" },
-  { key: "auction", label: "Auction Name & Category", className: "" },
-  { key: "bidder", label: "Bidder & Email", className: "" },
+  { key: "auction", label: "Auction Name", className: "" },
+  { key: "bidder", label: "Bidder", className: "" },
   { key: "status", label: "Status", className: "" },
   { key: "orderDate", label: "Order Date", className: "" },
   { key: "totalAmount", label: "Total Amount", className: "" },
@@ -37,9 +39,11 @@ interface SellerOrdersTableProps {
   isLoading: boolean;
   activeStatus: string;
   sortBy: string;
+  searchTerm: string;
   onStatusChange: (status: string) => void;
   onSortChange: (sort: string) => void;
   onPageChange: (page: number) => void;
+  onSearchChange: (search: string) => void;
   // Stats counters to build the pills row
   allCount: number;
   pendingCount: number;
@@ -57,9 +61,11 @@ export function SellerOrdersTable({
   isLoading,
   activeStatus,
   sortBy,
+  searchTerm,
   onStatusChange,
   onSortChange,
   onPageChange,
+  onSearchChange,
   allCount,
   pendingCount,
   shippedCount,
@@ -67,6 +73,21 @@ export function SellerOrdersTable({
   completedCount,
   canceledCount,
 }: SellerOrdersTableProps) {
+  // Local debounced search
+  const [localSearch, setLocalSearch] = useState(searchTerm);
+
+  useEffect(() => {
+    setLocalSearch(searchTerm);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (localSearch !== searchTerm) {
+        onSearchChange(localSearch);
+      }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [localSearch, searchTerm, onSearchChange]);
 
   const statusPills: StatusPillItem[] = [
     { key: "All", label: "All", count: allCount, color: "var(--primary)" },
@@ -79,6 +100,17 @@ export function SellerOrdersTable({
 
   return (
     <div className="space-y-5">
+
+      {/* Search Input */}
+      <div className="relative max-w-sm">
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          value={localSearch}
+          onChange={(e) => setLocalSearch(e.target.value)}
+          placeholder="Search orders by auction title or bidder..."
+          className="pl-9 h-9 text-xs bg-card border-border focus-visible:ring-primary/20"
+        />
+      </div>
 
       {/* Toolbar: Status Pills + Sort + Export */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -140,12 +172,7 @@ export function SellerOrdersTable({
                       <div className="h-2.5 bg-muted rounded w-16" />
                     </div>
                   </td>
-                  <td className="px-5 py-4">
-                    <div className="space-y-1.5 w-24">
-                      <div className="h-3.5 bg-muted rounded" />
-                      <div className="h-2.5 bg-muted rounded w-20" />
-                    </div>
-                  </td>
+                  <td className="px-5 py-4"><div className="h-3.5 bg-muted rounded w-24" /></td>
                   <td className="px-5 py-4"><div className="h-5 bg-muted rounded w-16" /></td>
                   <td className="px-5 py-4"><div className="h-3.5 bg-muted rounded w-24" /></td>
                   <td className="px-5 py-4"><div className="h-3.5 bg-muted rounded w-20" /></td>
@@ -158,7 +185,9 @@ export function SellerOrdersTable({
                     <Inbox className="h-8 w-8 text-muted-foreground/40" />
                     <h3 className="text-sm font-bold text-foreground">No orders found</h3>
                     <p className="text-xs text-muted-foreground">
-                      No orders match the selected filter.
+                      {localSearch
+                        ? `No orders matched "${localSearch}"`
+                        : "No orders match the selected filter."}
                     </p>
                   </div>
                 </td>
