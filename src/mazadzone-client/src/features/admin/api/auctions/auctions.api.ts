@@ -1,6 +1,7 @@
 import { api } from "@/lib/api/client";
 import type { ModerateAuctionsResponse, AuctionStatus } from "../../types/admin.types";
 import type { PagedListOfAuctionsListDto } from "./auctions.contracts";
+import { fetchCategoriesTree } from "../categories/category.api";
 import {
   mapFiltersToQueryParams,
   mapPagedAuctionsListToModerateAuctionsResponse,
@@ -18,10 +19,50 @@ export interface UseModerateAuctionsFilters {
 }
 
 /**
+ * Resolves human-readable category name to UUID from the category tree.
+ */
+async function resolveCategoryUUID(categoryName?: string): Promise<string | undefined> {
+  if (!categoryName || categoryName === "All Categories") {
+    return undefined;
+  }
+
+  try {
+    const categories = await fetchCategoriesTree();
+    // Search main categories
+    const matched = categories.find(
+      (c) => c.name.toLowerCase() === categoryName.toLowerCase()
+    );
+    if (matched) {
+      return matched.id;
+    }
+    // Search subcategories
+    for (const cat of categories) {
+      const subMatched = cat.subcategories.find(
+        (s) => s.name.toLowerCase() === categoryName.toLowerCase()
+      );
+      if (subMatched) {
+        return subMatched.id;
+      }
+    }
+  } catch (error) {
+    console.warn("Failed to resolve category name to UUID:", error);
+  }
+
+  return undefined;
+}
+
+/**
  * Fetches real filtered, paginated moderate auctions list from the backend.
  */
 export async function fetchModerateAuctions(filters: UseModerateAuctionsFilters): Promise<ModerateAuctionsResponse> {
   const queryParams = mapFiltersToQueryParams(filters);
+  const resolvedCategoryId = await resolveCategoryUUID(filters.category);
+  if (resolvedCategoryId) {
+    queryParams.CategoryId = resolvedCategoryId;
+  } else {
+    queryParams.CategoryId = undefined;
+  }
+
   const response = await api.get<PagedListOfAuctionsListDto>("/auctions", {
     params: queryParams,
   });
@@ -32,8 +73,8 @@ export async function fetchModerateAuctions(filters: UseModerateAuctionsFilters)
  * Cancels an auction listing as an administrator.
  */
 export async function cancelAuctionByAdminApi(auctionId: string, reason: string): Promise<void> {
-  // Respecting standard POST with optional/ignored payload as defined in OpenAPI spec
-  await api.post(`/auctions/${auctionId}/cancel-by-admin`, { reason });
+  // Respecting standard POST with no request body as defined in OpenAPI contract
+  await api.post(`/auctions/${auctionId}/cancel-by-admin`);
 }
 
 /**
@@ -45,6 +86,13 @@ export async function exportAuctionsApi(filters: UseModerateAuctionsFilters, sel
     page: 1,
     pageSize: 200, // Fetch a larger window of rows to guarantee full match export
   });
+
+  const resolvedCategoryId = await resolveCategoryUUID(filters.category);
+  if (resolvedCategoryId) {
+    queryParams.CategoryId = resolvedCategoryId;
+  } else {
+    queryParams.CategoryId = undefined;
+  }
 
   const response = await api.get<PagedListOfAuctionsListDto>("/auctions", {
     params: queryParams,
