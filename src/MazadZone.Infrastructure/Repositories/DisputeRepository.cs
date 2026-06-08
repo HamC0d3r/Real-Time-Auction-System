@@ -18,4 +18,9 @@ public class DisputeRepository :GenericRepository<Dispute, DisputeId>, IDisputeR
     {
         return await _context.Disputes.FirstOrDefaultAsync(d => d.OrderId == orderId, ct);
     }
+
+    public Task<bool> OrderHasOpenDisputeAsync(OrderId orderId, CancellationToken ct)
+    {
+        return _context.Disputes.AnyAsync(d => d.OrderId == orderId && d.Status == DisputeStatus.Open, ct);
+    }
 }

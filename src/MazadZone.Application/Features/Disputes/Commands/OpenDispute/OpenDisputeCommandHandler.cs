@@ -5,19 +5,16 @@ namespace MazadZone.Application.Features.Disputes.Commands.OpenDispute;
 
 public class OpenDisputeCommandHandler : ICommandHandler<OpenDisputeCommand, Guid>
 {
-    private readonly IOrderRepository _orderRepository;
     private readonly IDisputeRepository _disputeRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<OpenDisputeCommandHandler> _logger;
 
     public OpenDisputeCommandHandler(
-        IOrderRepository orderRepository,
         IUnitOfWork unitOfWork,
         ILogger<OpenDisputeCommandHandler> logger,
         IDisputeRepository disputeRepository
         )
     {
-        _orderRepository = orderRepository;
         _unitOfWork = unitOfWork;
         _logger = logger;
         _disputeRepository = disputeRepository;
@@ -27,17 +24,12 @@ public class OpenDisputeCommandHandler : ICommandHandler<OpenDisputeCommand, Gui
     {
         // OpenDisputeLogs.LogAttempt(_logger, request.OrderId, request.Reason);
 
-        var order = await _orderRepository.GetByIdAsync(request.OrderId, ct);
-
-        if (order is null)
+        if(await _disputeRepository.OrderHasOpenDisputeAsync(request.OrderId, ct))
         {
-            GlobalLogs.LogOrderNotFound(_logger, request.OrderId);
-            return OrderErrors.NotFound;
+            return DisputeErrors.OrderHasOpenDispute;  
         }
 
-        if (!order.IsDisputable) return OrderErrors.CannotDispute;
-
-        var titleResult = Title.Create(request.Title);
+                var titleResult = Title.Create(request.Title);
         if (titleResult.IsFailure) return titleResult.TopError;
 
         var descriptionResult = Description.Create(request.Description);
