@@ -22,7 +22,7 @@ namespace MazadZone.Infrastructure.Persistence.Seeding;
 
 /// <summary>
 /// Seeds the MazadZone database with realistic mock data:
-/// - 10 seller accounts + 30 bidder accounts (all loginable with password "MazadZone123!")
+/// - 1 admin account + 10 seller accounts + 30 bidder accounts (all loginable with password "MazadZone123!")
 /// - 5 dispute types
 /// - 5 root categories with 15 subcategories
 /// - 200 auctions spread across all lifecycle states with testable time windows
@@ -112,10 +112,11 @@ public class DatabaseSeeder : IDatabaseSeeder
         await _dbContext.AddRangeAsync(subCats);
         await _dbContext.SaveChangesAsync();
 
-        // ── 3. Users: 10 sellers + 30 bidders ─────────────────────────────────
-        var (sellerUsers, sellerEntities, bidderUsers, bidderEntities) =
+        // ── 3. Users: 1 admin + 10 sellers + 30 bidders ──────────────────────
+        var (adminUsers, sellerUsers, sellerEntities, bidderUsers, bidderEntities) =
             SeedUsers(hashedPassword, f);
 
+        await _dbContext.AddRangeAsync(adminUsers);
         await _dbContext.AddRangeAsync(sellerUsers);
         await _dbContext.AddRangeAsync(bidderUsers);
         await _dbContext.SaveChangesAsync();
@@ -150,8 +151,8 @@ public class DatabaseSeeder : IDatabaseSeeder
         }
 
         _logger.LogInformation(
-            "🎉 MazadZone seeding complete — {AuctionCount} auctions, {SellerCount} sellers, {BidderCount} bidders.",
-            allAuctions.Count, sellerEntities.Count, bidderEntities.Count);
+            "🎉 MazadZone seeding complete — {AuctionCount} auctions, {AdminCount} admins, {SellerCount} sellers, {BidderCount} bidders.",
+            allAuctions.Count, adminUsers.Count, sellerEntities.Count, bidderEntities.Count);
     }
 
     // ── Dispute Types ──────────────────────────────────────────────────────────
@@ -249,6 +250,7 @@ public class DatabaseSeeder : IDatabaseSeeder
     // ── Users ──────────────────────────────────────────────────────────────────
 
     private (
+        List<User> adminUsers,
         List<User> sellerUsers,
         List<Seller> sellers,
         List<User> bidderUsers,
@@ -261,6 +263,21 @@ public class DatabaseSeeder : IDatabaseSeeder
             "Amman", "Zarqa", "Irbid", "Aqaba", "Madaba",
             "Jerash", "Ajloun", "Karak", "Tafilah", "Mafraq"
         };
+
+        // ── 1 Admin ────────────────────────────────────────────────────────────
+        var adminUser = User.Create(
+            email: "admin@mazadzone.com",
+            passwordHash: hashedPassword,
+            phoneNumber: "0799999000",
+            firstName: "MazadZone",
+            secondName: "Platform",
+            thirdName: "System",
+            lastName: "Admin",
+            roles: UserRole.Admin
+        ).Value;
+        ClearDomainEvents(adminUser);
+
+        var adminUsers = new List<User> { adminUser };
 
         // ── 10 Sellers ──────────────────────────────────────────────────────────
         var sellerProfiles = new[]
@@ -372,7 +389,7 @@ public class DatabaseSeeder : IDatabaseSeeder
             bidders.Add(bidder);
         }
 
-        return (sellerUsers, sellers, bidderUsers, bidders);
+        return (adminUsers, sellerUsers, sellers, bidderUsers, bidders);
     }
 
     // ── Auctions ───────────────────────────────────────────────────────────────
@@ -498,7 +515,7 @@ public class DatabaseSeeder : IDatabaseSeeder
                 endTime:   end,
                 title:       TruncateString(entry.Title, 45),
                 description: TruncateString(entry.Description, 500),
-                images: BuildImages(entry.ImageUrl),
+                images: BuildImages(entry.Title),
                 categoryId: (ResolveCorrectCategory(entry.Title, subCats) ?? entry.Category).Id
             ).Value;
 
@@ -528,7 +545,7 @@ public class DatabaseSeeder : IDatabaseSeeder
                 endTime:   end,
                 title:       TruncateString(entry.Title, 45),
                 description: TruncateString(entry.Description, 500),
-                images: BuildImages(entry.ImageUrl),
+                images: BuildImages(entry.Title),
                 categoryId: (ResolveCorrectCategory(entry.Title, subCats) ?? entry.Category).Id
             ).Value;
 
@@ -593,7 +610,7 @@ public class DatabaseSeeder : IDatabaseSeeder
                 endTime:   end,
                 title:       TruncateString(entry.Title, 45),
                 description: TruncateString(entry.Description, 500),
-                images: BuildImages(entry.ImageUrl),
+                images: BuildImages(entry.Title),
                 categoryId: (ResolveCorrectCategory(entry.Title, subCats) ?? entry.Category).Id
             ).Value;
 
@@ -643,7 +660,7 @@ public class DatabaseSeeder : IDatabaseSeeder
                 endTime:   end,
                 title:       TruncateString(entry.Title, 45),
                 description: TruncateString(entry.Description, 500),
-                images: BuildImages(entry.ImageUrl),
+                images: BuildImages(entry.Title),
                 categoryId: (ResolveCorrectCategory(entry.Title, subCats) ?? entry.Category).Id
             ).Value;
 
@@ -671,7 +688,7 @@ public class DatabaseSeeder : IDatabaseSeeder
                 endTime:   end,
                 title:       TruncateString(entry.Title, 45),
                 description: TruncateString(entry.Description, 500),
-                images: BuildImages(entry.ImageUrl),
+                images: BuildImages(entry.Title),
                 categoryId: (ResolveCorrectCategory(entry.Title, subCats) ?? entry.Category).Id
             ).Value;
 
@@ -702,7 +719,7 @@ public class DatabaseSeeder : IDatabaseSeeder
                 endTime:   end,
                 title:       TruncateString(entry.Title, 45),
                 description: TruncateString(entry.Description, 500),
-                images: BuildImages(entry.ImageUrl),
+                images: BuildImages(entry.Title),
                 categoryId: (ResolveCorrectCategory(entry.Title, subCats) ?? entry.Category).Id
             ).Value;
 
@@ -845,19 +862,56 @@ public class DatabaseSeeder : IDatabaseSeeder
 
     private static List<Image> BuildImages(string url)
     {
-        if (url != null && url.Contains("unsplash.com"))
-        {
-            var photoId = "default";
-            var parts = url.Split('/');
-            var lastPart = parts.LastOrDefault()?.Split('?').FirstOrDefault();
-            if (lastPart != null && lastPart.StartsWith("photo-"))
-            {
-                photoId = lastPart;
-            }
-            url = $"https://picsum.photos/seed/{photoId}/600/450";
-        }
-        return new() { Image.Create(url, "Main product view", true).Value };
+        var productImageUrl = ResolveDummyJsonProductImageUrl(url);
+        return new() { Image.Create(productImageUrl, "Main product view", true).Value };
     }
+
+    private static string ResolveDummyJsonProductImageUrl(string seed)
+    {
+        var hash = 17;
+        foreach (var character in seed)
+        {
+            hash = unchecked(hash * 31 + character);
+        }
+
+        var safeHash = hash == int.MinValue ? 0 : Math.Abs(hash);
+        var index = safeHash % DummyJsonProductImageUrls.Length;
+        return DummyJsonProductImageUrls[index];
+    }
+
+    private static readonly string[] DummyJsonProductImageUrls =
+    {
+        "https://cdn.dummyjson.com/products/images/smartphones/iPhone%206/thumbnail.png",
+        "https://cdn.dummyjson.com/products/images/smartphones/Samsung%20Galaxy%20S10/thumbnail.png",
+        "https://cdn.dummyjson.com/products/images/smartphones/Oppo%20A57/thumbnail.png",
+        "https://cdn.dummyjson.com/products/images/smartphones/Realme%20XT/thumbnail.png",
+        "https://cdn.dummyjson.com/products/images/laptops/Apple%20MacBook%20Pro%2014%20Inch%20Space%20Grey/thumbnail.png",
+        "https://cdn.dummyjson.com/products/images/mobile-accessories/Apple%20Airpods/thumbnail.png",
+        "https://cdn.dummyjson.com/products/images/mobile-accessories/Apple%20Watch%20Series%204%20Gold/thumbnail.png",
+        "https://cdn.dummyjson.com/products/images/mobile-accessories/Beats%20Flex%20Wireless%20Earphones/thumbnail.png",
+        "https://cdn.dummyjson.com/products/images/tablets/Samsung%20Galaxy%20Tab%20S8%20Plus%20Grey/thumbnail.png",
+        "https://cdn.dummyjson.com/products/images/mens-watches/Rolex%20Submariner%20Watch/thumbnail.png",
+        "https://cdn.dummyjson.com/products/images/mens-watches/Rolex%20Datejust/thumbnail.png",
+        "https://cdn.dummyjson.com/products/images/womens-watches/Watch%20Gold%20for%20Women/thumbnail.png",
+        "https://cdn.dummyjson.com/products/images/mens-shoes/Sports%20Sneakers%20Off%20White%20Red/thumbnail.png",
+        "https://cdn.dummyjson.com/products/images/womens-shoes/Golden%20Shoes%20Woman/thumbnail.png",
+        "https://cdn.dummyjson.com/products/images/sunglasses/Black%20Sun%20Glasses/thumbnail.png",
+        "https://cdn.dummyjson.com/products/images/sunglasses/Sunglasses/thumbnail.png",
+        "https://cdn.dummyjson.com/products/images/furniture/Annibale%20Colombo%20Bed/thumbnail.png",
+        "https://cdn.dummyjson.com/products/images/furniture/Wooden%20Bathroom%20Sink%20With%20Mirror/thumbnail.png",
+        "https://cdn.dummyjson.com/products/images/home-decoration/Family%20Tree%20Photo%20Frame/thumbnail.png",
+        "https://cdn.dummyjson.com/products/images/home-decoration/Plant%20Pot/thumbnail.png",
+        "https://cdn.dummyjson.com/products/images/kitchen-accessories/Pan/thumbnail.png",
+        "https://cdn.dummyjson.com/products/images/kitchen-accessories/Silver%20Pot%20With%20Glass%20Cap/thumbnail.png",
+        "https://cdn.dummyjson.com/products/images/sports-accessories/Baseball%20Ball/thumbnail.png",
+        "https://cdn.dummyjson.com/products/images/sports-accessories/Baseball%20Glove/thumbnail.png",
+        "https://cdn.dummyjson.com/products/images/sports-accessories/Cricket%20Bat/thumbnail.png",
+        "https://cdn.dummyjson.com/products/images/sports-accessories/Cricket%20Helmet/thumbnail.png",
+        "https://cdn.dummyjson.com/products/images/sports-accessories/Iron%20Golf/thumbnail.png",
+        "https://cdn.dummyjson.com/products/images/vehicle/Charger%20SXT%20RWD/thumbnail.png",
+        "https://cdn.dummyjson.com/products/images/vehicle/Pacifica%20Touring/thumbnail.png",
+        "https://cdn.dummyjson.com/products/images/motorcycle/Sportbike%20Motorcycle/thumbnail.png",
+    };
 
     private static readonly Faker _f = new("en");
 
@@ -874,408 +928,408 @@ public class DatabaseSeeder : IDatabaseSeeder
             new("Apple iPhone 15 Pro Max 256GB – Natural Titanium",
                 "Brand-new sealed box. Natural titanium design, A17 Pro chip, 48MP main camera, USB-C. Full Apple Jordan warranty included.",
                 "Factory sealed, never opened.", ItemStatus.New, subCats[0], 850m, 20m,
-                "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=600"),
+                "dummyjson-product-image"),
 
             new("Samsung Galaxy S24 Ultra 512GB – Titanium Black",
                 "Sealed. Snapdragon 8 Gen 3, 200MP camera system, built-in S Pen, 12GB RAM. Global variant.",
                 "Factory sealed.", ItemStatus.New, subCats[0], 900m, 25m,
-                "https://images.unsplash.com/photo-1706819394164-b1e49cb86a64?w=600"),
+                "dummyjson-product-image"),
 
             new("Apple iPhone 14 Pro 128GB – Deep Purple",
                 "Used 8 months, excellent condition. Dynamic Island, 48MP camera. All original accessories.",
                 "Excellent — no scratches, original box included.", ItemStatus.LikeNew, subCats[0], 540m, 15m,
-                "https://images.unsplash.com/photo-1663499482523-1c0c1bae4ce1?w=600"),
+                "dummyjson-product-image"),
 
             new("Google Pixel 8 Pro 256GB – Obsidian",
                 "Lightly used for 3 months. Google AI features, 7 years OS updates, 50MP camera. Tempered glass applied from day one.",
                 "Like new — barely used, screen protector on.", ItemStatus.LikeNew, subCats[0], 470m, 15m,
-                "https://images.unsplash.com/photo-1701161191699-b6c57de48f00?w=600"),
+                "dummyjson-product-image"),
 
             new("OnePlus 12 256GB – Flowy Emerald",
                 "Pre-owned, 6 months use. Hasselblad camera tuning, 100W SUPERVOOC charging, 16GB RAM.",
                 "Good — minor scuff on back glass under case.", ItemStatus.Good, subCats[0], 330m, 10m,
-                "https://images.unsplash.com/photo-1707402018060-a13aed8e4ce8?w=600"),
+                "dummyjson-product-image"),
 
             new("Xiaomi 14 Ultra 512GB – White",
                 "Imported from China. Leica optics, 1-inch main sensor, 90W wireless charging. Works on all Jordanian bands.",
                 "Like new — purchased abroad, used 2 months.", ItemStatus.LikeNew, subCats[0], 720m, 20m,
-                "https://images.unsplash.com/photo-1716288999520-59e1f37fefba?w=600"),
+                "dummyjson-product-image"),
 
             new("Apple iPhone 13 Mini 128GB – Starlight",
                 "Owner upgraded, selling this as is. Works perfectly, battery health 91%. Charging cable included.",
                 "Good — back has faint hairline under bright light.", ItemStatus.Good, subCats[0], 270m, 10m,
-                "https://images.unsplash.com/photo-1632661674596-df8be070a5c5?w=600"),
+                "dummyjson-product-image"),
 
             new("Samsung Galaxy Z Fold 5 256GB – Phantom Black",
                 "Foldable flagship, used 4 months with case. S Pen slot, 12GB RAM, 1TB storage. Perfect hinge.",
                 "Excellent — fold crease normal, no screen damage.", ItemStatus.LikeNew, subCats[0], 950m, 30m,
-                "https://images.unsplash.com/photo-1692376927977-0f1e47b90c42?w=600"),
+                "dummyjson-product-image"),
 
             new("Apple iPhone 12 64GB – Product RED",
                 "Good working condition, sold by a student upgrading. Battery health 84%. Silicone case included.",
                 "Good — minor corner dents from a drop.", ItemStatus.Good, subCats[0], 195m, 10m,
-                "https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=600"),
+                "dummyjson-product-image"),
 
             new("Nothing Phone (2a) 256GB – Black",
                 "Brand new import. Glyph interface, Snapdragon 7s Gen 2, 50MP camera. No warranty card but sealed.",
                 "Factory sealed.", ItemStatus.New, subCats[0], 240m, 10m,
-                "https://images.unsplash.com/photo-1700074046625-56a4c4f16d34?w=600"),
+                "dummyjson-product-image"),
 
             // ─── LAPTOPS ───────────────────────────────────────────────────────
             new("Apple MacBook Pro 16\" M3 Max – Space Black",
                 "36GB unified memory, 1TB SSD, M3 Max chip. Used 3 weeks for testing, essentially new. Full Apple warranty.",
                 "Like new — opened once, screen protector applied.", ItemStatus.LikeNew, subCats[1], 2100m, 50m,
-                "https://images.unsplash.com/photo-1696218994703-498bac7bab0e?w=600"),
+                "dummyjson-product-image"),
 
             new("Dell XPS 15 9530 – Intel i9 13th Gen",
                 "OLED 3.5K display, 32GB DDR5, 1TB NVMe. Owner switching to Mac. Excellent for video editing and development.",
                 "Good — normal use marks on palmrest.", ItemStatus.Good, subCats[1], 980m, 25m,
-                "https://images.unsplash.com/photo-1593642702821-c8da6771f0c6?w=600"),
+                "dummyjson-product-image"),
 
             new("ASUS ROG Zephyrus G14 (2024) – Eclipse Gray",
                 "AMD Ryzen 9 8945HS, RTX 4070, 32GB RAM, 1TB SSD. Latest gen gaming powerhouse. 1 year warranty remaining.",
                 "Like new — 2 months use, always on a cooling pad.", ItemStatus.LikeNew, subCats[1], 1150m, 30m,
-                "https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=600"),
+                "dummyjson-product-image"),
 
             new("Apple MacBook Air 15\" M2 – Midnight",
                 "8GB RAM, 256GB SSD. Used by a graphic design student. AppleCare+ until 2026. Battery health 97%.",
                 "Excellent — screen and chassis pristine.", ItemStatus.LikeNew, subCats[1], 780m, 20m,
-                "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=600"),
+                "dummyjson-product-image"),
 
             new("Lenovo ThinkPad X1 Carbon Gen 11",
                 "Intel i7-1365U, 16GB LPDDR5, 512GB SSD, WUXGA IPS. Business workhorse with MIL-SPEC durability.",
                 "Good — minor key legends fading on 'E' key.", ItemStatus.Good, subCats[1], 650m, 20m,
-                "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=600"),
+                "dummyjson-product-image"),
 
             new("HP Spectre x360 16\" OLED – Nightfall Black",
                 "Intel i7-13700H, 32GB DDR5, 1TB SSD, 120Hz OLED touchscreen. 2-in-1 laptop convertible.",
                 "Like new — lightly used for university.", ItemStatus.LikeNew, subCats[1], 890m, 25m,
-                "https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=600"),
+                "dummyjson-product-image"),
 
             new("MSI Raider GE78 HX – Titanium Blue",
                 "Intel i9-14900HX, RTX 4090 Laptop GPU, 64GB DDR5, 2TB SSD. Serious gaming rig.",
                 "Good — 6 months old, slight thermal paste smell on startup.", ItemStatus.Good, subCats[1], 2400m, 60m,
-                "https://images.unsplash.com/photo-1598550476439-6847ef8eld58?w=600"),
+                "dummyjson-product-image"),
 
             new("Acer Swift 3 14\" – Silver",
                 "Intel i5-1235U, 8GB RAM, 512GB SSD, 14\" FHD IPS. Thin and light everyday laptop.",
                 "Good — scratch on lid from bag zipper.", ItemStatus.Good, subCats[0], 280m, 10m,
-                "https://images.unsplash.com/photo-1588702547923-7183f5b00f4b?w=600"),
+                "dummyjson-product-image"),
 
             new("Surface Pro 9 with Keyboard Bundle",
                 "Intel i5, 8GB RAM, 128GB SSD. Comes with official keyboard cover and Surface Pen. Compact workstation.",
                 "Like new — used for digital art, all accessories included.", ItemStatus.LikeNew, subCats[0], 720m, 20m,
-                "https://images.unsplash.com/photo-1593642533144-3d62aa4783ec?w=600"),
+                "dummyjson-product-image"),
 
             new("Apple MacBook Pro 14\" M2 Pro – Silver",
                 "16GB RAM, 512GB SSD. Compact powerhouse for developers. AppleCare until 2025.",
                 "Excellent — no blemishes, MagSafe cable included.", ItemStatus.LikeNew, subCats[0], 1250m, 30m,
-                "https://images.unsplash.com/photo-1611186871525-4e47b1a1f89d?w=600"),
+                "dummyjson-product-image"),
 
             // ─── CAMERAS ───────────────────────────────────────────────────────
             new("Sony Alpha A7 IV Mirrorless Body",
                 "33MP full-frame sensor, 4K 60fps, real-time tracking AF. Used for 6 months by a professional photographer.",
                 "Excellent — shutter count 4,200. No issues.", ItemStatus.LikeNew, subCats[0], 1600m, 40m,
-                "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=600"),
+                "dummyjson-product-image"),
 
             new("Canon EOS R6 Mark II + RF 24-105mm Kit",
                 "Full-frame, 40fps burst, in-body stabilization. Complete kit with lens, batteries, and charger.",
                 "Like new — 2,800 actuations, full kit.", ItemStatus.LikeNew, subCats[0], 2200m, 50m,
-                "https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=600"),
+                "dummyjson-product-image"),
 
             new("Nikon Z6 III Mirrorless Body",
                 "24MP partially stacked CMOS, 6K RAW video, 120fps at 1080p. Top wildlife and event camera.",
                 "Good — some wear on grip from extended use.", ItemStatus.Good, subCats[0], 1900m, 50m,
-                "https://images.unsplash.com/photo-1584735935682-2f2b69dff9d2?w=600"),
+                "dummyjson-product-image"),
 
             new("GoPro Hero 12 Black + Accessories Bundle",
                 "Waterproof to 10m, 5.3K video, HyperSmooth 6.0 stabilization. Comes with chest mount, head strap, and 3 batteries.",
                 "Like new — 5 short trips, all accessories included.", ItemStatus.LikeNew, subCats[0], 310m, 10m,
-                "https://images.unsplash.com/photo-1530049601630-29a5c8d5e8c0?w=600"),
+                "dummyjson-product-image"),
 
             new("DJI Osmo Pocket 3 Creator Combo",
                 "3-axis gimbal, 4K 120fps, 1-inch sensor. Includes ND filters, wireless microphone, wide-angle addon.",
                 "Like new — barely used for a wedding shoot.", ItemStatus.LikeNew, subCats[0], 470m, 15m,
-                "https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=600"),
+                "dummyjson-product-image"),
 
             new("Fujifilm X-T5 Body – Black",
                 "40.2MP X-Trans CMOS 5 HR, 7-stop IBIS, film simulation modes. Beloved by street and portrait photographers.",
                 "Excellent — 1,100 actuations, all original accessories.", ItemStatus.LikeNew, subCats[0], 1350m, 30m,
-                "https://images.unsplash.com/photo-1628026899426-69c7f1e60702?w=600"),
+                "dummyjson-product-image"),
 
             // ─── VEHICLES ───────────────────────────────────────────────────────
             new("2021 Porsche 911 Carrera S – Guards Red",
                 "3.0L twin-turbo flat-six, 450HP, PDK. 28,000 km. Full PCCB option, sport exhaust, Burmester audio. Perfect history.",
                 "Excellent — dealer serviced, single owner, no accidents.", ItemStatus.LikeNew, subCats[1], 95000m, 2000m,
-                "https://images.unsplash.com/photo-1584345604476-8ec5f82d6af0?w=600"),
+                "dummyjson-product-image"),
 
             new("2019 Mercedes-AMG C63 S – Obsidian Black",
                 "510HP V8 biturbo, 9-speed MCT. 55,000 km. AMG driver package, panorama roof, 360 camera.",
                 "Good — full service history, new rear tires 2024.", ItemStatus.Good, subCats[1], 62000m, 1500m,
-                "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=600"),
+                "dummyjson-product-image"),
 
             new("2023 BMW M4 Competition – Sao Paulo Yellow",
                 "510HP S58 engine, xDrive, 8-speed M Steptronic. 12,000 km. Carbon roof, Harman Kardon, M Carbon seats.",
                 "Like new — single owner, warranty intact.", ItemStatus.LikeNew, subCats[1], 88000m, 2000m,
-                "https://images.unsplash.com/photo-1549317661-bd32c8ce0729?w=600"),
+                "dummyjson-product-image"),
 
             new("2020 Audi RS 6 Avant – Nardo Gray",
                 "600HP twin-turbo V8, quattro, air suspension. 65,000 km. Full Audi history, panoramic roof, HUD.",
                 "Good — minor paint chip on bumper, full records.", ItemStatus.Good, subCats[1], 71000m, 1500m,
-                "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=600"),
+                "dummyjson-product-image"),
 
             new("2022 Ferrari F8 Tributo – Rosso Corsa",
                 "720HP V8, 7-speed DCT. 8,000 km. Lifting system, carbon fibre package, Daytona sport seats.",
                 "Excellent — Ferrari-certified pre-owned.", ItemStatus.LikeNew, subCats[1], 285000m, 5000m,
-                "https://images.unsplash.com/photo-1592198084033-aade902d1aae?w=600"),
+                "dummyjson-product-image"),
 
             new("2022 Ducati Panigale V4 S – Winter Test Livery",
                 "1,103cc V4 Desmosedici Stradale. 214HP. Öhlins electronic suspension, Brembo Stylema brakes. 4,200 km.",
                 "Excellent — track day twice, no falls, full service.", ItemStatus.LikeNew, subCats[1], 28000m, 600m,
-                "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600"),
+                "dummyjson-product-image"),
 
             new("2021 KTM 890 Duke R – Orange",
                 "890cc parallel twin, 121HP, WP APEX PRO suspension, supermoto ABS. 9,000 km.",
                 "Good — crash bars added, minor bar end scratch.", ItemStatus.Good, subCats[1], 8500m, 200m,
-                "https://images.unsplash.com/photo-1609630875171-b1321377ee65?w=600"),
+                "dummyjson-product-image"),
 
             new("2023 Honda CB1000R Black Edition",
                 "998cc four-cylinder, 143HP. Neo Sports Café design. LED lighting, Showa suspension. 3,000 km.",
                 "Like new — warranty until 2025, always garaged.", ItemStatus.LikeNew, subCats[1], 12500m, 300m,
-                "https://images.unsplash.com/photo-1558618047-f5b82d4b70a3?w=600"),
+                "dummyjson-product-image"),
 
             new("2020 Triumph Scrambler 1200 XC – Sandstorm",
                 "1,200cc parallel twin, 89HP. Adventure-ready with Showa long-travel forks. 18,000 km.",
                 "Good — handlebar scratch, new rear tyre.", ItemStatus.Good, subCats[1], 9200m, 200m,
-                "https://images.unsplash.com/photo-1601581987809-a874a81309c9?w=600"),
+                "dummyjson-product-image"),
 
             // ─── FASHION ───────────────────────────────────────────────────────
             new("Rolex Submariner Date Ref.126610LN – Black",
                 "2023 model, Oystersteel, black cerachrome bezel. Complete set: box, papers, card. Unworn.",
                 "Brand new — unworn, complete set with card.", ItemStatus.New, subCats[2], 8500m, 200m,
-                "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=600"),
+                "dummyjson-product-image"),
 
             new("Omega Seamaster Diver 300M – 42mm",
                 "Blue wave dial, co-axial escapement, 300m water resistance. Includes box and papers. Worn 10 times.",
                 "Like new — light bracelet marks only.", ItemStatus.LikeNew, subCats[2], 3800m, 100m,
-                "https://images.unsplash.com/photo-1587836374828-4dbafa94cf0e?w=600"),
+                "dummyjson-product-image"),
 
             new("TAG Heuer Carrera Calibre 6 39mm",
                 "Automatic exhibition case back. Silver dial, leather strap. Serviced 2023. Box and papers.",
                 "Good — light hairlines on case, bracelet stretched slightly.", ItemStatus.Good, subCats[2], 1400m, 50m,
-                "https://images.unsplash.com/photo-1542496658-e33a6d0d3a1f?w=600"),
+                "dummyjson-product-image"),
 
             new("Seiko Prospex SPB187J1 – Save the Ocean",
                 "Made in Japan, automatic, 200m diver. JDM model imported. Includes bracelet and silicone strap.",
                 "Like new — worn 4 times, no scratches.", ItemStatus.LikeNew, subCats[2], 620m, 20m,
-                "https://images.unsplash.com/photo-1547996160-81dfa63595aa?w=600"),
+                "dummyjson-product-image"),
 
             new("Patek Philippe Calatrava 5196G – White Gold",
                 "Ref 5196G-010, 38mm, white gold, manual winding. Original strap with clasp. Full set circa 2019.",
                 "Excellent — worn occasionally at events, serviced 2022.", ItemStatus.LikeNew, subCats[2], 24000m, 500m,
-                "https://images.unsplash.com/photo-1610945264803-c22b62d2a7b3?w=600"),
+                "dummyjson-product-image"),
 
             new("Apple Watch Ultra 2 – Titanium",
                 "49mm, S9 chip, precision GPS, 60-hour battery in low-power mode. Orange Alpine Loop, GPS + Cellular.",
                 "Like new — AppleCare+ until 2025, used 4 months.", ItemStatus.LikeNew, subCats[2], 750m, 20m,
-                "https://images.unsplash.com/photo-1595079837868-1e67f1d6c1de?w=600"),
+                "dummyjson-product-image"),
 
             new("Audemars Piguet Royal Oak 15400ST",
                 "41mm stainless steel, blue 'Grande Tapisserie' dial, date function. Full set 2021.",
                 "Excellent — worn 8 times, minor bracelet wear.", ItemStatus.LikeNew, subCats[2], 18500m, 400m,
-                "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=600"),
+                "dummyjson-product-image"),
 
             new("Casio G-Shock GWF-D1000 Frogman",
                 "Solar powered, Bluetooth, ISO diver standard 200m. Master in Black series.",
                 "Good — strap shows salt deposits from diving, module perfect.", ItemStatus.Good, subCats[2], 380m, 15m,
-                "https://images.unsplash.com/photo-1639891254912-30e6f9b19c59?w=600"),
+                "dummyjson-product-image"),
 
             new("Hermès Birkin 30 – Togo Leather Noir",
                 "Authentic Hermès Birkin 30 in noir Togo leather with palladium hardware. Receipt available.",
                 "Excellent — dust bag, clochette, lock, and keys present.", ItemStatus.LikeNew, subCats[2], 12000m, 300m,
-                "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"),
+                "dummyjson-product-image"),
 
             // ─── CARS ─────────────────────────────────────────────────────────
             new("2022 Ferrari F8 Tributo – Rosso Corsa",
                 "720HP V8, 7-speed DCT. 8,000 km. Lifting system, carbon fibre package, Daytona sport seats.",
                 "Excellent — Ferrari-certified pre-owned.", ItemStatus.LikeNew, subCats[30], 285000m, 5000m,
-                "https://images.unsplash.com/photo-1592198084033-aade902d1aae?w=600"),
+                "dummyjson-product-image"),
 
             new("2022 Toyota Land Cruiser 300 Series – White",
                 "3.5L twin-turbo V6, 415HP, 4WD. 18,000 km. Full option GR Sport. Export-spec.",
                 "Like new — single owner, all services at dealer.", ItemStatus.LikeNew, subCats[30], 115000m, 3000m,
-                "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=600"),
+                "dummyjson-product-image"),
 
             new("2021 Range Rover Sport P400 HSE – Fuji White",
                 "3.0L inline-6 MHEV, 400HP, air suspension. 42,000 km. Panoramic sunroof, HUD, 360 cam.",
                 "Good — full dealer service history, no accidents.", ItemStatus.Good, subCats[30], 82000m, 2000m,
-                "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=600"),
+                "dummyjson-product-image"),
 
             // ─── MOTORCYCLES ──────────────────────────────────────────────────
             new("2022 Ducati Panigale V4 S – Winter Test Livery",
                 "1,103cc V4 Desmosedici Stradale. 214HP. Öhlins electronic suspension, Brembo Stylema brakes. 4,200 km.",
                 "Excellent — track day twice, no falls, full service.", ItemStatus.LikeNew, subCats[31], 28000m, 600m,
-                "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600"),
+                "dummyjson-product-image"),
 
             new("2021 KTM 890 Duke R – Orange",
                 "890cc parallel twin, 121HP, WP APEX PRO suspension, supermoto ABS. 9,000 km.",
                 "Good — crash bars added, minor bar end scratch.", ItemStatus.Good, subCats[31], 8500m, 200m,
-                "https://images.unsplash.com/photo-1609630875171-b1321377ee65?w=600"),
+                "dummyjson-product-image"),
 
             new("2023 Honda CB1000R Black Edition",
                 "998cc four-cylinder, 143HP. Neo Sports Café design. LED lighting, Showa suspension. 3,000 km.",
                 "Like new — warranty until 2025, always garaged.", ItemStatus.LikeNew, subCats[31], 12500m, 300m,
-                "https://images.unsplash.com/photo-1558618047-f5b82d4b70a3?w=600"),
+                "dummyjson-product-image"),
 
             new("2020 Triumph Scrambler 1200 XC – Sandstorm",
                 "1,200cc parallel twin, 89HP. Adventure-ready with Showa long-travel forks. 18,000 km.",
                 "Good — handlebar scratch, new rear tyre.", ItemStatus.Good, subCats[31], 9200m, 200m,
-                "https://images.unsplash.com/photo-1601581987809-a874a81309c9?w=600"),
+                "dummyjson-product-image"),
 
             // ─── SPARE PARTS ──────────────────────────────────────────────────
             new("Brembo GT Big Brake Kit – Porsche 911 (991/992)",
                 "4-piston front callipers, 380mm cross-drilled rotors. Genuine Brembo. Brand new, unopened.",
                 "Brand new — sealed in original Brembo packaging.", ItemStatus.New, subCats[34], 3200m, 80m,
-                "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=600"),
+                "dummyjson-product-image"),
 
             new("Akrapovič Evolution Exhaust – BMW M3/M4 (G80/G82)",
                 "Full titanium system, including headers and ECU map. Significant weight saving and power gain.",
                 "Like new — installed for 2 months then car was sold.", ItemStatus.LikeNew, subCats[34], 4200m, 100m,
-                "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=600"),
+                "dummyjson-product-image"),
 
             new("OEM BMW M Performance Carbon Mirror Caps – F Series",
                 "Genuine M Performance part. Fits F30, F80, F32, F82. Direct clip-on replacement.",
                 "New — removed from my M4 when fitting aftermarket.", ItemStatus.New, subCats[34], 280m, 10m,
-                "https://images.unsplash.com/photo-1542362567-b07e54358753?w=600"),
+                "dummyjson-product-image"),
 
             // ─── PAINTINGS & FINE ART ─────────────────────────────────────────
             new("Abstract Expressionist Oil on Canvas – 120×90cm",
                 "Original signed artwork by Jordanian artist Rami Khouri, 2019. Certificate of authenticity included.",
                 "Excellent — professionally framed, no damage.", ItemStatus.LikeNew, subCats[18], 850m, 25m,
-                "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=600"),
+                "dummyjson-product-image"),
 
             new("Vintage Arabic Calligraphy Artwork – Framed",
                 "Large mixed-media piece combining ink and gold leaf. Signed by the artist. Ready to hang.",
                 "Good — minor discolouration in lower-left corner.", ItemStatus.Good, subCats[18], 320m, 10m,
-                "https://images.unsplash.com/photo-1605721911519-3dfeb3be25e7?w=600"),
+                "dummyjson-product-image"),
 
             new("Watercolour Cityscape of Petra – 60×40cm",
                 "Detailed watercolour of Petra's Treasury gate at sunrise. Original 2022 piece, signed and dated.",
                 "Like new — never displayed, protected storage.", ItemStatus.LikeNew, subCats[18], 210m, 10m,
-                "https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?w=600"),
+                "dummyjson-product-image"),
 
             // ─── SPORTS MEMORABILIA ───────────────────────────────────────────
             new("Signed Lionel Messi Argentina World Cup 2022 Jersey",
                 "Authentic match-worn style jersey signed by Messi after the 2022 World Cup Final. PSA authenticated.",
                 "Excellent — framed under UV-protective glass.", ItemStatus.LikeNew, subCats[20], 4500m, 100m,
-                "https://images.unsplash.com/photo-1543326727-cf6c39e8f84c?w=600"),
+                "dummyjson-product-image"),
 
             new("Signed Cristiano Ronaldo Al-Nassr Boot",
                 "Match boot signed by CR7. Authentication tag attached. Display case included.",
                 "Good — boot shows use, signature clear and authenticated.", ItemStatus.Good, subCats[20], 1800m, 50m,
-                "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600"),
+                "dummyjson-product-image"),
 
             new("NBA Finals 2016 Cavaliers Signed Basketball",
                 "Signed by LeBron James. Certificate of authenticity by JSA. Display stand included.",
                 "Excellent — stored in climate-controlled case.", ItemStatus.LikeNew, subCats[20], 3200m, 80m,
-                "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=600"),
+                "dummyjson-product-image"),
 
             new("F1 Lewis Hamilton Signed Race Glove 2020 Season",
                 "Race-used gloves from the 2020 Turkish GP. Signed on both gloves. FIA logo visible.",
                 "Good — authentic race-use marks, full provenance documentation.", ItemStatus.Good, subCats[20], 2400m, 60m,
-                "https://images.unsplash.com/photo-1567446537708-ac4aa75c9c28?w=600"),
+                "dummyjson-product-image"),
 
             // ─── ANTIQUES & VINTAGE ───────────────────────────────────────────
             new("1962 Leica M2 Rangefinder Camera – Chrome",
                 "Excellent working order. CLA'd 2022. 50mm collapsible Elmar f/2.8 included. Film tested.",
                 "Excellent — clean viewfinder, accurate shutter.", ItemStatus.LikeNew, subCats[19], 980m, 25m,
-                "https://images.unsplash.com/photo-1491895200222-0fc4a4c35e61?w=600"),
+                "dummyjson-product-image"),
 
             new("Polaroid SX-70 Land Camera – Chrome/Tan",
                 "Folding SLR instant camera. Tested with i-Type film. Flash bar socket works.",
                 "Good — small crack in pleather, optics clear.", ItemStatus.Good, subCats[19], 165m, 5m,
-                "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600"),
+                "dummyjson-product-image"),
 
             new("1950s Royal Enfield Bullet 350 – Restored",
                 "Fully restored 1952 RE Bullet 350cc. New exhaust, re-chromed, new seat. Starts first kick.",
                 "Excellent — museum-quality restoration.", ItemStatus.LikeNew, subCats[31], 4800m, 100m,
-                "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=600"),
+                "dummyjson-product-image"),
 
             new("Vintage Braun T3 Transistor Radio – 1958",
                 "Iconic Dieter Rams design. Working condition. Original leather case. Museum piece.",
                 "Good — minor dial scratch, audio output excellent.", ItemStatus.Good, subCats[19], 340m, 10m,
-                "https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=600"),
+                "dummyjson-product-image"),
 
             // ─── EXTRA PADDING ────────────────────────────────────────────────
             new("Sony WH-1000XM5 Wireless Headphones",
                 "Industry-leading ANC. Multipoint Bluetooth, 30h battery, foldable. Sealed box.",
                 "Factory sealed — gift that went unopened.", ItemStatus.New, subCats[0], 240m, 10m,
-                "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600"),
+                "dummyjson-product-image"),
 
             new("DJI Mini 4 Pro Fly More Combo",
                 "249g, 4K 60fps HDR, omnidirectional obstacle sensing, 34-min flight. 3 batteries + charger included.",
                 "Like new — 12 total flights, no crashes.", ItemStatus.LikeNew, subCats[2], 650m, 20m,
-                "https://images.unsplash.com/photo-1473968512647-3e447244af8f?w=600"),
+                "dummyjson-product-image"),
 
             new("Breitling Navitimer B01 Chronograph 46mm",
                 "Chronometer-certified in-house movement, pilot-style dial, stainless steel. Full set 2022.",
                 "Excellent — worn occasionally, serviced 2024.", ItemStatus.LikeNew, subCats[3], 4200m, 100m,
-                "https://images.unsplash.com/photo-1614164185128-e4ec99c436d7?w=600"),
+                "dummyjson-product-image"),
 
             new("Moncler Maya 70 Down Jacket – Black XL",
                 "Iconic puffer with RECCO detector, 90/10 goose down fill. Original box, tags on.",
                 "Brand new — received as gift, wrong size.", ItemStatus.New, subCats[4], 690m, 20m,
-                "https://images.unsplash.com/photo-1539533018447-63fcce2678e3?w=600"),
+                "dummyjson-product-image"),
 
             new("Nike Air Max 95 OG – Neon Yellow US11",
                 "OG Neon colourway. DS pair purchased from SNKRS. OG box, extra laces.",
                 "Deadstock — never worn.", ItemStatus.New, subCats[5], 310m, 10m,
-                "https://images.unsplash.com/photo-1575537302964-96cd47c06b1b?w=600"),
+                "dummyjson-product-image"),
 
             new("2018 Lamborghini Huracán LP580-2 – Arancio Borealis",
                 "5.2L V10, 580HP, rear-wheel drive. 22,000 km. Lift system, camera park. Single expat owner.",
                 "Excellent — major service completed, no accidents.", ItemStatus.LikeNew, subCats[6], 480000m, 10000m,
-                "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=600"),
+                "dummyjson-product-image"),
 
             new("2022 Kawasaki Ninja ZX-10R – Lime Green",
                 "998cc inline-four, 203HP. KTRC traction control, launch control, IMU cornering ABS. 5,500 km.",
                 "Excellent — no modifications, full dealer service.", ItemStatus.LikeNew, subCats[7], 16500m, 400m,
-                "https://images.unsplash.com/photo-1558981359-219d6364c9c8?w=600"),
+                "dummyjson-product-image"),
 
             new("HRE FlowForm FF01 Wheels – 20\" – Anthracite Set of 4",
                 "Lightweight flow-formed alloy. 5×112 bolt pattern, ET35, 9J front 10.5J rear. Fits Mercedes, BMW, Audi.",
                 "Like new — off a C63 S, driven 8,000km, no kerb damage.", ItemStatus.LikeNew, subCats[8], 1800m, 50m,
-                "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600"),
+                "dummyjson-product-image"),
 
             new("Mid-Century Modern Original Oil – Nude Figure",
                 "Oil on canvas, 80×60cm, signed by European artist, undated (est. 1960s). Frame original.",
                 "Good — age cracking on varnish, colours vivid.", ItemStatus.Good, subCats[9], 1100m, 30m,
-                "https://images.unsplash.com/photo-1558618188-a501a24b4b28?w=600"),
+                "dummyjson-product-image"),
 
             new("Signed Roger Federer Wimbledon 2019 Racket",
                 "Wilson Pro Staff RF 97 Autograph signed at post-match signing. ACOA authenticated.",
                 "Excellent — display frame included.", ItemStatus.LikeNew, subCats[10], 3800m, 80m,
-                "https://images.unsplash.com/photo-1595435742656-5272d0b3fa82?w=600"),
+                "dummyjson-product-image"),
 
             new("1970s Olympus OM-1 Film Camera + 50mm f/1.4",
                 "Fully mechanical SLR. Serviced and CLA'd. Light seals replaced. Film tested.",
                 "Good — some brassing on top plate, viewfinder clear.", ItemStatus.Good, subCats[11], 195m, 5m,
-                "https://images.unsplash.com/photo-1452780212940-6f5c0d14d848?w=600"),
+                "dummyjson-product-image"),
 
             new("1-Bedroom Apartment – Jabal Amman – Furnished",
                 "75sqm, first circle, Old Amman charm, exposed stone walls. Perfect for Airbnb. Rental income proven.",
                 "Good — partially renovated, needs minor updates.", ItemStatus.Good, subCats[12], 35000m, 1000m,
-                "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600"),
+                "dummyjson-product-image"),
 
             new("Luxury Chalet – Zara Peak, Ajloun – Mountain View",
                 "3-bed chalet, 220sqm. Fireplace, stone interior, 200sqm garden. Walking distance to forest trails.",
                 "Excellent — built 2021, holiday use only.", ItemStatus.LikeNew, subCats[13], 140000m, 3000m,
-                "https://images.unsplash.com/photo-1510798831971-661eb04b3739?w=600"),
+                "dummyjson-product-image"),
 
             new("Warehouse Unit – Industrial Zone, Sahab",
                 "1,200sqm industrial warehouse, 8m ceiling height, 3-phase electricity, loading dock.",
                 "Good — currently vacant, ready for occupation.", ItemStatus.Good, subCats[14], 210000m, 5000m,
-                "https://images.unsplash.com/photo-1553861783-7b7f2c4c4a75?w=600"),
+                "dummyjson-product-image"),
         };
     }
 
