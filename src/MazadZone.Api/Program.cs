@@ -23,6 +23,7 @@ using MazadZone.Api.Endpoints.Disputes;
 using MazadZone.Api.Endpoints.DisputeTypes;
 using MazadZone.Api.Endpoints.Dashboard;
 using MazadZone.Api.Endpoints.Emails;
+using MazadZone.Api.Configuration;
 #endregion
 
 Log.Logger = new LoggerConfiguration()
@@ -293,7 +294,10 @@ try
     app.MapHub<NotificationsHub>("/hubs/notifications");
 
 
-    app.UseHangfireDashboard("/hangfire");
+    app.UseHangfireDashboard("/hangfire", new DashboardOptions
+{
+    Authorization = new[] { new AllowAllConnectionsFilter() }
+});
 
     // Custom endpoint mapping to support public bidder profile details by ID
     app.MapGet("api/v1/bidders/{id:guid}", async (Guid id, MediatR.ISender sender, CancellationToken ct) => {
