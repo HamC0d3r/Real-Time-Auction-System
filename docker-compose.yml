@@ -102,8 +102,9 @@ services:
       - "3000:3000"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - NEXT_PUBLIC_SERVER_API_URL=http://mazadzone-api:8080
-      - NEXT_PUBLIC_CLIENT_API_URL=http://localhost:5108
+      - NEXT_PUBLIC_APP_URL=http://localhost:3000
+      - NEXT_PUBLIC_API_BASE_URL=http://localhost:5108
+      - NEXT_PUBLIC_SIGNALR_HUB_URL=http://localhost:5108/hubs
     depends_on:
       - api
     networks:

@@ -6,8 +6,8 @@ public sealed record MyBidAuctionDto(
     string ItemTitle,
     decimal YourBidAmount,
     decimal CurrentBidAmount,
-    int AuctionStatus,
-    int YourBidStatus,
+    string AuctionStatus,
+    string YourBidStatus,
     DateTime StartTime,
     DateTime EndTime,
     int BidsCount
