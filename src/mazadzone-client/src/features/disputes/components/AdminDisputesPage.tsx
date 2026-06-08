@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Plus, Edit2, Trash2, ShieldAlert } from "lucide-react";
 import { AdminDisputesFilters } from "./AdminDisputesFilters";
 import { AdminDisputesTable } from "./AdminDisputesTable";
-import { useGetAdminDisputes } from "../api/use-get-admin-disputes";
+import { useGetAdminDisputes } from "../api/disputes.queries";
 import { useUrlFilters } from "@/hooks/use-url-filters";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,20 +28,29 @@ export function AdminDisputesPage() {
   const { searchParams, setFilters } = useUrlFilters<{
     search: string;
     status: string;
-    category: string;
+    categoryId: string;
+    sortColumn: string;
     page: number;
     pageSize: number;
   }>();
 
   const search = searchParams.get("search") || "";
   const status = searchParams.get("status") || "All Statuses";
-  const category = searchParams.get("category") || "All Categories";
+  const categoryId = searchParams.get("categoryId") || "All Categories";
+  const sortColumn = searchParams.get("sortColumn") || "SubmittedDate";
   const page = Number(searchParams.get("page")) || 1;
   const pageSize = Number(searchParams.get("pageSize")) || 10;
 
-  const { data, isLoading } = useGetAdminDisputes({ search, status, category, page, pageSize });
+  const { data: disputes = [], isLoading } = useGetAdminDisputes({
+    search,
+    status,
+    categoryId: categoryId !== "All Categories" ? categoryId : undefined,
+    sortColumn,
+    page,
+    pageSize,
+  });
 
-  // Remote state and CRUD mutations
+  // Remote state and CRUD mutations for dispute types
   const { data: disputeTypes = [], isLoading: isTypesLoading } = useGetDisputeTypes();
   const createMutation = useCreateDisputeType();
   const updateMutation = useUpdateDisputeType();
@@ -120,17 +129,19 @@ export function AdminDisputesPage() {
         setSearch={(val) => setFilters({ search: val, page: 1 })}
         status={status}
         setStatus={(val) => setFilters({ status: val, page: 1 })}
-        category={category}
-        setCategory={(val) => setFilters({ category: val, page: 1 })}
+        categoryId={categoryId}
+        setCategoryId={(val) => setFilters({ categoryId: val, page: 1 })}
+        sortColumn={sortColumn}
+        setSortColumn={(val) => setFilters({ sortColumn: val, page: 1 })}
       />
 
       {/* Table section */}
       <AdminDisputesTable
-        data={data?.data || []}
+        data={disputes}
         isLoading={isLoading}
         page={page}
         pageSize={pageSize}
-        totalPages={data?.totalPages || 1}
+        totalPages={Math.ceil(disputes.length / pageSize) || 1}
         onPageChange={handlePageChange}
         onPageSizeChange={handlePageSizeChange}
       />
