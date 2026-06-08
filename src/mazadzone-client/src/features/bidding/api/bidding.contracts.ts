@@ -10,8 +10,8 @@ export interface MyBidAuctionDto {
   itemTitle: string;
   yourBidAmount: number;
   currentBidAmount: number;
-  auctionStatus: number;
-  yourBidStatus: number;
+  auctionStatus: string;
+  yourBidStatus: string;
   startTime: string;
   endTime: string;
   bidsCount: number;

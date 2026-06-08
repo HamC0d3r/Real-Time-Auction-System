@@ -4,6 +4,11 @@ import Link from "next/link";
 import { ROUTES } from "@/config/routes.config";
 import { Gavel } from "lucide-react";
 
+export interface EmptyBidsStateProps {
+  title?: string;
+  description?: string;
+}
+
 /**
  * EmptyBidsState Component
  * 
@@ -11,15 +16,18 @@ import { Gavel } from "lucide-react";
  * Employs premium design features such as rounded shadows, custom gavel icon wrapper, and a primary CTA
  * that directs users to explore active auctions.
  */
-export function EmptyBidsState() {
+export function EmptyBidsState({
+  title = "No Bids Yet",
+  description = "You haven't placed any bids on active auctions yet. Discover premium items and place your first bid!",
+}: EmptyBidsStateProps) {
   return (
     <div className="flex flex-col items-center justify-center py-20 px-4 text-center bg-white border border-gray-100 rounded-2xl shadow-sm">
       <div className="h-24 w-24 bg-white rounded-full flex items-center justify-center mb-6 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-gray-50/50">
         <Gavel className="w-12 h-12 text-primary" strokeWidth={1.8} />
       </div>
-      <h3 className="text-2xl font-bold text-gray-900 mb-2">No Bids Yet</h3>
+      <h3 className="text-2xl font-bold text-gray-900 mb-2">{title}</h3>
       <p className="text-gray-500 max-w-sm mb-8 text-lg leading-relaxed">
-        You haven&apos;t placed any bids on active auctions yet. Discover premium items and place your first bid!
+        {description}
       </p>
       <Link
         href={ROUTES.AUCTIONS?.LIST || "/auctions"}

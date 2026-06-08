@@ -13,6 +13,7 @@ import type {
 } from "../types/place-bid.types";
 import type { BidActivity } from "../types/bidding.types";
 import { useAuthStore } from "@/stores/auth.store";
+import { auctionKeys } from "@/features/auctions/api/auction.keys";
 
 // Re-export keys
 export { biddingKeys as BIDDING_KEYS };
@@ -121,7 +122,7 @@ export const usePlaceBid = () => {
       // Invalidate relevant queries after a successful bid
       void queryClient.invalidateQueries({ queryKey: biddingKeys.all });
       void queryClient.invalidateQueries({
-        queryKey: ["auctions", variables.auctionId],
+        queryKey: auctionKeys.detail(variables.auctionId),
       });
     },
   });

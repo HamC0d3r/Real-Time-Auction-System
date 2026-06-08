@@ -15,7 +15,7 @@ import { useRequireRole } from "@/hooks/use-require-role";
 import { AppAlert } from "@/components/feedback/app-alert";
 import { useAppToast } from "@/lib/toast/app-toast";
 import type { ApiError } from "@/types/api.types";
-
+import { generateUUID } from "@/utils/uuid.utils";
 import { useCreateAuction } from "../../api/auction.mutations";
 import { AuctionCategory, AuctionSubcategory, AuctionCondition } from "../../types/auction.types";
 import {
@@ -166,7 +166,7 @@ export function CreateAuctionPage() {
 
     try {
       // 1. Generate a unique folder ID for the auction images
-      auctionFolderId = crypto.randomUUID();
+      auctionFolderId = generateUUID();
 
       // 2. Upload the images to our dynamic Route Handler
       const uploadFormData = new FormData();

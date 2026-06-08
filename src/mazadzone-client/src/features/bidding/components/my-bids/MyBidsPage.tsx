@@ -63,6 +63,42 @@ export function MyBidsPage() {
   // Retrieve bidding activities via unified query API, enabled only for authenticated users
   const { data: response, isLoading, isError, refetch } = useGetMyBids(userId, queryParams);
 
+  // Retrieve all bids (lightweight query with pageSize: 1) to determine if user has any bids in general
+  const allBidsParams = useMemo(() => ({
+    filter: "All" as const,
+    page: 1,
+    pageSize: 1,
+  }), []);
+  const { data: allBidsResponse } = useGetMyBids(userId, allBidsParams);
+
+  const hasAnyBids = (allBidsResponse?.totalCount ?? 0) > 0;
+
+  const emptyStateProps = useMemo(() => {
+    if (!hasAnyBids) {
+      return {};
+    }
+
+    switch (activeFilter) {
+      case "Leading":
+        return {
+          title: "No Leading Bids",
+          description: "You are not leading in any auctions right now. Check your active bids or place new ones to stay ahead!",
+        };
+      case "Outbid":
+        return {
+          title: "No Outbid Bids",
+          description: "All your active bids are currently in the lead. Keep an eye on them so you don't miss out!",
+        };
+      case "Ended":
+        return {
+          title: "No Ended Bids",
+          description: "You don't have any bids on completed auctions yet. Place bids on active auctions to win them!",
+        };
+      default:
+        return {};
+    }
+  }, [hasAnyBids, activeFilter]);
+
   if (!isHydrated || !isAuthenticated) return null;
 
   const bids = response?.items || [];
@@ -97,7 +133,7 @@ export function MyBidsPage() {
       ) : isError ? (
         <ErrorBidsState onRetry={refetch} />
       ) : bids.length === 0 ? (
-        <EmptyBidsState />
+        <EmptyBidsState {...emptyStateProps} />
       ) : (
         <div className="flex flex-col gap-4">
           {bids.map((activity, index) => (

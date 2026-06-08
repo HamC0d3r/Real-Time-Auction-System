@@ -43,6 +43,11 @@ export {
   cancelAuction,
 } from "./api";
 
+// Pure Mappers
+export {
+  mapAuctionsListDtoToSummary,
+} from "./api";
+
 // Types
 export type {
   Auction,
