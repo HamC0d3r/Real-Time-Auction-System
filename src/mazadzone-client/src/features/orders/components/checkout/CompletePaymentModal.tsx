@@ -29,6 +29,7 @@ export interface CompletePaymentModalProps {
   imageUrl: string;
   isOpen: boolean;
   onClose: () => void;
+  onPaymentSuccess?: () => void;
 }
 
 export function CompletePaymentModal({
@@ -39,6 +40,7 @@ export function CompletePaymentModal({
   imageUrl,
   isOpen,
   onClose,
+  onPaymentSuccess,
 }: CompletePaymentModalProps) {
   const { data: profileAddresses = [] } = useGetAddresses();
   const { data: savedPaymentMethods = [] } = useGetSavedPaymentMethods();
@@ -132,6 +134,7 @@ export function CompletePaymentModal({
         paymentMethod: selectedPayment,
       });
       setStep("success");
+      onPaymentSuccess?.();
     } catch (err) {
       console.error("Failed to complete order payment:", err);
     }
