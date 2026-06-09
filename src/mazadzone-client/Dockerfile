@@ -15,6 +15,15 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Build-time env vars: NEXT_PUBLIC_* must be available at build time
+# because Next.js inlines them into the client bundle during `next build`.
+ARG NEXT_PUBLIC_APP_URL=http://localhost:3000
+ARG NEXT_PUBLIC_API_BASE_URL=http://localhost:5108
+ARG NEXT_PUBLIC_SIGNALR_HUB_URL=http://localhost:5108/hubs
+ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
+ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
+ENV NEXT_PUBLIC_SIGNALR_HUB_URL=$NEXT_PUBLIC_SIGNALR_HUB_URL
+
 # Turn off telemetry tracking during production builds
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
