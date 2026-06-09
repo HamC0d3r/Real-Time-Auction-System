@@ -1,12 +1,9 @@
 
-using MazadZone.Application.Features.Auctions.DTOs;
-using MazadZone.Application.Features.Auctions.Enums;
 using MazadZone.Application.Features.Notifications.Commands.CreateNotification;
 using MazadZone.Application.Features.Notifications.Enums;
 using MazadZone.Application.Services;
 using MazadZone.Domain.Auctions;
 using MazadZone.Domain.Auctions.Events;
-using MazadZone.Domain.Notifications;
 using MazadZone.Domain.Repositories;
 using MazadZone.Domain.Users.ValueObjects;
 
@@ -26,8 +23,7 @@ public class NotifyPlaceBidEventHandler
     IAuctionRepository _auctionRepository,
     ILogger<NotifyPlaceBidEventHandler> _logger,
     IItemRepository _itemRepository,
-    ISender _sender,
-    IAuctionStreamService _auctionStreamService
+    ISender _sender
 ) : INotificationHandler<BidPlacedDomainEvent>
 {
     public async Task Handle(
@@ -46,15 +42,6 @@ public class NotifyPlaceBidEventHandler
             return;
         }
 
-        //BroadCast
-        
-        await _auctionStreamService.BroadcastAuctionUpdateAsync(BroadcastAuctionUpdateTypes.StatusChanged, new AuctionStatusUpdateDto{
-            AuctionId = notification.AuctionId.Value,
-            Status = AuctionStatus.Active.ToString(),
-        }, cancellationToken);
-        _logger.LogInformation("Broadcasted auction status update for Auction ID: {AuctionId}", notification.AuctionId);
-        
-
         var item = await _itemRepository
             .GetItemByIdAsync(auction.Item.Id.Value, cancellationToken);
 
@@ -71,11 +58,6 @@ public class NotifyPlaceBidEventHandler
             .Select(x => x.BidderId)
             .Distinct()
             .ToList();
-
-        await _auctionStreamService.BroadcastAuctionUpdateAsync(BroadcastAuctionUpdateTypes.BidPlaced, new AuctionBidUpdateDto{
-            AuctionId = notification.AuctionId.Value,
-            NewPrice = auction.CurrentHighestBidAmount.Amount,
-        }, cancellationToken);
 
         foreach (var bidderId in biddersToNotify)
         {

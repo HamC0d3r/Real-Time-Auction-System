@@ -111,6 +111,7 @@ export function PlaceBidModal({
 
       setBidResponse(response);
       setStep("success");
+      appToast.success("Bid Placed!", "Your bid has been placed successfully. Good luck!");
     } catch (err) {
       appToast.fromApiError(err, "Could not place your bid. Please try again.");
     }

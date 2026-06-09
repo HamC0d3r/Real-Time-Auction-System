@@ -1,5 +1,3 @@
-using MazadZone.Application.Features.Auctions.DTOs;
-using MazadZone.Application.Features.Auctions.Enums;
 using MazadZone.Application.Features.Notifications.Commands.CreateNotification;
 using MazadZone.Application.Features.Notifications.Enums;
 using MazadZone.Application.Services;
@@ -13,7 +11,6 @@ namespace MazadZone.Application.Features.Auctions.Commands.CreateAuction.EventHa
 public class NotifyAuctionCreatedEventHandler
 (
     IItemRepository _itemRepository,
-    IAuctionStreamService _auctionStreamService,
     ISender _sender,
     ILogger<NotifyAuctionCreatedEventHandler> _logger,
     IAuctionRepository _auctionRepository
@@ -32,14 +29,6 @@ public class NotifyAuctionCreatedEventHandler
             _logger.LogWarning("Auction with ID {AuctionId} not found for creation event.", notification.AuctionId);
             return;
         }
-        // Broadcast the auction creation event to clients  
-        _logger.LogInformation("Broadcasting auction creation update for Auction ID: {AuctionId}", notification.AuctionId);
-        await _auctionStreamService.BroadcastAuctionUpdateAsync(BroadcastAuctionUpdateTypes.AuctionCreated, new AuctionStatusUpdateDto{
-            AuctionId = notification.AuctionId.Value,
-            Status = AuctionStatus.Pending.ToString(),
-        }, cancellationToken);
-        _logger.LogInformation("Broadcasted auction creation update for Auction ID: {AuctionId}", notification.AuctionId);
-        
         
         var item = await _itemRepository.GetItemByIdAsync(auction.Item.Id.Value, cancellationToken);
         
@@ -48,13 +37,6 @@ public class NotifyAuctionCreatedEventHandler
             _logger.LogWarning("Item with ID {ItemId} not found for auction ID {AuctionId}.", auction.Item.Id.Value, notification.AuctionId);
             return;
         }
-
-        //Broadcast update
-        await _auctionStreamService.BroadcastAuctionUpdateAsync(BroadcastAuctionUpdateTypes.StatusChanged, new AuctionStatusUpdateDto{
-            AuctionId = notification.AuctionId.Value,
-            Status = AuctionStatus.Cancelled.ToString(),
-        }, cancellationToken);
-        
 
         var itemTitle = item?.Title ?? "your auction item";
         var title = $"Auction Created: {itemTitle}";

@@ -1,4 +1,6 @@
 using MazadZone.Application.Features.Auctions.Commands.CancelAuction;
+using MazadZone.Application.Features.Auctions.DTOs;
+using MazadZone.Application.Features.Auctions.Enums;
 using MazadZone.Application.Services;
 using MazadZone.Domain.Auctions;
 using MazadZone.Domain.Repositories;
@@ -16,7 +18,8 @@ class CancelAuctionHandler(
     IAuctionRepository _auctionRepository,
     IUnitOfWork _unitOfWork ,
     ILogger<CancelAuctionHandler> _logger,
-    IDateTimeProvider _dateTimeProvider
+    IDateTimeProvider _dateTimeProvider,
+    IAuctionStreamService _auctionStreamService
     ): ICommandHandler<CancelAuctionCommand, Unit>
 {
 
@@ -44,6 +47,22 @@ class CancelAuctionHandler(
 
         _auctionRepository.Update(auction); 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        try
+        {
+            await _auctionStreamService.BroadcastAuctionUpdateAsync(
+                BroadcastAuctionUpdateTypes.StatusChanged,
+                new AuctionStatusUpdateDto
+                {
+                    AuctionId = request.AuctionId.Value,
+                    Status = AuctionStatus.Cancelled.ToString(),
+                },
+                cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to broadcast auction cancelled event for Auction ID: {AuctionId}", request.AuctionId.Value);
+        }
         
         CancelAuctionLog.LogAuctionCancelled(_logger, request.AuctionId.Value);
         return Result.Success(Unit.Value);

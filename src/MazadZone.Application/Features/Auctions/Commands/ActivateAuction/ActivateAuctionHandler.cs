@@ -1,3 +1,5 @@
+using MazadZone.Application.Features.Auctions.DTOs;
+using MazadZone.Application.Features.Auctions.Enums;
 using MazadZone.Application.Services;
 using MazadZone.Domain.Auctions;
 using MazadZone.Domain.Repositories;
@@ -10,7 +12,8 @@ public class ActivateAuctionHandler
     IAuctionRepository _auctionRepository,
     IDateTimeProvider  _dateTimeProvider,
     IUnitOfWork _unitOfWork,
-    ILogger<ActivateAuctionHandler> _logger
+    ILogger<ActivateAuctionHandler> _logger,
+    IAuctionStreamService _auctionStreamService
 )
 : ICommandHandler<ActivateAuctionCommand, Unit>
 {
@@ -46,6 +49,22 @@ public class ActivateAuctionHandler
 
         _auctionRepository.Update(auction); 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        try
+        {
+            await _auctionStreamService.BroadcastAuctionUpdateAsync(
+                BroadcastAuctionUpdateTypes.StatusChanged,
+                new AuctionStatusUpdateDto
+                {
+                    AuctionId = request.AuctionId.Value,
+                    Status = AuctionStatus.Active.ToString(),
+                },
+                cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to broadcast auction started event for Auction ID: {AuctionId}", request.AuctionId.Value);
+        }
 
         ActivateAuctionLog.LogAuctionActivated(_logger, request.AuctionId.Value);
         return Result.Success(Unit.Value);

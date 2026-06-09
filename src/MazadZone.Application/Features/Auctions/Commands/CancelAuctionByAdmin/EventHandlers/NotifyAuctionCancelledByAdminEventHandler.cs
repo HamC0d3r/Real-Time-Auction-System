@@ -1,26 +1,22 @@
-using MazadZone.Application.Features.Auctions.DTOs;
-using MazadZone.Application.Features.Auctions.Enums;
 using MazadZone.Application.Features.Notifications.Commands.CreateNotification;
 using MazadZone.Application.Features.Notifications.Enums;
 using MazadZone.Application.Services;
 using MazadZone.Domain.Auctions;
 using MazadZone.Domain.Auctions.Events;
-using MazadZone.Domain.Notifications;
 using MazadZone.Domain.Repositories;
 using MazadZone.Domain.Users.ValueObjects;
 using Microsoft.Extensions.Logging;
 
 namespace MazadZone.Application.Features.Auctions.EventHandlers;
 /// <summary>
-/// Handles the notification of auction cancelled events.
+/// Handles the notification of auction cancelled by admin events.
 /// </summary>
-/// <typeparam name="NotifyAuctionCancelledEventHandler"></typeparam>
+/// <typeparam name="NotifyAuctionCancelledByAdminEventHandler"></typeparam>
 public class NotifyAuctionCancelledByAdminEventHandler(
-    ILogger<NotifyAuctionCancelledEventHandler> _logger,
+    ILogger<NotifyAuctionCancelledByAdminEventHandler> _logger,
     IAuctionRepository _auctionRepository,
     IItemRepository _itemRepository,
-    ISender _sender,
-    IAuctionStreamService _auctionStreamService
+    ISender _sender
 )
  : INotificationHandler<AuctionCancelledDomainEvent>
 {
@@ -39,16 +35,6 @@ public class NotifyAuctionCancelledByAdminEventHandler(
             _logger.LogWarning("Auction with ID {AuctionId} is not in a cancelled state. Current status: {Status}", notification.AuctionId, auction.Status);
             return;
         }
-
-
-        //broadcast
-
-        await _auctionStreamService.BroadcastAuctionUpdateAsync(BroadcastAuctionUpdateTypes.StatusChanged, new AuctionStatusUpdateDto{
-            AuctionId = notification.AuctionId.Value,
-            Status = AuctionStatus.Cancelled.ToString(),
-        }, cancellationToken);
-        _logger.LogInformation("Broadcasting auction cancelled update for Auction ID: {AuctionId}", notification.AuctionId);
-       
 
         var item = await _itemRepository.GetItemByIdAsync(auction.Item.Id.Value, cancellationToken);
 
