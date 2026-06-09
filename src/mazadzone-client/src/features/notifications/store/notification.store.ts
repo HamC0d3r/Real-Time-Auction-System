@@ -15,7 +15,6 @@
 
 import { create } from "zustand";
 import type { Notification } from "../types/notification.types";
-import { appToast } from "@/lib/toast/app-toast";
 
 interface NotificationState {
   /** All in-app notifications for the current user. */
@@ -84,9 +83,13 @@ export const useNotificationStore = create<NotificationStore>()((set, get) => ({
   setNotifications: (notifications) => set({ notifications }),
 
   addNotification: (notification) =>
-    set((state) => ({
-      notifications: [notification, ...state.notifications],
-    })),
+    set((state) => {
+      // Prevent duplicate notifications by ID
+      if (state.notifications.some((n) => n.id === notification.id)) {
+        return {};
+      }
+      return { notifications: [notification, ...state.notifications] };
+    }),
 
   markAsRead: (id) =>
     set((state) => ({
@@ -130,7 +133,7 @@ export const useNotificationStore = create<NotificationStore>()((set, get) => ({
   },
 
   syncFromServer: (serverItems) => {
-    const { _optimisticPending, notifications: existing, _hydrated } = get();
+    const { _optimisticPending, notifications: existing } = get();
 
     if (_optimisticPending > 0) {
       // Merge: keep existing store items, append any server items not already present
@@ -141,20 +144,11 @@ export const useNotificationStore = create<NotificationStore>()((set, get) => ({
       }
       // Don't touch unreadCount — optimistic value is authoritative
     } else {
-      // Detect genuinely NEW unread notifications (only after initial hydration)
-      if (_hydrated && existing.length > 0) {
-        const existingIds = new Set(existing.map((n) => n.id));
-        const newUnread = serverItems.filter(
-          (n) => !n.isRead && !existingIds.has(n.id)
-        );
-
-        // Show a toast for each new unread notification
-        for (const n of newUnread) {
-          appToast.info(n.title, n.message);
-        }
-      }
-
-      // Replace the notification list (but NOT unreadCount — the header handles that)
+      // Replace the notification list.
+      // Do NOT fire toasts here — live toasts are handled exclusively by the
+      // SignalR hook (useRealtimeNotifications). Firing toasts here would cause
+      // old notifications to re-appear whenever the query is invalidated by
+      // auction events (BidPlaced, StatusChanged, AuctionCreated).
       set({ notifications: serverItems, _hydrated: true });
     }
   },
