@@ -1,0 +1,39 @@
+src/MazadZone.Application/Features/Auctions/Commands/ActivateAuction/ActivateAuctionHandler.cs
+  s_198caa6f091b14::t_eb1ecd702152d5 1-2,15-16,53-67
+src/MazadZone.Application/Features/Auctions/Commands/PlaceBid/PlaceBidHandler.cs
+  s_198caa6f091b14::t_e8596c835a93c5 1-2,17-18,108-130
+src/MazadZone.Application/Features/Auctions/Commands/CancelAuction/EventHandlers/NotifyAuctionCancelledEventHandler.cs
+  s_198caa6f091b14::t_58b023bb9e5c26 19
+src/MazadZone.Application/Features/Auctions/Commands/CreateAuction/CreateAuctionHandler.cs
+  s_198caa6f091b14::t_f6096701101b28 1-2,17-18,72-86
+src/MazadZone.Application/Features/Auctions/Commands/EndAuction/EventHandlers/NotifyAuctionEndedEventHandler.cs
+  s_198caa6f091b14::t_138712ed91d72c 19,30
+src/MazadZone.Application/Features/Auctions/Commands/CancelAuctionByAdmin/EventHandlers/NotifyAuctionCancelledByAdminEventHandler.cs
+  s_198caa6f091b14::t_b00084e82c1937 12,14,16,19
+src/MazadZone.Application/Features/Auctions/Commands/PlaceBid/EventHandlers/NotifyPlaceBidEventHandler.cs
+  s_198caa6f091b14::t_2d7c6c0b4e1d92 26
+src/MazadZone.Application/Features/Auctions/Commands/CancelAuction/CancelAuctionHandler.cs
+  s_198caa6f091b14::t_6f455be3f0c451 2-3,21-22,50-65
+src/MazadZone.Application/Features/Auctions/Commands/ActivateAuction/EventHandlers/NotifyAuctionStartedDomainEventHandler.cs
+  s_198caa6f091b14::t_2565ad49e57d2e 20
+src/MazadZone.Application/Features/Auctions/Commands/EndAuction/EndAuctionHandler.cs
+  s_198caa6f091b14::t_bad0ed344d70e7 1-2,22-23,49-64
+src/MazadZone.Application/Features/Auctions/Commands/CancelAuctionByAdmin/CancelAuctionByAdminHandler.cs
+  s_198caa6f091b14::t_bce46a615a891d 2-4,12-17,48-63
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "8671acb9d5c35d5da8b298f4ab5b4ea06671e7f8",
+  "prompts": {},
+  "sessions": {
+    "s_198caa6f091b14": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_1544f67fcffezsv67W2HS61Uh6",
+        "model": "moonshotai/Kimi-K2.6"
+      },
+      "human_author": "khaled0x1 <120220612151@st.ahu.edu.jo>"
+    }
+  }
+}
