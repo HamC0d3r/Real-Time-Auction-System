@@ -1,9 +1,11 @@
 "use client";
 
+import { useEffect } from "react";
 import { PageWrapper } from "@/components/layout/page-wrapper";
 import { useGetAuctionById } from "../../api";
 import { AuctionDetailSkeleton } from "./AuctionDetailSkeleton";
 import { AuctionDetailContent } from "./AuctionDetailContent";
+import { AuctionStatus } from "../../types/auction.types";
 
 interface AuctionDetailPageProps {
   id: string;
@@ -14,10 +16,30 @@ interface AuctionDetailPageProps {
  *
  * Owns data fetching (via TanStack Query) and delegates rendering to
  * AuctionDetailContent. Handles loading, error, and empty states.
- * Bid history and images are now embedded in the auction object itself.
+ *
+ * Polling strategy for Upcoming → Active transition:
+ * The backend activates auctions via a scheduled job (not a user action),
+ * so it may not send a SignalR StatusChanged event. We poll every 5s once
+ * the auction's start time has passed but the status is still "Upcoming",
+ * so the UI transitions to Active within a few seconds automatically.
  */
 export function AuctionDetailPage({ id }: AuctionDetailPageProps) {
   const { data: auction, isLoading, isError, refetch } = useGetAuctionById(id);
+
+  // Poll when start time has passed but status is still Upcoming.
+  // Stops automatically once the query returns a non-Upcoming status.
+  const isPendingActivation =
+    auction?.status === AuctionStatus.UPCOMING &&
+    auction?.timing.startDate != null &&
+    new Date() >= new Date(auction.timing.startDate);
+
+  useEffect(() => {
+    if (!isPendingActivation) return;
+    const interval = setInterval(() => {
+      void refetch();
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [isPendingActivation, refetch]);
 
   return (
     <PageWrapper>

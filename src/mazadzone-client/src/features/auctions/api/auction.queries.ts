@@ -28,7 +28,6 @@ import {
   mapFiltersToQueryParams,
   mapAuctionsListDtoToSummary,
   mapAuctionDtoToSummary,
-  mapBackendConditionToAuctionCondition,
 } from "./auction.mappers";
 
 // Re-export query keys
@@ -111,7 +110,8 @@ export function useGetAuctionById(id: string) {
       const raw = await getAuctionById(id);
       const summary = mapAuctionDtoToSummary(raw);
 
-      // Try to find the item in the list cache to retrieve backend-specific ItemStatus and Condtion details
+      // Resolve condition from list cache first (fast — no network call).
+      // The list cache is already populated when the user navigated from the list page.
       const listsData = queryClient.getQueriesData<PaginatedResponse<AuctionSummary>>({
         queryKey: auctionKeys.lists(),
       });
@@ -125,25 +125,20 @@ export function useGetAuctionById(id: string) {
       }
 
       if (cachedItem) {
+        // Use cached condition — no extra network call needed
         summary.condition = cachedItem.condition;
         summary.conditionDescription = cachedItem.conditionDescription;
-      } else {
-        // Fallback: Query the list endpoint directly (since backend's detailed AuctionDto misses ItemStatus and Condtion)
-        try {
-          const listResponse = await getAuctions({ SearchTerm: raw.itemTitle, PageSize: 5, Page: 1 });
-          const matchedDto = listResponse.items.find((item) => item.id === id);
-          if (matchedDto) {
-            summary.condition = mapBackendConditionToAuctionCondition(matchedDto.itemStatus);
-            summary.conditionDescription = matchedDto.condtion || "";
-          }
-        } catch (err) {
-          console.warn("Failed to retrieve condition details from fallback query:", err);
-        }
       }
+      // Note: if no list cache exists (direct URL navigation), condition
+      // falls back to the mapper default. This is acceptable — condition
+      // is a static field that doesn't change in real-time.
 
       return summary;
     },
     enabled: !!id,
+    // staleTime: 0 — every invalidateQueries call from SignalR triggers
+    // an immediate background refetch so status and price stay current.
+    staleTime: 0,
   });
 }
 

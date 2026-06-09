@@ -97,6 +97,12 @@ services:
     build:
       context: ./src/mazadzone-client
       dockerfile: Dockerfile
+      # NEXT_PUBLIC_* vars must be passed at BUILD time so Next.js can
+      # inline them into the client bundle during `next build`.
+      args:
+        - NEXT_PUBLIC_APP_URL=http://localhost:3000
+        - NEXT_PUBLIC_API_BASE_URL=http://localhost:5108
+        - NEXT_PUBLIC_SIGNALR_HUB_URL=http://localhost:5108/hubs
     container_name: mazadzone-client
     ports:
       - "3000:3000"
