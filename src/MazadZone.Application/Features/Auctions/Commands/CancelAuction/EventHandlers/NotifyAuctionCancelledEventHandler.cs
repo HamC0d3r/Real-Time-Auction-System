@@ -1,11 +1,8 @@
-using MazadZone.Application.Features.Auctions.DTOs;
-using MazadZone.Application.Features.Auctions.Enums;
 using MazadZone.Application.Features.Notifications.Commands.CreateNotification;
 using MazadZone.Application.Features.Notifications.Enums;
 using MazadZone.Application.Services;
 using MazadZone.Domain.Auctions;
 using MazadZone.Domain.Auctions.Events;
-using MazadZone.Domain.Notifications;
 using MazadZone.Domain.Repositories;
 using MazadZone.Domain.Users.ValueObjects;
 using Microsoft.Extensions.Logging;
@@ -19,8 +16,7 @@ public class NotifyAuctionCancelledEventHandler(
     ILogger<NotifyAuctionCancelledEventHandler> _logger,
     IAuctionRepository _auctionRepository,
     IItemRepository _itemRepository,
-    ISender _sender,
-    IAuctionStreamService _auctionStreamService
+    ISender _sender
 )
  : INotificationHandler<AuctionCancelledDomainEvent>
 {
@@ -39,13 +35,6 @@ public class NotifyAuctionCancelledEventHandler(
             _logger.LogWarning("Auction with ID {AuctionId} is not in a cancelled state. Current status: {Status}", notification.AuctionId, auction.Status);
             return;
         }
-
-        //broadcast
-        await _auctionStreamService.BroadcastAuctionUpdateAsync(BroadcastAuctionUpdateTypes.StatusChanged, new AuctionStatusUpdateDto{
-            AuctionId = notification.AuctionId.Value,
-            Status = AuctionStatus.Cancelled.ToString(),
-        }, cancellationToken);
-
 
         var item = await _itemRepository.GetItemByIdAsync(auction.Item.Id.Value, cancellationToken);
 

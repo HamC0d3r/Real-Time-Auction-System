@@ -1,4 +1,7 @@
 using MazadZone.Application.Features.Auctions.Commands.CancelAuctionByAdmin;
+using MazadZone.Application.Features.Auctions.DTOs;
+using MazadZone.Application.Features.Auctions.Enums;
+using MazadZone.Application.Services;
 using MazadZone.Domain.Auctions;
 using MazadZone.Domain.Repositories;
 using Microsoft.Extensions.Logging;
@@ -6,9 +9,12 @@ using Microsoft.Extensions.Logging;
 namespace MazadZone.Application.Features.Auctions.Commands.CancelAuctionByAdmin;
 
 public class CancelAuctionByAdminHandler
-(IAuctionRepository _auctionRepository
-,IUnitOfWork _unitOfWork
-,ILogger<CancelAuctionByAdminHandler> _logger)
+(
+    IAuctionRepository _auctionRepository,
+    IUnitOfWork _unitOfWork,
+    ILogger<CancelAuctionByAdminHandler> _logger,
+    IAuctionStreamService _auctionStreamService
+)
 : ICommandHandler<CancelAuctionByAdminCommand, Unit>
 {
     //<summary>
@@ -39,6 +45,22 @@ public class CancelAuctionByAdminHandler
 
         _auctionRepository.Update(auction);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        try
+        {
+            await _auctionStreamService.BroadcastAuctionUpdateAsync(
+                BroadcastAuctionUpdateTypes.StatusChanged,
+                new AuctionStatusUpdateDto
+                {
+                    AuctionId = request.AuctionId.Value,
+                    Status = AuctionStatus.Cancelled.ToString(),
+                },
+                cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to broadcast auction cancelled by admin event for Auction ID: {AuctionId}", request.AuctionId.Value);
+        }
         
 
         CancelAuctionByAdminLog.LogAuctionCancelled(_logger, request.AuctionId.Value);

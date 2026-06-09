@@ -1,3 +1,5 @@
+using MazadZone.Application.Features.Auctions.DTOs;
+using MazadZone.Application.Features.Auctions.Enums;
 using MazadZone.Application.Services;
 using MazadZone.Domain.Auctions;
 using MazadZone.Domain.Repositories;
@@ -12,7 +14,8 @@ public class CreateAuctionHandler
     IAuctionRepository _auctionRepository,
     IUnitOfWork _unitOfWork,
     IAuctionJobScheduler _auctionJobScheduler,
-    ILogger<CreateAuctionHandler> _logger
+    ILogger<CreateAuctionHandler> _logger,
+    IAuctionStreamService _auctionStreamService
 ) : ICommandHandler<CreateAuctionCommand, AuctionId>
 {
     public async Task<Result<AuctionId>> Handle(CreateAuctionCommand request, CancellationToken cancellationToken)
@@ -65,6 +68,22 @@ public class CreateAuctionHandler
         _auctionRepository.Add(auction);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         CreateAuctionLog.LogAuctionCreated(_logger, auction.Id.Value);
+
+        try
+        {
+            await _auctionStreamService.BroadcastAuctionUpdateAsync(
+                BroadcastAuctionUpdateTypes.AuctionCreated,
+                new AuctionStatusUpdateDto
+                {
+                    AuctionId = auction.Id.Value,
+                    Status = AuctionStatus.Pending.ToString(),
+                },
+                cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to broadcast auction created event for Auction ID: {AuctionId}", auction.Id.Value);
+        }
 
         _auctionJobScheduler.ScheduleAuctionStarting(auction.Id.Value, auction.StartTime);
         _auctionJobScheduler.ScheduleAuctionClosing(auction.Id.Value, auction.EndTime);
