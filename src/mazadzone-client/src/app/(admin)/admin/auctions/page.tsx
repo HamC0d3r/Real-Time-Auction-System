@@ -1,4 +1,6 @@
+import { Suspense } from "react";
 import { ModerateAuctionsPage } from "@/features/admin";
+import { Spinner } from "@/components/ui/spinner";
 
 export const metadata = {
   title: "Moderate Auctions | MazadZone Admin",
@@ -6,5 +8,15 @@ export const metadata = {
 };
 
 export default function Page() {
-  return <ModerateAuctionsPage />;
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-[50vh] items-center justify-center">
+          <Spinner size="lg" />
+        </div>
+      }
+    >
+      <ModerateAuctionsPage />
+    </Suspense>
+  );
 }
