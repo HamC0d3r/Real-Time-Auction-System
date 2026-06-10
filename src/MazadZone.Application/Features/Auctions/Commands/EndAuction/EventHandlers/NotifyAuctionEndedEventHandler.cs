@@ -1,5 +1,3 @@
-using MazadZone.Application.Features.Auctions.DTOs;
-using MazadZone.Application.Features.Auctions.Enums;
 using MazadZone.Application.Features.Notifications.Commands.CreateNotification;
 using MazadZone.Application.Features.Notifications.Enums;
 using MazadZone.Application.Services;
@@ -18,8 +16,7 @@ public class NotifyAuctionEndedEventHandler
     ILogger<NotifyAuctionEndedEventHandler> _logger,
     IAuctionRepository _auctionRepository, 
     IItemRepository _itemRepository,
-    ISender _sender,
-    IAuctionStreamService _auctionStreamService
+    ISender _sender
 ): INotificationHandler<AuctionEndedDomainEvent>
 {
 
@@ -27,21 +24,12 @@ public class NotifyAuctionEndedEventHandler
     {
         _logger.LogInformation("Handling AuctionEndedDomainEvent for Auction ID: {AuctionId}", notification.AuctionId);
         
-        // 1. Create the Order
        var auction = await _auctionRepository.GetByIdAsync(notification.AuctionId, cancellationToken);
         if (auction is null)
         {
-            _logger.LogWarning("Auction with ID {AuctionId} not found for cancellation event.", notification.AuctionId);
+            _logger.LogWarning("Auction with ID {AuctionId} not found for end event.", notification.AuctionId);
             return;
         }
-
-        // Broadcast the auction ended event to clients
-        await _auctionStreamService.BroadcastAuctionUpdateAsync(BroadcastAuctionUpdateTypes.StatusChanged, new AuctionStatusUpdateDto{
-            AuctionId = notification.AuctionId.Value,
-            Status = AuctionStatus.Ended.ToString(),
-        }, cancellationToken);
-
-        _logger.LogInformation("Broadcasted auction ended update for Auction ID: {AuctionId}", notification.AuctionId);
         
         var item = await _itemRepository.GetItemByIdAsync(auction.Item.Id.Value, cancellationToken);
         var itemTitle = item?.Title ?? "your auction item";

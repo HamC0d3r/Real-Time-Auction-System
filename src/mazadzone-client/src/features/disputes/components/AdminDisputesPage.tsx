@@ -41,7 +41,7 @@ export function AdminDisputesPage() {
   const page = Number(searchParams.get("page")) || 1;
   const pageSize = Number(searchParams.get("pageSize")) || 10;
 
-  const { data: disputes = [], isLoading } = useGetAdminDisputes({
+  const { data, isLoading } = useGetAdminDisputes({
     search,
     status,
     categoryId: categoryId !== "All Categories" ? categoryId : undefined,
@@ -137,11 +137,11 @@ export function AdminDisputesPage() {
 
       {/* Table section */}
       <AdminDisputesTable
-        data={disputes}
+        data={data?.items ?? []}
         isLoading={isLoading}
         page={page}
         pageSize={pageSize}
-        totalPages={Math.ceil(disputes.length / pageSize) || 1}
+        totalPages={data?.totalPages ?? 1}
         onPageChange={handlePageChange}
         onPageSizeChange={handlePageSizeChange}
       />

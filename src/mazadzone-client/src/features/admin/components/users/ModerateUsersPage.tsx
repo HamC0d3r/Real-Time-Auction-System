@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { useUrlFilters } from "@/hooks/use-url-filters";
 import { Info } from "lucide-react";
 import { ModerateUsersFilters } from "./ModerateUsersFilters";
@@ -19,16 +19,18 @@ import type { ModerateUserRole, ModerateUserStatus } from "../../types/admin.typ
 export function ModerateUsersPage() {
   const { searchParams, setFilters } = useUrlFilters<UseModerateUsersFilters>();
 
-  const filters = useMemo<UseModerateUsersFilters>(() => {
-    return {
-      search: searchParams.get("search") || "",
-      role: (searchParams.get("role") as ModerateUserRole | "All Roles") || "All Roles",
-      status: (searchParams.get("status") as ModerateUserStatus | "All Statuses") || "All Statuses",
-      sortBy: searchParams.get("sortBy") || "dateJoined",
-      page: Number(searchParams.get("page")) || 1,
-      pageSize: Number(searchParams.get("pageSize")) || 15,
-    };
-  }, [searchParams]);
+  const search = searchParams.get("search") || "";
+  const role = (searchParams.get("role") as ModerateUserRole | "All Roles") || "All Roles";
+  const status = (searchParams.get("status") as ModerateUserStatus | "All Statuses") || "All Statuses";
+  const sortBy = searchParams.get("sortBy") || "dateJoined";
+  const page = Number(searchParams.get("page")) || 1;
+  const pageSize = Number(searchParams.get("pageSize")) || 15;
+  const joinedDate = searchParams.get("joinedDate") || "";
+
+  const filters = useMemo<UseModerateUsersFilters>(
+    () => ({ search, role, status, sortBy, page, pageSize, joinedDate }),
+    [search, role, status, sortBy, page, pageSize, joinedDate]
+  );
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isExporting, setIsExporting] = useState(false);
@@ -81,10 +83,10 @@ export function ModerateUsersPage() {
     });
   };
 
-  const handleFilterChange = (newFilters: Partial<UseModerateUsersFilters>) => {
+  const handleFilterChange = useCallback((newFilters: Partial<UseModerateUsersFilters>) => {
     setFilters(newFilters);
-    setSelectedIds([]); // Clear selection when filters change
-  };
+    setSelectedIds([]);
+  }, [setFilters]);
 
   const handlePageChange = (page: number) => {
     setFilters({ page } as Partial<UseModerateUsersFilters>);

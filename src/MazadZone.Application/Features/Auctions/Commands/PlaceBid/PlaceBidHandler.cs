@@ -1,3 +1,5 @@
+using MazadZone.Application.Features.Auctions.DTOs;
+using MazadZone.Application.Features.Auctions.Enums;
 using MazadZone.Application.Services;
 using MazadZone.Domain.Auctions;
 using MazadZone.Domain.Repositories;
@@ -12,7 +14,8 @@ public class PlaceBidHandler(
     IPaymentService _paymentService,
     IUnitOfWork unitOfWork,
     IDateTimeProvider _dateTimeProvider,
-    ILogger<PlaceBidHandler> _logger
+    ILogger<PlaceBidHandler> _logger,
+    IAuctionStreamService _auctionStreamService
 ) : IRequestHandler<PlaceBidCommand, Result<Unit>> // Adjusted interface to IRequestHandler for MediatR standard
 {
     public async Task<Result<Unit>> Handle(PlaceBidCommand request, CancellationToken cancellationToken)
@@ -100,6 +103,31 @@ public class PlaceBidHandler(
             await _paymentService.UnAuthorizeAsync(authHoldId, cancellationToken);
             PlaceBidLog.LogPersistenceFailed(_logger, request.AuctionId.Value, request.BidderId.Value, ex.Message);
             return Result.Failure<Unit>(AuctionErrors.DatabaseError);
+        }
+
+        try
+        {
+            await _auctionStreamService.BroadcastAuctionUpdateAsync(
+                BroadcastAuctionUpdateTypes.BidPlaced,
+                new AuctionBidUpdateDto
+                {
+                    AuctionId = request.AuctionId.Value,
+                    NewPrice = auction.CurrentHighestBidAmount.Amount,
+                },
+                cancellationToken);
+
+            await _auctionStreamService.BroadcastAuctionUpdateAsync(
+                BroadcastAuctionUpdateTypes.StatusChanged,
+                new AuctionStatusUpdateDto
+                {
+                    AuctionId = request.AuctionId.Value,
+                    Status = AuctionStatus.Active.ToString(),
+                },
+                cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to broadcast bid placed event for Auction ID: {AuctionId}", request.AuctionId.Value);
         }
 
         PlaceBidLog.LogSuccess(_logger, request.AuctionId.Value, request.BidderId.Value);

@@ -15,14 +15,17 @@ interface OpenDisputesBreakdownProps {
   isLoading?: boolean;
 }
 
-// Color schemes matching the visual reference:
-// Orange, Yellow-Orange, Green, Navy Blue
-const QUEUE_COLORS: Record<string, string> = {
-  "shipping-delivery": "#ff9900", // Warning Amber
-  "item-condition": "#c84e02ff", // Dark Orange
-  "payment-holds": "#ff0000", // Crimson Red
-  "others": "#94a3b8", // Cool Gray
-};
+// Color palette indexed by position — top 5+ items each get a distinct color
+const QUEUE_COLOR_PALETTE = [
+  "#f59e0b", // Amber
+  "#c84e02", // Dark Orange
+  "#ef4444", // Red
+  "#3b82f6", // Blue
+  "#10b981", // Emerald
+  "#8b5cf6", // Violet
+  "#ec4899", // Pink
+  "#06b6d4", // Cyan
+];
 
 const chartConfig: ChartConfig = {
   count: {
@@ -34,11 +37,11 @@ export function OpenDisputesBreakdown({ data, isLoading }: OpenDisputesBreakdown
   if (isLoading || !data) {
     return <OpenDisputesBreakdownSkeleton />;
   }
-  // Convert queues into recharts format
-  const chartData = data.queues.map((item) => ({
+  // Convert queues into recharts format with index-based colors
+  const chartData = data.queues.map((item, index) => ({
     name: item.name,
     value: item.count,
-    color: QUEUE_COLORS[item.key] || "var(--muted)",
+    color: QUEUE_COLOR_PALETTE[index % QUEUE_COLOR_PALETTE.length],
   }));
 
   return (
@@ -99,8 +102,8 @@ export function OpenDisputesBreakdown({ data, isLoading }: OpenDisputesBreakdown
 
           {/* List items */}
           <div className="space-y-3">
-            {data.queues.map((item) => {
-              const dotColor = QUEUE_COLORS[item.key] || "var(--muted)";
+            {data.queues.map((item, index) => {
+              const dotColor = QUEUE_COLOR_PALETTE[index % QUEUE_COLOR_PALETTE.length];
               return (
                 <div key={item.key} className="flex justify-between items-center text-xs">
                   {/* Dot + Label */}

@@ -16,7 +16,14 @@ export function mapNotificationDtoToViewModel(dto: NotificationDto): Notificatio
   const titleLower = dto.title.toLowerCase();
   const messageLower = dto.message.toLowerCase();
 
-  if (titleLower.includes("outbid") || messageLower.includes("outbid")) {
+  if (
+    titleLower.includes("bid placed") ||
+    titleLower.includes("new bid") ||
+    messageLower.includes("bid placed") ||
+    messageLower.includes("new bid")
+  ) {
+    type = "outbid";
+  } else if (titleLower.includes("outbid") || messageLower.includes("outbid")) {
     type = "outbid";
   } else if (titleLower.includes("won") || titleLower.includes("win") || messageLower.includes("won") || messageLower.includes("win")) {
     type = "auction_won";

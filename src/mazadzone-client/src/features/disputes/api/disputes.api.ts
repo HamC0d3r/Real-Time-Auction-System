@@ -1,6 +1,7 @@
 import { api } from "@/lib/api/client";
 import { generateUUID } from "@/utils/uuid.utils";
 import type { ImageModelDto } from "@/features/auctions/api/auction.contracts";
+import type { PaginatedResult } from "@/types/api.types";
 import type { CreateDisputeInput, Dispute } from "../types/disputes.types";
 import type {
   CreateDisputeTypeRequest,
@@ -155,8 +156,8 @@ export async function deleteDisputeTypeApi(id: string): Promise<void> {
  */
 export async function fetchAdminDisputesApi(
   params: AdminDisputesQueryParams,
-): Promise<DisputeListItemDto[]> {
-  const response = await api.get<DisputeListItemDto[]>("/disputes", { params });
+): Promise<PaginatedResult<DisputeListItemDto>> {
+  const response = await api.get<PaginatedResult<DisputeListItemDto>>("/disputes", { params });
   return response.data;
 }
 

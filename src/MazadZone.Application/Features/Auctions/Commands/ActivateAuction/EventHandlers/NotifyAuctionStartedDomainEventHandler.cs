@@ -1,12 +1,9 @@
 
-using MazadZone.Application.Features.Auctions.DTOs;
-using MazadZone.Application.Features.Auctions.Enums;
 using MazadZone.Application.Features.Notifications.Commands.CreateNotification;
 using MazadZone.Application.Features.Notifications.Enums;
 using MazadZone.Application.Services;
 using MazadZone.Domain.Auctions;
 using MazadZone.Domain.Auctions.Events;
-using MazadZone.Domain.Notifications;
 using MazadZone.Domain.Repositories;
 using MazadZone.Domain.Users.ValueObjects;
 
@@ -20,8 +17,7 @@ public class NotifyAuctionStartedDomainEventHandler
     ILogger<NotifyAuctionStartedDomainEventHandler> _logger,
     IAuctionRepository _auctionRepository,
     IItemRepository _itemRepository,
-    ISender _sender,
-    IAuctionStreamService _auctionStreamService
+    ISender _sender
 ): INotificationHandler<AuctionStartedDomainEvent>
 {
     public async Task Handle(AuctionStartedDomainEvent notification, CancellationToken cancellationToken)
@@ -35,14 +31,6 @@ public class NotifyAuctionStartedDomainEventHandler
             return;
         }
 
-        // Broadcast the auction started event to clients
-        await _auctionStreamService.BroadcastAuctionUpdateAsync(BroadcastAuctionUpdateTypes.StatusChanged, new AuctionStatusUpdateDto{
-            AuctionId = notification.AuctionId.Value,
-            Status = AuctionStatus.Active.ToString(),
-        }, cancellationToken);
-        _logger.LogInformation("Broadcasted auction started update for Auction ID: {AuctionId}", notification.AuctionId);
-        
-
         var item = await _itemRepository.GetItemByIdAsync(auction.Item.Id.Value, cancellationToken);
         
         if (item is null)
@@ -52,8 +40,6 @@ public class NotifyAuctionStartedDomainEventHandler
         }
         
         var itemTitle = item?.Title ?? "???";
-
-        
 
         var subject = $"Your auction '{itemTitle}' has started!";
         var body = $"Dear seller,\n\nYour auction '{itemTitle}' has just started at {auction.StartTime.ToLocalTime():f}. " +
