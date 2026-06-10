@@ -185,3 +185,14 @@ export async function resolveDisputeApi(id: string, resolution: string): Promise
 export async function markDisputeUnderReviewApi(id: string): Promise<void> {
   await api.post(`/disputes/${id}/under-review`);
 }
+
+/**
+ * Sends an email notification to a dispute party.
+ * Endpoint: POST /api/v1/disputes/{id}/send-email
+ */
+export async function sendDisputeEmailApi(
+  disputeId: string,
+  recipientType: "bidder" | "seller",
+): Promise<void> {
+  await api.post(`/disputes/${disputeId}/send-email`, { recipientType });
+}

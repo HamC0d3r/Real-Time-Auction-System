@@ -174,7 +174,14 @@ public class SellerDashboardQueries : ResilientRepository, ISellerDashboardQueri
                 o.Id AS OrderId, 
                 a.Id AS AuctionId, 
                 it.Title AS AuctionTitle, 
-                o.Status AS OrderStatus, 
+                CASE o.Status
+                    WHEN 1 THEN 'Pending'
+                    WHEN 2 THEN 'Confirmed'
+                    WHEN 3 THEN 'Shipped'
+                    WHEN 4 THEN 'Delivered'
+                    WHEN 5 THEN 'Canceled'
+                    ELSE 'Unknown'
+                END AS OrderStatus, 
                 o.CreatedOnUtc AS OrderDateUtc, 
                 o.TotalAmount, 
                 u.FirstName + ' ' + u.LastName AS BidderName 

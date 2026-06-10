@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react";
 import Link from "next/link";
 import { useUrlFilters } from "@/hooks/use-url-filters";
-import { Plus, Loader2, Download, Gavel, Box, DollarSign } from "lucide-react";
+import { Plus, Loader2, Gavel, Box, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageWrapper } from "@/components/layout/page-wrapper";
 import { PageHeader } from "@/components/layout/page-header";
@@ -177,6 +177,7 @@ export function SellerDashboardPage() {
   }
 
   // ─── Aggregate stats (from stable, unfiltered queries) ────────────────────
+  const allCount = statsAuctionsResponse?.totalCount ?? 0;
   const activeCount = statsAuctionsResponse?.activeAuctions ?? 0;
   const pendingCount = statsAuctionsResponse?.pending ?? 0;
   const soldCount = statsAuctionsResponse?.soldItems ?? 0;
@@ -226,13 +227,6 @@ export function SellerDashboardPage() {
           subtitle="Manage your auctions, orders, and earnings in one place."
           actions={
             <>
-              <Button
-                variant="outline"
-                className="rounded-xl h-10 px-5 font-semibold flex items-center gap-2 cursor-pointer"
-              >
-                <Download className="h-4 w-4 text-muted-foreground" />
-                Export All
-              </Button>
               <Link href={ROUTES.SELLER.CREATE_AUCTION}>
                 <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold h-10 px-5 rounded-xl flex items-center gap-2 cursor-pointer">
                   <Plus className="h-4.5 w-4.5" />
@@ -298,6 +292,7 @@ export function SellerDashboardPage() {
                 onPageChange={handlePageChange}
                 onDeleteAuction={handleDeleteAuction}
                 onSearchChange={handleAuctionSearchChange}
+                allCount={allCount}
                 activeCount={activeCount}
                 pendingCount={pendingCount}
                 soldCount={soldCount}

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { MoreVertical } from "lucide-react";
+import { MoreVertical, Mail } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -23,6 +23,7 @@ import { ModerateUsersPagination } from "../../admin/components/users/ModerateUs
 import { ViewDisputeSheet } from "./ViewDisputeSheet";
 import type { DisputeListItemDto } from "../api/disputes.contracts";
 import { format } from "date-fns";
+import { useSendDisputeEmail } from "../api/disputes.queries";
 
 interface AdminDisputesTableProps {
   data: DisputeListItemDto[];
@@ -62,6 +63,7 @@ export function AdminDisputesTable({
   onPageSizeChange,
 }: AdminDisputesTableProps) {
   const [selectedDisputeId, setSelectedDisputeId] = useState<string | null>(null);
+  const sendEmailMutation = useSendDisputeEmail();
 
   if (isLoading) {
     return <div className="p-8 text-center text-muted-foreground">Loading disputes...</div>;
@@ -83,12 +85,12 @@ export function AdminDisputesTable({
             <TableHead className="font-bold text-foreground">Dispute Type</TableHead>
             <TableHead className="font-bold text-foreground">Status</TableHead>
             <TableHead className="font-bold text-foreground">Submitted Date</TableHead>
-            <TableHead className="font-bold text-foreground text-right pr-6">Actions</TableHead>
+            <TableHead className="font-bold text-foreground text-center">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {data.map((dispute) => (
-            <TableRow key={dispute.id} className="group">
+            <TableRow key={dispute.id} className="group align-middle">
               <TableCell className="text-center align-middle">
                 <Checkbox className="rounded-[4px] border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary" />
               </TableCell>
@@ -110,12 +112,12 @@ export function AdminDisputesTable({
               <TableCell>
                 <span className="text-sm">{formatSubmittedDate(dispute.submittedDate)}</span>
               </TableCell>
-              <TableCell className="text-right pr-4 align-middle">
-                <div className="flex items-center justify-end gap-2 ml-auto w-[80px]">
+              <TableCell className="text-center align-middle">
+                <div className="flex items-center justify-center gap-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-8 w-full font-bold text-xs bg-card hover:bg-muted"
+                    className="h-8 w-16 font-bold text-xs bg-card hover:bg-muted"
                     onClick={() => setSelectedDisputeId(dispute.id)}
                   >
                     View
@@ -126,9 +128,22 @@ export function AdminDisputesTable({
                         <MoreVertical className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => setSelectedDisputeId(dispute.id)}>
-                        View Details
+                    <DropdownMenuContent align="end" className="bg-card text-foreground border-border">
+                      <DropdownMenuItem
+                        onClick={() => sendEmailMutation.mutate({ disputeId: dispute.id, recipientType: "bidder" })}
+                        disabled={sendEmailMutation.isPending}
+                        className="cursor-pointer"
+                      >
+                        <Mail className="mr-2 h-4 w-4" />
+                        Email Bidder
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => sendEmailMutation.mutate({ disputeId: dispute.id, recipientType: "seller" })}
+                        disabled={sendEmailMutation.isPending}
+                        className="cursor-pointer"
+                      >
+                        <Mail className="mr-2 h-4 w-4" />
+                        Email Seller
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

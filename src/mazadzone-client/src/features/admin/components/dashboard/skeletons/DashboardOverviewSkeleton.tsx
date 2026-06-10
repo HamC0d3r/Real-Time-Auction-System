@@ -4,7 +4,7 @@ import { OpenDisputesBreakdownSkeleton } from "./OpenDisputesBreakdownSkeleton";
 import { UserGrowthChartSkeleton } from "./UserGrowthChartSkeleton";
 import { UserTrustSkeleton } from "./UserTrustSkeleton";
 import { CategoryHealthSkeleton } from "./CategoryHealthSkeleton";
-import { PaymentProviderStatusSkeleton } from "./PaymentProviderStatusSkeleton";
+import { SubcategoryHealthSkeleton } from "./SubcategoryHealthSkeleton";
 
 export function DashboardOverviewSkeleton() {
   return (
@@ -43,10 +43,10 @@ export function DashboardOverviewSkeleton() {
         </div>
       </div>
 
-      {/* 4. Row 3: Category Health (1/2) & Payment Status (1/2) */}
+      {/* 4. Row 3: Category Health (1/2) & Subcategory Health (1/2) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-stretch">
         <CategoryHealthSkeleton />
-        <PaymentProviderStatusSkeleton />
+        <SubcategoryHealthSkeleton />
       </div>
     </div>
   );

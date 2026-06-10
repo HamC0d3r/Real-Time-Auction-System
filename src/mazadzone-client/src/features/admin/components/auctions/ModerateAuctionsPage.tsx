@@ -22,8 +22,9 @@ export function ModerateAuctionsPage() {
       category: searchParams.get("category") || "All Categories",
       status:
         (searchParams.get("status") as AuctionStatus | "All Statuses") ||
-        "All Statuses",
+        "Active",
       sortBy: searchParams.get("sortBy") || "dateCreated",
+      sortOrder: (searchParams.get("sortOrder") as "asc" | "desc") || "desc",
       dateFrom: searchParams.get("dateFrom") || "",
       page: Number(searchParams.get("page")) || 1,
       pageSize: Number(searchParams.get("pageSize")) || 10,

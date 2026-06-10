@@ -99,13 +99,17 @@ export interface CategoryHealthStats {
   isPositive: boolean;
 }
 
-export interface PaymentStats {
-  isConnected: boolean;
-  heldFunds: number;
-  completedPayments: number;
-  failedPayments: number;
-  refundsChargebacks: number;
-  lastSync: string; // formatted string like "2 mins ago"
+export interface SubcategoryLiveAuctions {
+  name: string;
+  parentCategoryName: string;
+  liveAuctionsCount: number;
+}
+
+export interface SubcategoryHealthStats {
+  subcategories: SubcategoryLiveAuctions[];
+  totalLiveAuctions: number;
+  totalLiveAuctionsChangePercent: number;
+  isPositive: boolean;
 }
 
 export interface AdminDashboardOverviewData {
@@ -115,7 +119,7 @@ export interface AdminDashboardOverviewData {
   userTrust: UserTrustStats;
   userGrowth: UserGrowthTrend;
   categoryHealth: CategoryHealthStats;
-  payments: PaymentStats;
+  subcategoryHealth: SubcategoryHealthStats;
 }
 
 export type ModerateUserRole = "Bidder" | "Seller" | "Admin";

@@ -179,7 +179,8 @@ export function ModerateAuctionsTable({
                   key={col.key}
                   className={cn(
                     "text-xs font-bold text-muted-foreground uppercase tracking-wider whitespace-nowrap",
-                    col.align === "right" && "text-right pr-6"
+                    col.align === "right" && "text-right pr-12",
+                    col.align === "center" && "text-center"
                   )}
                 >
                   {col.label}
@@ -222,7 +223,7 @@ export function ModerateAuctionsTable({
               auctions.map((auction) => (
                 <TableRow
                   key={auction.id}
-                  className="hover:bg-muted/10 border-b-border group"
+                  className="hover:bg-muted/10 border-b-border group align-middle"
                 >
                   {/* Checkbox */}
                   <TableCell className="w-12 text-center pl-4">
@@ -252,9 +253,6 @@ export function ModerateAuctionsTable({
                       <div className="flex flex-col min-w-0">
                         <span className="text-sm font-semibold text-foreground truncate max-w-[180px]">
                           {auction.title}
-                        </span>
-                        <span className="text-[11px] text-muted-foreground font-medium">
-                          ID: {auction.id}
                         </span>
                       </div>
                     </div>
@@ -290,9 +288,6 @@ export function ModerateAuctionsTable({
                     <div className="flex flex-col">
                       <span className="text-[13px] font-semibold text-foreground whitespace-nowrap">
                         {formatCurrency(auction.currentBid)}
-                      </span>
-                      <span className="text-[11px] text-muted-foreground">
-                        {auction.currency}
                       </span>
                     </div>
                   </TableCell>
@@ -333,9 +328,8 @@ export function ModerateAuctionsTable({
                     </div>
                   </TableCell>
 
-                  {/* Actions */}
-                  <TableCell className="text-right pr-6 py-2">
-                    <div className="flex items-center justify-end gap-1.5">
+                  <TableCell className="text-center py-2 align-middle">
+                    <div className="flex items-center justify-center gap-1.5">
                       {getActionButtons(auction).map((action, idx) => {
                         const Icon = action.icon;
                         return (

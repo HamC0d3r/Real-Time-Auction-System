@@ -8,13 +8,14 @@ export interface UseModerateUsersFilters {
   role: ModerateUserRole | "All Roles";
   status: ModerateUserStatus | "All Statuses";
   sortBy: string;
+  sortOrder?: "asc" | "desc";
   page: number;
   pageSize: number;
   joinedDate?: string;
 }
 
 export async function fetchModerateUsers(filters: UseModerateUsersFilters) {
-  const isAsc = filters.sortBy === "name" ? true : false;
+  const isAsc = filters.sortOrder ? filters.sortOrder === "asc" : (filters.sortBy === "name" ? true : false);
 
   const response = await api.get<PagedListOfUserDto>("/users/users", {
     params: {

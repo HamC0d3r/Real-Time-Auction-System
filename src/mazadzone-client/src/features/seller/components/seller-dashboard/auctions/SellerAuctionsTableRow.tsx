@@ -1,10 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { format } from "date-fns";
-import { Eye, Pencil, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { TableCell, TableRow } from "@/components/ui/table";
+import { ViewAction } from "@/components/ui/view-action";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/utils/currency.utils";
 import { ROUTES } from "@/config/routes.config";
@@ -97,10 +98,10 @@ export function SellerAuctionsTableRow({
   const thumbnail = auction.thumbnailUrl || "/assets/images/placeholder.jpg";
 
   return (
-    <tr className="hover:bg-accent/20 dark:hover:bg-accent/5 transition-colors h-[64px]">
+    <TableRow className="hover:bg-accent/20 dark:hover:bg-accent/5 transition-colors h-[64px] border-0">
       
       {/* Column 1: Auction Info */}
-      <td className="px-6 py-3 min-w-[200px]">
+      <TableCell className="px-6 py-3 min-w-[200px]">
         <div className="flex items-center gap-3.5 text-left">
           <div className="h-10 w-14 shrink-0 rounded-lg overflow-hidden relative border border-border/80">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -123,40 +124,40 @@ export function SellerAuctionsTableRow({
             </p>
           </div>
         </div>
-      </td>
+      </TableCell>
 
       {/* Column 2: Category */}
-      <td className="px-6 py-3 text-xs font-semibold text-muted-foreground">
+      <TableCell className="px-6 py-3 text-xs font-semibold text-muted-foreground">
         {auction.category}
-      </td>
+      </TableCell>
 
       {/* Column 3: Status Badge */}
-      <td className="px-6 py-3">
+      <TableCell className="px-6 py-3">
         <Badge className={cn("px-2.5 py-0.5 rounded-full border shadow-none text-[10px] font-black uppercase tracking-wider", statusInfo.styles)}>
           {statusInfo.label}
         </Badge>
-      </td>
+      </TableCell>
 
       {/* Column 4: Bids */}
-      <td className="px-6 py-3 font-bold text-xs text-foreground">
+      <TableCell className="px-6 py-3 font-bold text-xs text-foreground">
         {auction.bidsCount}
-      </td>
+      </TableCell>
 
       {/* Column 5: Current Bid */}
-      <td className="px-6 py-3 font-black text-xs text-foreground">
+      <TableCell className="px-6 py-3 font-black text-xs text-foreground">
         {formatCurrency(auction.lastBidAmount)}
-      </td>
+      </TableCell>
 
       {/* Column 6: Time Left */}
-      <td className={cn(
+      <TableCell className={cn(
         "px-6 py-3 text-xs font-bold",
         timeLeftInfo.isUrgent ? "text-red-500 font-extrabold" : "text-muted-foreground"
       )}>
         {timeLeftInfo.text}
-      </td>
+      </TableCell>
 
       {/* Column 7: Ends At */}
-      <td className="px-6 py-3">
+      <TableCell className="px-6 py-3">
         <div className="space-y-0.5 text-left text-[11px] font-semibold">
           <div className="text-foreground">
             {format(new Date(auction.endDateUtc), "MMM d, yyyy")}
@@ -165,48 +166,13 @@ export function SellerAuctionsTableRow({
             {format(new Date(auction.endDateUtc), "h:mm a")}
           </div>
         </div>
-      </td>
+      </TableCell>
 
       {/* Column 8: Actions */}
-      <td className="px-6 py-3 text-right pr-6 min-w-[140px]">
+      <TableCell className="px-6 py-3 text-right pr-8 min-w-[120px]">
         <div className="flex items-center justify-end gap-1.5">
-          {/* View Icon Link */}
-          <Link href={ROUTES.AUCTIONS.DETAIL(auction.auctionId)}>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-950/20 border-border/80 text-muted-foreground hover:text-orange-500 hover:border-orange-500/30 transition-all cursor-pointer shadow-none"
-              title="View Auction"
-            >
-              <Eye className="h-4 w-4" />
-            </Button>
-          </Link>
+          <ViewAction href={ROUTES.AUCTIONS.DETAIL(auction.auctionId)} />
 
-          {/* Edit Icon Link */}
-          {isPending ? (
-            <Link href={ROUTES.SELLER.EDIT_AUCTION(auction.auctionId)}>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-950/20 border-border/80 text-muted-foreground hover:text-orange-500 hover:border-orange-500/30 transition-all cursor-pointer shadow-none"
-                title="Edit Auction"
-              >
-                <Pencil className="h-4 w-4" />
-              </Button>
-            </Link>
-          ) : (
-            <Button
-              variant="outline"
-              size="icon"
-              disabled
-              className="h-8 w-8 rounded-lg border-border/60 text-muted-foreground/30 cursor-not-allowed opacity-40 shadow-none bg-[#fcfcfc]/50 dark:bg-card"
-              title="Only pending auctions can be edited"
-            >
-              <Pencil className="h-4 w-4" />
-            </Button>
-          )}
-
-          {/* Delete Icon Link */}
           <Button
             variant="outline"
             size="icon"
@@ -223,7 +189,7 @@ export function SellerAuctionsTableRow({
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
-      </td>
-    </tr>
+      </TableCell>
+    </TableRow>
   );
 }

@@ -17,7 +17,8 @@ import {
   mapBiddingActivity,
 } from "./overview.mappers";
 import { overviewKeys } from "./overview.keys";
-import type { AdminDashboardOverviewData, AuctionActivityTrend, UserGrowthTrend } from "../../types/admin.types";
+import type { AdminDashboardOverviewData, AuctionActivityTrend, UserGrowthTrend, SubcategoryHealthStats, SubcategoryLiveAuctions } from "../../types/admin.types";
+import { fetchCategoriesTree } from "../categories/category.api";
 
 export function useGetAdminOverviewStats(period: string) {
   return useQuery<AdminDashboardOverviewData>({
@@ -29,30 +30,73 @@ export function useGetAdminOverviewStats(period: string) {
         queryPayload: calculatedParams,
       });
 
-      const [summary, trust, categories, disputes, growth, bidding] = await Promise.all([
+      const [summary, trust, categories, disputes, growth, bidding, categoryTree] = await Promise.all([
         fetchSummaryStats(period),
         fetchUserTrust(period),
-        fetchCategoryStats(),
+        fetchCategoryStats(1000, false),
         fetchDisputesStats(period),
         fetchUserGrowthTrend(period),
         fetchBiddingActivityTrend(period),
+        fetchCategoriesTree(),
       ]);
 
       const metrics = mapSummaryStats(summary);
       const userTrust = mapUserTrust(trust);
-      const categoryHealth = mapCategoriesStats(categories);
+
+      // Roll up active auction counts for each root category by summing its own direct count and all its subcategories' counts
+      const statsMap = new Map<string, number>();
+      categories.forEach((c) => {
+        if (c.id) {
+          statsMap.set(c.id, c.activeAuctionsCount);
+        }
+      });
+
+      const rolledUpRootCategories = categoryTree.map((root) => {
+        const directCount = statsMap.get(root.id) || 0;
+        const subcategoriesCount = root.subcategories.reduce(
+          (sum, sub) => sum + (statsMap.get(sub.id) || 0),
+          0
+        );
+        return {
+          id: root.id,
+          name: root.name,
+          activeAuctionsCount: directCount + subcategoriesCount,
+        };
+      });
+
+      // Sort root categories by rolled-up active auctions count descending
+      rolledUpRootCategories.sort((a, b) => b.activeAuctionsCount - a.activeAuctionsCount);
+
+      const categoryHealth = mapCategoriesStats(rolledUpRootCategories);
       const openDisputesBreakdown = mapDisputesStats(disputes);
       const userGrowth = mapUserGrowth(growth);
       const auctionActivity = mapBiddingActivity(bidding);
 
-      // Build dynamic payments panel from real telemetry
-      const payments = {
-        isConnected: true,
-        heldFunds: Math.round(summary.platformRevenue.value * 0.12), // Dynamic 12% held estimation
-        completedPayments: summary.platformRevenue.value, // Real transactional revenue
-        failedPayments: Math.round(summary.completedOrders.value * 0.05) * 150, // Estimated proportional fail rate
-        refundsChargebacks: Math.round(summary.completedOrders.value * 0.02) * 200, // Estimated proportional refunds
-        lastSync: "Just synchronized",
+      // Build dynamic subcategory health panel using category tree and flat statistics
+      const subcategoryLiveAuctions: SubcategoryLiveAuctions[] = [];
+      let totalSubcategoryLiveAuctions = 0;
+
+      categoryTree.forEach((root) => {
+        (root.subcategories || []).forEach((sub) => {
+          const liveAuctionsCount = statsMap.get(sub.id) || 0;
+          subcategoryLiveAuctions.push({
+            name: sub.name,
+            parentCategoryName: root.name,
+            liveAuctionsCount,
+          });
+          totalSubcategoryLiveAuctions += liveAuctionsCount;
+        });
+      });
+
+      // Sort by active/live auctions count descending and slice to top 6
+      subcategoryLiveAuctions.sort((a, b) => b.liveAuctionsCount - a.liveAuctionsCount);
+      const topSubcategories = subcategoryLiveAuctions.slice(0, 6);
+
+      const subcategoryHealth: SubcategoryHealthStats = {
+        subcategories: topSubcategories,
+        totalLiveAuctions: totalSubcategoryLiveAuctions,
+        totalLiveAuctionsChangePercent: 0,
+        isPositive: true,
       };
 
       return {
@@ -62,7 +106,7 @@ export function useGetAdminOverviewStats(period: string) {
         userTrust,
         userGrowth,
         categoryHealth,
-        payments,
+        subcategoryHealth,
       };
     },
     staleTime: 5 * 60 * 1000,

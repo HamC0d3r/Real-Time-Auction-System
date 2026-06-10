@@ -23,6 +23,8 @@ interface AdminDisputesFiltersProps {
   setCategoryId: (val: string) => void;
   sortColumn: string;
   setSortColumn: (val: string) => void;
+  isDescending: boolean;
+  setIsDescending: (val: boolean) => void;
 }
 
 const DISPUTE_STATUSES = [
@@ -43,6 +45,8 @@ export function AdminDisputesFilters({
   setCategoryId,
   sortColumn,
   setSortColumn,
+  isDescending,
+  setIsDescending,
 }: AdminDisputesFiltersProps) {
   const { data: disputeTypes = [] } = useGetDisputeTypes();
 
@@ -128,6 +132,23 @@ export function AdminDisputesFilters({
               <SelectContent>
                 <SelectItem value="SubmittedDate" className="cursor-pointer">Submitted Date</SelectItem>
                 <SelectItem value="Status" className="cursor-pointer">Status</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Order */}
+          <div className="flex flex-col gap-1.5 min-w-[120px]">
+            <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider pl-1">Order</span>
+            <Select
+              value={isDescending ? "desc" : "asc"}
+              onValueChange={(val) => setIsDescending(val === "desc")}
+            >
+              <SelectTrigger className="cursor-pointer h-9 w-full text-xs rounded-lg">
+                <SelectValue placeholder="Descending" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="desc" className="cursor-pointer">Descending</SelectItem>
+                <SelectItem value="asc" className="cursor-pointer">Ascending</SelectItem>
               </SelectContent>
             </Select>
           </div>

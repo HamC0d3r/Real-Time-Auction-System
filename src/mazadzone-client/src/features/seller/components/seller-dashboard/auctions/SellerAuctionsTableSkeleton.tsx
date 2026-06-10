@@ -1,6 +1,14 @@
 import React from "react";
 import { Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const TABLE_HEADERS = [
   { key: "auction", label: "Auction", className: "" },
@@ -8,7 +16,7 @@ const TABLE_HEADERS = [
   { key: "bids", label: "Bids", className: "" },
   { key: "lastBid", label: "Last Bid", className: "" },
   { key: "endDate", label: "End Date", className: "" },
-  { key: "actions", label: "Actions", className: "text-right" },
+  { key: "actions", label: "Actions", className: "text-right pr-8" },
 ] as const;
 
 export function SellerAuctionsTableSkeleton() {
@@ -29,20 +37,23 @@ export function SellerAuctionsTableSkeleton() {
 
       {/* Main Table Skeleton */}
       <div className="overflow-x-auto rounded-xl border border-border/80">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-muted/40 border-b border-border/80 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+        <Table className="w-full">
+          <TableHeader>
+            <TableRow className="bg-muted/40 border-b border-border/80 hover:bg-muted/40">
               {TABLE_HEADERS.map((header) => (
-                <th key={header.key} className={cn("px-6 py-4", header.className)}>
+                <TableHead key={header.key} className={cn(
+                  "px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground",
+                  header.className
+                )}>
                   {header.label}
-                </th>
+                </TableHead>
               ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border/60">
+            </TableRow>
+          </TableHeader>
+          <TableBody className="divide-y divide-border/60">
             {Array.from({ length: 5 }).map((_, rowIdx) => (
-              <tr key={rowIdx} className="animate-pulse">
-                <td className="px-6 py-5">
+              <TableRow key={rowIdx} className="animate-pulse border-0">
+                <TableCell className="px-6 py-5">
                   <div className="flex items-center gap-3">
                     <div className="h-12 w-16 bg-muted rounded-lg shrink-0" />
                     <div className="space-y-1.5 w-32">
@@ -50,10 +61,10 @@ export function SellerAuctionsTableSkeleton() {
                       <div className="h-3 bg-muted rounded w-20" />
                     </div>
                   </div>
-                </td>
+                </TableCell>
                 {/* Status, Bids, Last Bid, End Date, Actions skeletons */}
                 {Array.from({ length: 5 }).map((_, colIdx) => (
-                  <td key={colIdx} className={cn("px-6 py-5", colIdx === 4 && "text-right")}>
+                  <TableCell key={colIdx} className={cn("px-6 py-5", colIdx === 4 && "text-right pr-8")}>
                     <div
                       className={cn(
                         "h-4 bg-muted rounded",
@@ -64,12 +75,12 @@ export function SellerAuctionsTableSkeleton() {
                         colIdx === 4 && "h-8 w-24 ml-auto"
                       )}
                     />
-                  </td>
+                  </TableCell>
                 ))}
-              </tr>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

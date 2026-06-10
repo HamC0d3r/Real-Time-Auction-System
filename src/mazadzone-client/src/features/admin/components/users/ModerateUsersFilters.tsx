@@ -153,6 +153,23 @@ export function ModerateUsersFilters({
             </Select>
           </div>
 
+          {/* Order */}
+          <div className="flex flex-col gap-1.5 min-w-[110px]">
+            <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider pl-1">Order</span>
+            <Select
+              value={filters.sortOrder || "desc"}
+              onValueChange={(val) => onFilterChange({ sortOrder: val as "asc" | "desc", page: 1 })}
+            >
+              <SelectTrigger className="cursor-pointer h-9 w-full text-xs rounded-lg">
+                <SelectValue placeholder="Descending" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="desc" className="cursor-pointer">Descending</SelectItem>
+                <SelectItem value="asc" className="cursor-pointer">Ascending</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Joined Date */}
           <div className="flex flex-col gap-1.5 min-w-[140px]">
             <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider pl-1">Joined Date</span>

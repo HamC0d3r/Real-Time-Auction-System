@@ -152,7 +152,8 @@ export function ModerateUsersTable({
                   key={col.key}
                   className={cn(
                     "text-xs font-bold text-muted-foreground uppercase tracking-wider",
-                    col.align === "right" && "text-right pr-6"
+                    col.align === "right" && "text-right pr-12",
+                    col.align === "center" && "text-center"
                   )}
                 >
                   {col.sortable ? (
@@ -183,7 +184,7 @@ export function ModerateUsersTable({
               </TableRow>
             ) : (
               users.map((user) => (
-                <TableRow key={user.id} className="hover:bg-muted/10 border-b-border group">
+                <TableRow key={user.id} className="hover:bg-muted/10 border-b-border group align-middle">
                   <TableCell className="w-12 text-center pl-4">
                     <Checkbox
                       className="rounded-[4px] border-muted-foreground/30 data-[state=checked]:bg-primary"
@@ -272,8 +273,8 @@ export function ModerateUsersTable({
                   </TableCell>
 
                   {/* Actions - Always Visible */}
-                  <TableCell className="text-right pr-6 py-2">
-                    <div className="flex items-center justify-end gap-1.5 opacity-100 transition-opacity">
+                  <TableCell className="text-center py-2 align-middle">
+                    <div className="flex items-center justify-center gap-1.5 opacity-100 transition-opacity">
                       {getActionButtons(user).map((action, idx) => {
                         const Icon = action.icon;
                         const isRestoringThisUser =

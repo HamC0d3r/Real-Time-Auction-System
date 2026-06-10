@@ -1,4 +1,4 @@
-import { api } from "@/lib/api/client";
+import { api, apiClient } from "@/lib/api/client";
 import type {
   SellerAuctionsResponse,
   SellerDashboardQueryParams,
@@ -40,5 +40,34 @@ export async function getSellerDashboardFinancials(
     params,
   });
   return response.data;
+}
+
+/**
+ * Export seller dashboard data as a CSV blob.
+ * Uses the raw axios client to obtain a blob response.
+ */
+export async function exportSellerDashboardData(
+  type: string,
+  params?: Partial<SellerDashboardQueryParams>,
+): Promise<Blob> {
+  const response = await apiClient.get("/api/v1/seller-dashboard/export", {
+    params: { type, Page: 1, PageSize: 10000, ...params },
+    responseType: "blob",
+  });
+  return response.data;
+}
+
+/**
+ * Trigger a browser download for a CSV blob.
+ */
+export function downloadCsvFile(blob: Blob, filename: string): void {
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  window.URL.revokeObjectURL(url);
 }
 
