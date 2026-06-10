@@ -23,13 +23,14 @@ export function ModerateUsersPage() {
   const role = (searchParams.get("role") as ModerateUserRole | "All Roles") || "All Roles";
   const status = (searchParams.get("status") as ModerateUserStatus | "All Statuses") || "All Statuses";
   const sortBy = searchParams.get("sortBy") || "dateJoined";
+  const sortOrder = (searchParams.get("sortOrder") as "asc" | "desc") || "desc";
   const page = Number(searchParams.get("page")) || 1;
   const pageSize = Number(searchParams.get("pageSize")) || 15;
   const joinedDate = searchParams.get("joinedDate") || "";
 
   const filters = useMemo<UseModerateUsersFilters>(
-    () => ({ search, role, status, sortBy, page, pageSize, joinedDate }),
-    [search, role, status, sortBy, page, pageSize, joinedDate]
+    () => ({ search, role, status, sortBy, sortOrder, page, pageSize, joinedDate }),
+    [search, role, status, sortBy, sortOrder, page, pageSize, joinedDate]
   );
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);

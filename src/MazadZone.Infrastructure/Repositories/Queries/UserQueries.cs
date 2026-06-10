@@ -162,7 +162,7 @@ public class UserQueries : ResilientRepository, IUserQueries
             WHEN (Roles & 1) = 1 THEN 'Bidder'
             ELSE 'None'
         END AS Role,
-        CASE Status
+        CASE Users.Status
             WHEN 1 THEN 'Active'
             WHEN 2 THEN 'Suspended'
             WHEN 3 THEN 'Banned'
@@ -191,7 +191,7 @@ public class UserQueries : ResilientRepository, IUserQueries
             "joineddate" => "Users.CreatedOnUtc",
             "lastlogin" => "LastLogin",
             "role" => "Roles",
-            "status" => "Status",
+            "status" => "Users.Status",
             _ => "Users.CreatedOnUtc"
         };
         var sortDirection = filter.IsAsc ? "ASC" : "DESC";
@@ -246,7 +246,7 @@ public class UserQueries : ResilientRepository, IUserQueries
             WHEN (Roles & 1) = 1 THEN 'Bidder'
             ELSE 'None'
         END AS Role,
-        CASE Status
+        CASE Users.Status
             WHEN 1 THEN 'Active'
             WHEN 2 THEN 'Suspended'
             WHEN 3 THEN 'Banned'

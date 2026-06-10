@@ -5,6 +5,14 @@ import { Eye, Pencil, Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import type { Category } from "../../types/category.types";
 import { CategoryIcon, getCategoryStyles } from "../../constants/category.constants";
 
@@ -28,24 +36,24 @@ export function CategoriesTable({
   return (
     <div className="xl:col-span-2 bg-card border border-border rounded-2xl overflow-hidden shadow-xs">
       <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="border-b border-border bg-muted/20 text-xs font-bold text-muted-foreground uppercase select-none">
-              <th className="py-4 px-6 font-bold">Category</th>
-              <th className="py-4 px-4 font-bold">Slug</th>
-              <th className="py-4 px-4 font-bold">Subcategories</th>
-              <th className="py-4 px-4 font-bold text-center">Auctions Count</th>
-              <th className="py-4 px-4 font-bold text-center">Status</th>
-              <th className="py-4 px-6 font-bold text-center">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border text-sm">
+        <Table className="w-full">
+          <TableHeader>
+            <TableRow className="border-b border-border bg-muted/20 hover:bg-muted/20">
+              <TableHead className="py-4 px-6 font-bold">Category</TableHead>
+              <TableHead className="py-4 px-4 font-bold">Slug</TableHead>
+              <TableHead className="py-4 px-4 font-bold">Subcategories</TableHead>
+              <TableHead className="py-4 px-4 font-bold text-center">Auctions Count</TableHead>
+              <TableHead className="py-4 px-4 font-bold text-center">Status</TableHead>
+              <TableHead className="py-4 px-6 font-bold text-center pr-8">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody className="divide-y divide-border text-sm">
             {categories.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="py-12 text-center text-muted-foreground font-semibold">
+              <TableRow className="border-0 hover:bg-transparent">
+                <TableCell colSpan={6} className="py-12 text-center text-muted-foreground font-semibold">
                   No categories found. Click &apos;Add Category&apos; to create one!
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : (
               categories.map((cat) => {
                 const styles = getCategoryStyles(cat.iconName || "FolderOpen");
@@ -53,16 +61,16 @@ export function CategoriesTable({
                 const subNames = cat.subcategories.map((s) => s.name).join(", ");
 
                 return (
-                  <tr
+                  <TableRow
                     key={cat.id}
                     onClick={() => onSelectCategory(cat.id)}
                     className={cn(
-                      "hover:bg-muted/30 transition-colors cursor-pointer group/row",
+                      "hover:bg-muted/30 transition-colors cursor-pointer group/row border-0",
                       isSelected && "bg-accent/40 hover:bg-accent/50"
                     )}
                   >
                     {/* Name & Icon */}
-                    <td className="py-4 px-6 font-bold">
+                    <TableCell className="py-4 px-6 font-bold">
                       <div className="flex items-center gap-3">
                         <div className={cn("p-2 border rounded-xl shrink-0 transition-transform group-hover/row:scale-[1.05]", styles.bg, styles.text, styles.border)}>
                           <CategoryIcon name={cat.iconName || "FolderOpen"} className="h-4.5 w-4.5" />
@@ -71,25 +79,25 @@ export function CategoriesTable({
                           {cat.name}
                         </span>
                       </div>
-                    </td>
+                    </TableCell>
 
                     {/* Slug */}
-                    <td className="py-4 px-4 text-muted-foreground font-medium text-xs font-mono">
+                    <TableCell className="py-4 px-4 text-muted-foreground font-medium text-xs font-mono">
                       {cat.slug}
-                    </td>
+                    </TableCell>
 
                     {/* Subcategories */}
-                    <td className="py-4 px-4 text-muted-foreground max-w-[200px] truncate font-medium text-xs">
+                    <TableCell className="py-4 px-4 text-muted-foreground max-w-[200px] truncate font-medium text-xs">
                       {subNames || <span className="italic text-muted-foreground/50">None</span>}
-                    </td>
+                    </TableCell>
 
                     {/* Auctions Count */}
-                    <td className="py-4 px-4 text-center font-bold text-foreground/80">
+                    <TableCell className="py-4 px-4 text-center font-bold text-foreground/80">
                       {cat.auctionsCount.toLocaleString()}
-                    </td>
+                    </TableCell>
 
                     {/* Status */}
-                    <td className="py-4 px-4 text-center">
+                    <TableCell className="py-4 px-4 text-center">
                       <Badge
                         className={cn(
                           "font-bold text-[10px] uppercase tracking-wider rounded-md px-1.5 py-0.5 pointer-events-none select-none",
@@ -101,10 +109,10 @@ export function CategoriesTable({
                       >
                         {cat.isActive ? "Active" : "Inactive"}
                       </Badge>
-                    </td>
+                    </TableCell>
 
                     {/* Actions */}
-                    <td className="py-4 px-6" onClick={(e) => e.stopPropagation()}>
+                    <TableCell className="py-4 px-6 pr-8" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-center gap-1.5">
                         <Button
                           variant="ghost"
@@ -143,13 +151,13 @@ export function CategoriesTable({
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 );
               })
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

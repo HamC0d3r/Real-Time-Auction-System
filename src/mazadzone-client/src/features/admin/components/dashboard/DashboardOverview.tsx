@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import { MetricStrip, type MetricStripItem } from "@/components/ui/metric-strip";
 import { UserTrust } from "./UserTrust";
 import { CategoryHealth } from "./CategoryHealth";
-import { PaymentProviderStatus } from "./PaymentProviderStatus";
+import { SubcategoryHealth } from "./SubcategoryHealth";
 import { useGetAuctionActivityTrend, useGetUserGrowthTrend } from "../../api";
 import { formatCurrency } from "@/utils/currency.utils";
 import { METRIC_CARD_DEFINITIONS } from "../../constants/dashboard.constants";
@@ -103,10 +103,10 @@ export function DashboardOverview({ stats }: DashboardOverviewProps) {
         </div>
       </div>
 
-      {/* 4. Row 3: Category Health (1/2) & Payment Status (1/2) */}
+      {/* 4. Row 3: Category Health (1/2) & Subcategory Health (1/2) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-stretch">
         <CategoryHealth data={stats.categoryHealth} />
-        <PaymentProviderStatus data={stats.payments} />
+        <SubcategoryHealth data={stats.subcategoryHealth} />
       </div>
     </div>
   );

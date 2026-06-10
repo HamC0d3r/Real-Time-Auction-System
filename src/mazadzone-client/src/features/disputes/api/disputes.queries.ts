@@ -10,6 +10,7 @@ import {
   fetchDisputeDetailsApi,
   resolveDisputeApi,
   markDisputeUnderReviewApi,
+  sendDisputeEmailApi,
 } from "./disputes.api";
 import type { PaginatedResult } from "@/types/api.types";
 import type { CreateDisputeInput, Dispute } from "../types/disputes.types";
@@ -194,6 +195,27 @@ export function useMarkDisputeUnderReview() {
         error instanceof Error
           ? error.message
           : "Failed to update dispute status. Please try again.";
+      appToast.error("Action Failed", msg);
+    },
+  });
+}
+
+/**
+ * Mutation to send an email notification to a dispute party.
+ */
+export function useSendDisputeEmail() {
+  const appToast = useAppToast();
+
+  return useMutation<void, Error, { disputeId: string; recipientType: "bidder" | "seller" }>({
+    mutationFn: ({ disputeId, recipientType }) => sendDisputeEmailApi(disputeId, recipientType),
+    onSuccess: () => {
+      appToast.success("Email Sent", "The notification has been sent successfully.");
+    },
+    onError: (error: unknown) => {
+      const msg =
+        error instanceof Error
+          ? error.message
+          : "Failed to send email. Please try again.";
       appToast.error("Action Failed", msg);
     },
   });

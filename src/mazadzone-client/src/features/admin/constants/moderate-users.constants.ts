@@ -17,7 +17,7 @@ export const MODERATE_USER_COLUMNS: TableColumn[] = [
   { key: "status", label: "Account Status" },
   { key: "joinedDate", label: "Joined Date", sortable: true },
   { key: "lastActive", label: "Last Active" },
-  { key: "actions", label: "Actions", align: "right" },
+  { key: "actions", label: "Actions", align: "center" },
 ];
 
 export const PAGE_SIZE_OPTIONS: number[] = [10, 15, 25, 50];

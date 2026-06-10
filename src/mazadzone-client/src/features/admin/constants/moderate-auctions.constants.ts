@@ -9,7 +9,7 @@ export const MODERATE_AUCTION_COLUMNS: TableColumn[] = [
   { key: "bidCount", label: "Bid Count", sortable: true },
   { key: "startDate", label: "Start Date", sortable: true },
   { key: "endDate", label: "End Date", sortable: true },
-  { key: "actions", label: "Actions", align: "right" },
+  { key: "actions", label: "Actions", align: "center" },
 ];
 
 export const AUCTION_PAGE_SIZE_OPTIONS: number[] = [10, 15, 25, 50];

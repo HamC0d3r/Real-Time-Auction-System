@@ -4,5 +4,5 @@ export { OpenDisputesBreakdownSkeleton } from "./OpenDisputesBreakdownSkeleton";
 export { UserGrowthChartSkeleton } from "./UserGrowthChartSkeleton";
 export { UserTrustSkeleton } from "./UserTrustSkeleton";
 export { CategoryHealthSkeleton } from "./CategoryHealthSkeleton";
-export { PaymentProviderStatusSkeleton } from "./PaymentProviderStatusSkeleton";
+export { SubcategoryHealthSkeleton } from "./SubcategoryHealthSkeleton";
 export { DashboardOverviewSkeleton } from "./DashboardOverviewSkeleton";

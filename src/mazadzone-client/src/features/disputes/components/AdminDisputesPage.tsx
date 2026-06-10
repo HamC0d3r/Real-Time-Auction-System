@@ -30,6 +30,7 @@ export function AdminDisputesPage() {
     status: string;
     categoryId: string;
     sortColumn: string;
+    isDescending: boolean;
     page: number;
     pageSize: number;
   }>();
@@ -38,6 +39,7 @@ export function AdminDisputesPage() {
   const status = searchParams.get("status") || "All Statuses";
   const categoryId = searchParams.get("categoryId") || "All Categories";
   const sortColumn = searchParams.get("sortColumn") || "SubmittedDate";
+  const isDescending = searchParams.get("isDescending") !== "false";
   const page = Number(searchParams.get("page")) || 1;
   const pageSize = Number(searchParams.get("pageSize")) || 10;
 
@@ -46,6 +48,7 @@ export function AdminDisputesPage() {
     status,
     categoryId: categoryId !== "All Categories" ? categoryId : undefined,
     sortColumn,
+    isDescending,
     page,
     pageSize,
   });
@@ -133,6 +136,8 @@ export function AdminDisputesPage() {
         setCategoryId={(val) => setFilters({ categoryId: val, page: 1 })}
         sortColumn={sortColumn}
         setSortColumn={(val) => setFilters({ sortColumn: val, page: 1 })}
+        isDescending={isDescending}
+        setIsDescending={(val) => setFilters({ isDescending: val, page: 1 })}
       />
 
       {/* Table section */}
@@ -175,7 +180,7 @@ export function AdminDisputesPage() {
               <TableRow className="hover:bg-transparent">
                 <TableHead className="w-1/4 font-bold text-foreground">Type Name</TableHead>
                 <TableHead className="w-3/5 font-bold text-foreground">Description</TableHead>
-                <TableHead className="w-24 font-bold text-foreground text-right pr-6">Actions</TableHead>
+                <TableHead className="w-24 font-bold text-foreground text-right pr-8">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -200,7 +205,7 @@ export function AdminDisputesPage() {
                     <TableCell className="text-sm text-muted-foreground align-middle leading-relaxed">
                       {type.description}
                     </TableCell>
-                    <TableCell className="text-right pr-6 align-middle">
+                    <TableCell className="text-right pr-8 align-middle">
                       <div className="flex items-center justify-end gap-2">
                         <Button
                           variant="ghost"
