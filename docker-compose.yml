@@ -69,58 +69,58 @@ services:
         gelf-address: "udp://127.0.0.1:12201"
         tag: "redis"
 
-  api:
-    build:
-      context: . 
-      dockerfile: src/MazadZone.Api/Dockerfile
-    container_name: mazadzone-api
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__MazadZoneDb=Server=sqlserver,1433;Database=MazadZoneDb;User Id=sa;Password=YourStrong@Passw0rd!;TrustServerCertificate=True;
-      - ConnectionStrings__Redis=redis:6379
-    ports:
-      - "5108:8080"
-    depends_on:
-      - sqlserver
-      - redis
-      - seq
-    networks:
-      frontend_network:
-        aliases:
-          - mazadzone-api
-      backend_network:
-        aliases:
-          - mazadzone-api
-    # Note: No GELF here. Use Serilog in the .NET code to send directly to http://seq:5341
+  # api:
+  #   build:
+  #     context: . 
+  #     dockerfile: src/MazadZone.Api/Dockerfile
+  #   container_name: mazadzone-api
+  #   environment:
+  #     - ASPNETCORE_ENVIRONMENT=Development
+  #     - ConnectionStrings__MazadZoneDb=Server=sqlserver,1433;Database=MazadZoneDb;User Id=sa;Password=YourStrong@Passw0rd!;TrustServerCertificate=True;
+  #     - ConnectionStrings__Redis=redis:6379
+  #   ports:
+  #     - "5108:8080"
+  #   depends_on:
+  #     - sqlserver
+  #     - redis
+  #     - seq
+  #   networks:
+  #     frontend_network:
+  #       aliases:
+  #         - mazadzone-api
+  #     backend_network:
+  #       aliases:
+  #         - mazadzone-api
+  #   # Note: No GELF here. Use Serilog in the .NET code to send directly to http://seq:5341
 
-  client:
-    build:
-      context: ./src/mazadzone-client
-      dockerfile: Dockerfile
-      # NEXT_PUBLIC_* vars must be passed at BUILD time so Next.js can
-      # inline them into the client bundle during `next build`.
-      args:
-        - NEXT_PUBLIC_APP_URL=http://localhost:3000
-        - NEXT_PUBLIC_API_BASE_URL=http://localhost:5108
-        - NEXT_PUBLIC_SIGNALR_HUB_URL=http://localhost:5108/hubs
-    container_name: mazadzone-client
-    ports:
-      - "3000:3000"
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - NEXT_PUBLIC_APP_URL=http://localhost:3000
-      - NEXT_PUBLIC_API_BASE_URL=http://localhost:5108
-      - NEXT_PUBLIC_SIGNALR_HUB_URL=http://localhost:5108/hubs
-    depends_on:
-      - api
-    networks:
-      - frontend_network
-    # 2. ADDED: Routing Next.js server-side terminal logs to Seq
-    logging:
-      driver: gelf
-      options:
-        gelf-address: "udp://127.0.0.1:12201"
-        tag: "nextjs-frontend"
+  # client:
+  #   build:
+  #     context: ./src/mazadzone-client
+  #     dockerfile: Dockerfile
+  #     # NEXT_PUBLIC_* vars must be passed at BUILD time so Next.js can
+  #     # inline them into the client bundle during `next build`.
+  #     args:
+  #       - NEXT_PUBLIC_APP_URL=http://localhost:3000
+  #       - NEXT_PUBLIC_API_BASE_URL=http://localhost:5108
+  #       - NEXT_PUBLIC_SIGNALR_HUB_URL=http://localhost:5108/hubs
+  #   container_name: mazadzone-client
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - ASPNETCORE_ENVIRONMENT=Development
+  #     - NEXT_PUBLIC_APP_URL=http://localhost:3000
+  #     - NEXT_PUBLIC_API_BASE_URL=http://localhost:5108
+  #     - NEXT_PUBLIC_SIGNALR_HUB_URL=http://localhost:5108/hubs
+  #   depends_on:
+  #     - api
+  #   networks:
+  #     - frontend_network
+  #   # 2. ADDED: Routing Next.js server-side terminal logs to Seq
+  #   logging:
+  #     driver: gelf
+  #     options:
+  #       gelf-address: "udp://127.0.0.1:12201"
+  #       tag: "nextjs-frontend"
 
 volumes:
   seq-data:
