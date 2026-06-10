@@ -1,14 +1,22 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Inbox, ArrowUpDown, Download, Search } from "lucide-react";
+import { Inbox, ArrowUpDown, Download, Search, Loader2 } from "lucide-react";
 import { AuctionPagination } from "@/features/auctions";
 import type { SellerAuctionSummaryDto } from "@/features/seller";
 import { SellerAuctionsTableRow } from "./SellerAuctionsTableRow";
-import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
+import { ConfirmActionDialog } from "@/components/dialogs/confirm-action-dialog";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { StatusPillBar, type StatusPillItem } from "@/components/ui/status-pill-bar";
 import {
   Select,
@@ -17,6 +25,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  exportSellerDashboardData,
+  downloadCsvFile,
+} from "@/features/seller/api/seller-dashboard.api";
 
 const SORT_OPTIONS = [
   { value: "EndTime", label: "Ending Soon" },
@@ -33,7 +51,7 @@ const TABLE_HEADERS = [
   { key: "currentBid", label: "Current Bid", className: "" },
   { key: "timeLeft", label: "Time Left", className: "" },
   { key: "endsAt", label: "Ends At", className: "" },
-  { key: "actions", label: "Actions", className: "text-right pr-6" },
+  { key: "actions", label: "Actions", className: "text-right pr-8" },
 ] as const;
 
 interface SellerAuctionsTableProps {
@@ -50,6 +68,7 @@ interface SellerAuctionsTableProps {
   onPageChange: (page: number) => void;
   onDeleteAuction: (id: string) => Promise<void>;
   onSearchChange: (search: string) => void;
+  allCount: number;
   activeCount: number;
   pendingCount: number;
   soldCount: number;
@@ -70,6 +89,7 @@ export function SellerAuctionsTable({
   onPageChange,
   onDeleteAuction,
   onSearchChange,
+  allCount,
   activeCount,
   pendingCount,
   soldCount,
@@ -109,7 +129,26 @@ export function SellerAuctionsTable({
     }
   };
 
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExport = async (type: string) => {
+    setIsExporting(true);
+    try {
+      const blob = await exportSellerDashboardData(type, {
+        Status: activeStatus === "All" ? undefined : activeStatus,
+        SearchTerm: searchTerm || undefined,
+        SortBy: sortBy,
+      });
+      downloadCsvFile(blob, `seller-${type}-${new Date().toISOString().split("T")[0]}.csv`);
+    } catch {
+      // Export failed silently
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const statusPills: StatusPillItem[] = [
+    { key: "All", label: "All", count: allCount, color: "var(--primary)" },
     { key: "Active", label: "Active", count: activeCount, color: "#10b981" },
     { key: "Pending", label: "Pending", count: pendingCount, color: "#f59e0b" },
     { key: "Sold", label: "Sold", count: soldCount, color: "#3b82f6" },
@@ -156,34 +195,57 @@ export function SellerAuctionsTable({
             </SelectContent>
           </Select>
 
-          {/* Export Button */}
-          <Button
-            variant="outline"
-            className="rounded-lg h-9 px-3.5 text-xs font-semibold flex items-center gap-2 cursor-pointer"
-          >
-            <Download className="h-3.5 w-3.5 text-muted-foreground" />
-            Export
-          </Button>
+          {/* Export Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="rounded-lg h-9 px-3.5 text-xs font-semibold flex items-center gap-2 cursor-pointer bg-card"
+                disabled={isExporting}
+              >
+                {isExporting ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Download className="h-3.5 w-3.5 text-muted-foreground" />
+                )}
+                {isExporting ? "Exporting..." : "Export"}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleExport("auctions")}>
+                Auctions
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport("orders")}>
+                Orders
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport("financials")}>
+                Financials
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
       {/* Main Table */}
       <div className="overflow-x-auto rounded-xl border border-border bg-card">
-        <table className="w-full text-left border-collapse min-w-[900px]">
-          <thead>
-            <tr className="bg-muted/30 border-b border-border text-[10px] font-bold uppercase tracking-wider text-muted-foreground h-11">
+        <Table className="min-w-[900px]">
+          <TableHeader>
+            <TableRow className="bg-muted/30 border-b border-border h-11 hover:bg-muted/30">
               {TABLE_HEADERS.map((header) => (
-                <th key={header.key} className={cn("px-5 py-3", header.className)}>
+                <TableHead key={header.key} className={cn(
+                  "px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground",
+                  header.className
+                )}>
                   {header.label}
-                </th>
+                </TableHead>
               ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border/50">
+            </TableRow>
+          </TableHeader>
+          <TableBody className="divide-y divide-border/50">
             {isLoading ? (
               Array.from({ length: 5 }).map((_, rowIdx) => (
-                <tr key={rowIdx} className="animate-pulse">
-                  <td className="px-5 py-4">
+                <TableRow key={rowIdx} className="animate-pulse border-0">
+                  <TableCell className="px-5 py-4">
                     <div className="flex items-center gap-3">
                       <div className="h-10 w-12 bg-muted rounded-lg shrink-0" />
                       <div className="space-y-1.5 w-24">
@@ -191,19 +253,19 @@ export function SellerAuctionsTable({
                         <div className="h-2.5 bg-muted rounded w-16" />
                       </div>
                     </div>
-                  </td>
-                  <td className="px-5 py-4"><div className="h-3 bg-muted rounded w-24" /></td>
-                  <td className="px-5 py-4"><div className="h-5 bg-muted rounded w-16" /></td>
-                  <td className="px-5 py-4"><div className="h-3 bg-muted rounded w-6" /></td>
-                  <td className="px-5 py-4"><div className="h-3 bg-muted rounded w-20" /></td>
-                  <td className="px-5 py-4"><div className="h-3 bg-muted rounded w-12" /></td>
-                  <td className="px-5 py-4"><div className="h-3.5 bg-muted rounded w-24" /></td>
-                  <td className="px-5 py-4 text-right pr-6"><div className="h-8 bg-muted rounded-lg w-20 ml-auto" /></td>
-                </tr>
+                  </TableCell>
+                  <TableCell className="px-5 py-4"><div className="h-3 bg-muted rounded w-24" /></TableCell>
+                  <TableCell className="px-5 py-4"><div className="h-5 bg-muted rounded w-16" /></TableCell>
+                  <TableCell className="px-5 py-4"><div className="h-3 bg-muted rounded w-6" /></TableCell>
+                  <TableCell className="px-5 py-4"><div className="h-3 bg-muted rounded w-20" /></TableCell>
+                  <TableCell className="px-5 py-4"><div className="h-3 bg-muted rounded w-12" /></TableCell>
+                  <TableCell className="px-5 py-4"><div className="h-3.5 bg-muted rounded w-24" /></TableCell>
+                  <TableCell className="px-5 py-4 text-right pr-8"><div className="h-8 bg-muted rounded-lg w-20 ml-auto" /></TableCell>
+                </TableRow>
               ))
             ) : auctions.length === 0 ? (
-              <tr>
-                <td colSpan={TABLE_HEADERS.length} className="px-5 py-14 text-center">
+              <TableRow className="border-0 hover:bg-transparent">
+                <TableCell colSpan={TABLE_HEADERS.length} className="px-5 py-14 text-center">
                   <div className="flex flex-col items-center justify-center space-y-2 max-w-xs mx-auto">
                     <Inbox className="h-8 w-8 text-muted-foreground/40" />
                     <h3 className="text-sm font-bold text-foreground">No auctions found</h3>
@@ -213,8 +275,8 @@ export function SellerAuctionsTable({
                         : "No auctions match the selected filter."}
                     </p>
                   </div>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : (
               auctions.map((auction) => (
                 <SellerAuctionsTableRow
@@ -223,10 +285,10 @@ export function SellerAuctionsTable({
                   onDelete={handleDeleteClick}
                 />
               ))
-            )}
-          </tbody>
-        </table>
-      </div>
+              )}
+            </TableBody>
+          </Table>
+        </div>
 
       {/* Pagination Controls */}
       {totalPages > 1 && (
@@ -247,12 +309,16 @@ export function SellerAuctionsTable({
         </div>
       )}
 
-      {/* Confirm Delete Modal */}
-      <DeleteConfirmationModal
-        isOpen={!!deleteTargetId}
-        onClose={() => setDeleteTargetId(null)}
+      {/* Confirm Delete Dialog */}
+      <ConfirmActionDialog
+        open={!!deleteTargetId}
+        onOpenChange={(open) => { if (!open) setDeleteTargetId(null); }}
+        title="Delete Auction Listing?"
+        description="Are you sure you want to delete this auction? This action is permanent and cannot be undone. Bidders will lose access to this listing."
+        confirmLabel="Delete Listing"
+        variant="destructive"
+        isLoading={isDeletingInProgress}
         onConfirm={handleConfirmDelete}
-        isConfirming={isDeletingInProgress}
       />
     </div>
   );

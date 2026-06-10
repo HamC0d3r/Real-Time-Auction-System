@@ -2,8 +2,11 @@
 
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
+import { TableCell, TableRow } from "@/components/ui/table";
+import { ViewAction } from "@/components/ui/view-action";
 import { formatCurrency } from "@/utils/currency.utils";
 import { cn } from "@/lib/utils";
+import { ROUTES } from "@/config/routes.config";
 import type { SellerOrderSummaryDto } from "@/features/seller";
 
 interface SellerOrdersTableRowProps {
@@ -11,9 +14,6 @@ interface SellerOrdersTableRowProps {
 }
 
 export function SellerOrdersTableRow({ order }: SellerOrdersTableRowProps) {
-  // Format Order ID for visual elegance
-  const shortOrderId = order.orderId.substring(0, 8).toUpperCase();
-
   // Status styling configurations
   const getStatusDetails = (status: string) => {
     const s = status.toLowerCase();
@@ -62,30 +62,25 @@ export function SellerOrdersTableRow({ order }: SellerOrdersTableRowProps) {
   const statusInfo = getStatusDetails(order.orderStatus);
 
   return (
-    <tr className="hover:bg-accent/20 dark:hover:bg-accent/5 transition-colors h-[64px]">
-      {/* Column 1: Order ID */}
-      <td className="px-6 py-3 font-mono font-black text-xs text-foreground tracking-wider">
-        #{shortOrderId}
-      </td>
-
-      {/* Column 2: Auction Title */}
-      <td className="px-6 py-3 min-w-[200px]">
+    <TableRow className="hover:bg-accent/20 dark:hover:bg-accent/5 transition-colors h-[64px] border-0">
+      {/* Column 1: Auction Title */}
+      <TableCell className="px-6 py-3 min-w-[200px]">
         <div className="text-left">
           <h4 className="text-xs font-black text-foreground truncate max-w-[180px] sm:max-w-[260px]">
             {order.auctionTitle}
           </h4>
         </div>
-      </td>
+      </TableCell>
 
-      {/* Column 3: Bidder */}
-      <td className="px-6 py-3 min-w-[150px]">
+      {/* Column 2: Bidder */}
+      <TableCell className="px-6 py-3 min-w-[150px]">
         <span className="text-xs font-semibold text-foreground truncate max-w-[150px] block">
           {order.bidderName}
         </span>
-      </td>
+      </TableCell>
 
-      {/* Column 4: Status Badge */}
-      <td className="px-6 py-3">
+      {/* Column 3: Status Badge */}
+      <TableCell className="px-6 py-3">
         <Badge
           className={cn(
             "px-2.5 py-0.5 rounded-full border shadow-none text-[10px] font-black uppercase tracking-wider",
@@ -94,10 +89,10 @@ export function SellerOrdersTableRow({ order }: SellerOrdersTableRowProps) {
         >
           {statusInfo.label}
         </Badge>
-      </td>
+      </TableCell>
 
-      {/* Column 5: Order Date */}
-      <td className="px-6 py-3">
+      {/* Column 4: Order Date */}
+      <TableCell className="px-6 py-3">
         <div className="space-y-0.5 text-left text-[11px] font-semibold">
           <div className="text-foreground">
             {format(new Date(order.orderDateUtc), "MMM d, yyyy")}
@@ -106,12 +101,17 @@ export function SellerOrdersTableRow({ order }: SellerOrdersTableRowProps) {
             {format(new Date(order.orderDateUtc), "h:mm a")}
           </div>
         </div>
-      </td>
+      </TableCell>
 
-      {/* Column 6: Total Amount */}
-      <td className="px-6 py-3 font-black text-xs text-foreground">
+      {/* Column 5: Total Amount */}
+      <TableCell className="px-6 py-3 font-black text-xs text-foreground">
         {formatCurrency(order.totalAmount)}
-      </td>
-    </tr>
+      </TableCell>
+
+      {/* Column 6: Actions */}
+      <TableCell className="px-6 py-3 text-right pr-8">
+        <ViewAction href={ROUTES.ORDERS.DETAIL(order.orderId)} />
+      </TableCell>
+    </TableRow>
   );
 }
