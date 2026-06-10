@@ -45,11 +45,16 @@ export function ModerateUsersFilters({
 
   // Local search state for debouncing
   const [localSearch, setLocalSearch] = useState(filters.search || "");
+  const [localJoinedDate, setLocalJoinedDate] = useState(filters.joinedDate || "");
 
-  // Keep local search query in sync when search filter changes from elsewhere (e.g. URL query)
+  // Keep local inputs in sync when filters change from elsewhere (e.g. URL back/forward)
   useEffect(() => {
     setLocalSearch(filters.search || "");
   }, [filters.search]);
+
+  useEffect(() => {
+    setLocalJoinedDate(filters.joinedDate || "");
+  }, [filters.joinedDate]);
 
   // Apply search filter after 400ms debounce
   useEffect(() => {
@@ -61,6 +66,17 @@ export function ModerateUsersFilters({
 
     return () => clearTimeout(delayDebounceFn);
   }, [localSearch, filters.search, onFilterChange]);
+
+  // Apply joined date filter after 400ms debounce
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      if (localJoinedDate !== (filters.joinedDate || "")) {
+        onFilterChange({ joinedDate: localJoinedDate, page: 1 });
+      }
+    }, 400);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [localJoinedDate, filters.joinedDate, onFilterChange]);
 
   return (
     <FilterBar
@@ -143,7 +159,8 @@ export function ModerateUsersFilters({
             <Input
               type="date"
               className="h-9 text-xs bg-white text-black border-border"
-              placeholder="Select date"
+              value={localJoinedDate}
+              onChange={(e) => setLocalJoinedDate(e.target.value)}
             />
           </div>
         </>
