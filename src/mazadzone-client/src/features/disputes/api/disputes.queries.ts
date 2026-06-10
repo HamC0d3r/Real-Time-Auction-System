@@ -11,6 +11,7 @@ import {
   resolveDisputeApi,
   markDisputeUnderReviewApi,
 } from "./disputes.api";
+import type { PaginatedResult } from "@/types/api.types";
 import type { CreateDisputeInput, Dispute } from "../types/disputes.types";
 import type {
   DisputeTypeDto,
@@ -131,7 +132,7 @@ export function useGetAdminDisputes(filters: AdminDisputesFiltersHook) {
     PageSize: filters.pageSize,
   };
 
-  return useQuery<DisputeListItemDto[]>({
+  return useQuery<PaginatedResult<DisputeListItemDto>>({
     queryKey: disputeKeys.adminList(params),
     queryFn: () => fetchAdminDisputesApi(params),
     staleTime: 30 * 1000,

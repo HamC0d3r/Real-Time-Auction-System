@@ -78,7 +78,7 @@ export async function fetchUserTrust(period: string): Promise<UserTrustResponse>
 }
 
 export async function fetchCategoryStats(): Promise<BackendCategoryStat[]> {
-  const response = await api.get<BackendCategoryStat[]>(`/dashboard/category-statistics`);
+  const response = await api.get<BackendCategoryStat[]>(`/categories/category-statistics`);
   return response.data;
 }
 
