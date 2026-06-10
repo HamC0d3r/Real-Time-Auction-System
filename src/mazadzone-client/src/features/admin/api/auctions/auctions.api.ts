@@ -13,6 +13,7 @@ export interface UseModerateAuctionsFilters {
   category: string;
   status: AuctionStatus | "All Statuses";
   sortBy: string;
+  sortOrder?: "asc" | "desc";
   dateFrom: string;
   page: number;
   pageSize: number;
