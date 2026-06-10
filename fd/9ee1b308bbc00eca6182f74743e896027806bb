@@ -1,0 +1,19 @@
+src/MazadZone.Infrastructure/Repositories/Queries/SellerDashboardQueries.cs
+  s_3e99d7ed5a6898::t_255e00e556593c 177-184
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "fd9ee1b308bbc00eca6182f74743e896027806bb",
+  "prompts": {},
+  "sessions": {
+    "s_3e99d7ed5a6898": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_151916aebffeBr6V1RulyqPrxz",
+        "model": "deepseek-v4-flash-free"
+      },
+      "human_author": "khaled0x1 <120220612151@st.ahu.edu.jo>"
+    }
+  }
+}
