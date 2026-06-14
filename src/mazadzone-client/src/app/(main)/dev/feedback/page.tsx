@@ -10,7 +10,6 @@ import {
   CheckCircle2,
   TriangleAlert,
   Info,
-  Trash2,
   RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -31,7 +30,7 @@ export default function DevFeedbackPage() {
   // Empty State testing state
   const [emptyIcon, setEmptyIcon] = useState<"bell" | "package" | "gavel" | "search">("search");
   const [emptyTitle, setEmptyTitle] = useState("No auctions found");
-  const [emptyDesc, setEmptyDesc] = useState("We couldn't find any active listings matching your filters.");
+  const [emptyDesc] = useState("We couldn't find any active listings matching your filters.");
   const [showEmptyAction, setShowEmptyAction] = useState(true);
 
   // Confirm Dialog testing state
