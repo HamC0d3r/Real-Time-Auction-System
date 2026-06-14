@@ -2,6 +2,8 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { clearTokens, setTokens, getAccessToken } from "@/lib/auth/token";
 import { ROUTES } from "@/config/routes.config";
+import { decodeJwtToken } from "@/features/auth/api/auth.mappers";
+import { tokenManager } from "@/lib/auth/token-manager";
 
 // --- Types -------------------------------------------------------
 
@@ -33,26 +35,14 @@ type AuthStore = AuthState & AuthActions;
 
 // --- Store -------------------------------------------------------
 
-/**
- * Global auth store.
- *
- * Persisted to localStorage so the user stays logged in across
- * page refreshes. The `accessToken` is also stored in localStorage
- * via the token helpers for the API client interceptor.
- *
- * The `isHydrated` flag prevents flash-of-unauthenticated-content
- * by letting components wait until localStorage has been read.
- */
 export const useAuthStore = create<AuthStore>()(
   persist(
     (set) => ({
-      // -- State --
       user: null,
       accessToken: null,
       isAuthenticated: false,
       isHydrated: false,
 
-      // -- Actions --
       login: (user, accessToken, refreshToken) => {
         setTokens(accessToken, refreshToken);
         set({
@@ -82,29 +72,19 @@ export const useAuthStore = create<AuthStore>()(
     }),
     {
       name: "mazadzone-auth",
-      /**
-       * Only persist user data and auth state — the access token
-       * is managed separately via lib/auth/token.ts helpers.
-       */
       partialize: (state) => ({
         user: state.user,
         accessToken: state.accessToken,
         isAuthenticated: state.isAuthenticated,
       }),
       onRehydrateStorage: () => (state) => {
-        // Sync the persisted token with the token helpers
         if (state?.accessToken) {
           const storedToken = getAccessToken();
           if (storedToken !== state.accessToken) {
             setTokens(state.accessToken, "");
           }
 
-          // Dynamically decode token on load to ensure user profile & roles are perfectly in sync
           try {
-            // eslint-disable-next-line @typescript-eslint/no-require-imports
-            const { decodeJwtToken } = require("@/features/auth/api/auth.mappers") as {
-              decodeJwtToken: (token: string) => AuthUser;
-            };
             const decodedUser = decodeJwtToken(state.accessToken);
             if (decodedUser && decodedUser.id !== "unknown-id") {
               state.user = decodedUser;
@@ -118,3 +98,17 @@ export const useAuthStore = create<AuthStore>()(
     },
   ),
 );
+
+// Sync auth store accessToken and decoded user on token refresh
+tokenManager.onTokenRefreshed((token) => {
+  const { setAccessToken, setUser } = useAuthStore.getState();
+  setAccessToken(token);
+  try {
+    const decodedUser = decodeJwtToken(token);
+    if (decodedUser && decodedUser.id !== "unknown-id") {
+      setUser(decodedUser);
+    }
+  } catch {
+    // Silently ignore decode failures during refresh
+  }
+});

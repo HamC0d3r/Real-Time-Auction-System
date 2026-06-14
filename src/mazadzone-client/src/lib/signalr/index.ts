@@ -14,4 +14,10 @@ export type {
   NotificationReceivedEvent,
   NotificationsHubClient,
 } from "./notifications-hub.client";
+export { createOrdersHubClient } from "./orders-hub.client";
+export type {
+  OrderStatusChangedEvent,
+  OrderCreatedEvent,
+  OrdersHubClient,
+} from "./orders-hub.client";
 
