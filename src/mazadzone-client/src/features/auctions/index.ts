@@ -14,6 +14,7 @@ export { EndingSoonSection, HomeHero, BrowseCategoriesSection, UpcomingAuctionsS
 export { CreateAuctionPage } from "./components/create-auction/CreateAuctionPage";
 export { EditAuctionPage } from "./components/edit-auction/EditAuctionPage";
 export { AuctionPagination } from "./components/auction-pagination";
+export { AuctionActionSlot } from "./components/AuctionActionSlot";
 
 // TanStack Query hooks
 export {
@@ -22,8 +23,7 @@ export {
   useGetAuctionById,
   useGetBidHistory,
   useGetAuctionsByCategory,
-  useGetEndingSoonAuctions,
-  useGetUpcomingAuctions,
+  useGetHomeAuctions,
   useGetSellerAuctions,
   useGetRootCategories,
   useGetCategoryTree,
@@ -70,12 +70,16 @@ export {
 export { useAuctionCountdown } from "./hooks/use-auction-countdown";
 export { useRealtimeAuctions } from "./hooks/useRealtimeAuctions";
 
+// Providers
+export { CountdownProvider, useCountdownTick } from "./providers/CountdownProvider";
+
 // Utils
 export {
   isAuctionBiddable,
   isAuctionEditable,
   getAuctionStatusLabel,
 } from "./utils/auction.utils";
+export { getAuctionImageFallback } from "./utils/image.utils";
 
 // Validations
 export { createAuctionSchema } from "./validations/auction.schema";

@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import type { ModerateAuction } from "../../types/admin.types";
 import { useCancelAuction } from "../../api";
@@ -45,7 +44,7 @@ interface CancelAuctionDialogProps {
   auction: ModerateAuction | null;
 }
 
-export function CancelAuctionDialog({
+export const CancelAuctionDialog = React.memo(function CancelAuctionDialog({
   isOpen,
   onClose,
   auction,
@@ -59,7 +58,7 @@ export function CancelAuctionDialog({
     setValue,
     register,
     reset,
-    watch,
+
     formState: { errors },
   } = useForm<CancelFormValues>({
     resolver: zodResolver(cancelSchema),
@@ -99,8 +98,8 @@ export function CancelAuctionDialog({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-[460px] p-0 bg-card border border-border sm:rounded-2xl overflow-hidden gap-0">
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="w-full max-w-[calc(100%-2rem)] sm:max-w-[460px] p-0 bg-card border border-border sm:rounded-2xl overflow-hidden gap-0">
 
         {/* Header */}
         <DialogHeader className="flex flex-row items-center gap-3 px-6 pt-6 pb-5 border-b border-border">
@@ -259,4 +258,4 @@ export function CancelAuctionDialog({
       </DialogContent>
     </Dialog>
   );
-}
+});

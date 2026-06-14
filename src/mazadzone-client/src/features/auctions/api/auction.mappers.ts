@@ -5,12 +5,14 @@
 
 import { parseUtcDate } from "@/utils/date.utils";
 import { useAuthStore } from "@/stores/auth.store";
+import {
+  mapBackendStatusToAuctionStatus,
+  mapBackendConditionToAuctionCondition,
+} from "@/utils/status.utils";
 import type {
   AuctionFilters,
   AuctionSummary,
-  AuctionStatus,
   CreateAuctionInput,
-  AuctionCondition,
 } from "../types/auction.types";
 import type {
   AuctionDto,
@@ -45,44 +47,9 @@ export function mapFiltersToQueryParams(
     MaxCurrentBid: filters?.maxPrice || undefined,
     Status: statusParam || undefined,
     SortBy: filters?.sortBy || undefined,
-    SortDirection: filters?.sortDirection || undefined,
+    SortDirection: filters?.sortDirection || "asc",
     ItemStatus: itemStatusParam || undefined,
   };
-}
-
-/**
- * Helper to normalize backend status strings into stable UI values.
- */
-function mapBackendStatusToAuctionStatus(status?: string): AuctionStatus {
-  if (!status) return "Active";
-  const normalized = status.toLowerCase();
-  if (normalized === "active") return "Active";
-  if (normalized === "upcoming" || normalized === "pending") return "Upcoming";
-  if (
-    normalized === "ended" ||
-    normalized === "endedsold" ||
-    normalized === "endedunsold" ||
-    normalized === "cancelled"
-  ) {
-    return "Ended";
-  }
-  return "Active";
-}
-
-/**
- * Normalizes backend condition strings to UI-friendly AuctionCondition values.
- * e.g. "LikeNew", "Like_New", "LIKE_NEW", "like-new", "Like New" -> "Like New"
- */
-export function mapBackendConditionToAuctionCondition(
-  cond?: string,
-): AuctionCondition {
-  if (!cond) return "New";
-  const normalized = cond.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
-  if (normalized === "new") return "New";
-  if (normalized === "likenew") return "Like New";
-  if (normalized === "good") return "Good";
-  if (normalized === "fair") return "Fair";
-  return "New";
 }
 
 /**
@@ -156,9 +123,7 @@ export function mapAuctionDtoToSummary(dto: AuctionDto): AuctionSummary {
       bidderId: b.bidderId,
     })),
     seller: {
-      id: dto.sellerEmail === useAuthStore.getState().user?.email
-        ? useAuthStore.getState().user?.id || "seller-id-placeholder"
-        : "seller-id-placeholder",
+      id: dto.sellerId || dto.SellerId || "seller-id-placeholder",
       email: dto.sellerEmail,
       fullName: dto.sellerName,
       role: "seller",

@@ -16,7 +16,6 @@ import {
   cancelAuction,
 } from "./auction.api";
 import { mapCreateAuctionInputToRequest } from "./auction.mappers";
-import { useAuthStore } from "@/stores/auth.store";
 import { useAppToast } from "@/lib/toast/app-toast";
 import type { ApiError } from "@/types/api.types";
 
@@ -27,8 +26,6 @@ import type { ApiError } from "@/types/api.types";
 export function useCreateAuction() {
   const queryClient = useQueryClient();
   const appToast = useAppToast();
-  const { user } = useAuthStore();
-
   return useMutation<string, ApiError, CreateAuctionInput>({
     mutationFn: async (input: CreateAuctionInput) => {
       const requestDto = mapCreateAuctionInputToRequest(input);
@@ -54,7 +51,7 @@ export function useActivateAuction() {
 
   return useMutation<void, ApiError, string>({
     mutationFn: (id: string) => activateAuction(id),
-    onSuccess: (_, id) => {
+    onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: auctionKeys.all });
       appToast.success("Success", "Auction listing has been activated.");
     },
@@ -73,7 +70,7 @@ export function useEndAuction() {
 
   return useMutation<void, ApiError, string>({
     mutationFn: (id: string) => endAuction(id),
-    onSuccess: (_, id) => {
+    onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: auctionKeys.all });
       appToast.success("Success", "Auction listing has been ended.");
     },
@@ -92,7 +89,7 @@ export function useCancelAuction() {
 
   return useMutation<void, ApiError, { id: string; reason: string }>({
     mutationFn: ({ id, reason }) => cancelAuction(id, reason),
-    onSuccess: (_, { id }) => {
+    onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: auctionKeys.all });
       appToast.success("Success", "Auction listing has been canceled.");
     },

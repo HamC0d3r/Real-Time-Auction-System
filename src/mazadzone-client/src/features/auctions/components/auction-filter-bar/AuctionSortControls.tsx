@@ -26,10 +26,10 @@ export function AuctionSortControls({
   onSortDirectionChange,
 }: AuctionSortControlsProps) {
   return (
-    <div className="flex items-center gap-3">
-      <div className="flex items-center">
+    <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+      <div className="flex items-center flex-1 sm:flex-initial">
         <Select value={sortBy} onValueChange={onSortByChange}>
-          <SelectTrigger className="h-14! flex items-center justify-between shadow-sm">
+          <SelectTrigger className="h-14! w-full sm:w-48 flex items-center justify-between shadow-sm hover:bg-accent/20">
             <div className="flex flex-col items-start gap-0">
               <span className="text-[10px] uppercase tracking-wider font-bold text-primary/80 mb-0.5">
                 Sort By
@@ -57,14 +57,14 @@ export function AuctionSortControls({
       <RadioGroup
         value={sortDirection}
         onValueChange={(val) => onSortDirectionChange(val as "asc" | "desc")}
-        className="flex items-center h-14 bg-muted/20 border border-input rounded-xl px-1.5 gap-1 w-58 shadow-sm"
+        className="flex items-center h-14 bg-muted/20 border border-input rounded-xl px-1 sm:px-1.5 gap-0.5 sm:gap-1 w-full max-w-[170px] xs:max-w-[200px] sm:max-w-none sm:w-58 shadow-sm flex-1 sm:flex-initial justify-between"
       >
         <div className="flex items-center h-full">
           <RadioGroupItem value="asc" id="asc" className="sr-only" />
           <Label
             htmlFor="asc"
             className={cn(
-              "flex items-center gap-2 px-3 py-2 cursor-pointer text-xs font-bold uppercase tracking-tight rounded-lg transition-all",
+              "flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 cursor-pointer text-[10px] sm:text-xs font-bold uppercase tracking-tight rounded-lg transition-all",
               sortDirection === "asc"
                 ? "bg-card text-primary shadow-sm ring-1 ring-border"
                 : "text-muted-foreground hover:bg-card/50",
@@ -91,7 +91,7 @@ export function AuctionSortControls({
           <Label
             htmlFor="desc"
             className={cn(
-              "flex items-center gap-2 px-3 py-2 cursor-pointer text-xs font-bold uppercase tracking-tight rounded-lg transition-all",
+              "flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 cursor-pointer text-[10px] sm:text-xs font-bold uppercase tracking-tight rounded-lg transition-all",
               sortDirection === "desc"
                 ? "bg-card text-primary shadow-sm ring-1 ring-border"
                 : "text-muted-foreground hover:bg-card/50",

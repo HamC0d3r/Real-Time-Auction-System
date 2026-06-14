@@ -1,6 +1,7 @@
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function useUrlFilters<T extends Record<string, any>>() {
   const router = useRouter();
   const pathname = usePathname();

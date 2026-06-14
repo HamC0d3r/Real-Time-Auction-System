@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/config/routes.config";
 
@@ -53,11 +53,32 @@ function getStatusBadgeClass(status: AuctionStatus): string {
 }
 
 function SellerInfoCell({ auctionId }: { auctionId: string }) {
-  const { data: auction, isLoading, isError } = useGetAuctionById(auctionId);
+  const [isVisible, setIsVisible] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
-  if (isLoading) {
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "100px" }
+    );
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  const { data: auction, isLoading, isError } = useGetAuctionById(
+    isVisible ? auctionId : "",
+    { enabled: isVisible && !!auctionId }
+  );
+
+  if (!isVisible || isLoading) {
     return (
-      <div className="flex flex-col gap-1.5 py-1">
+      <div ref={containerRef} className="flex flex-col gap-1.5 py-1">
         <div className="h-3 w-20 rounded bg-muted/60 animate-pulse" />
         <div className="h-2.5 w-28 rounded bg-muted/40 animate-pulse" />
       </div>
@@ -66,7 +87,7 @@ function SellerInfoCell({ auctionId }: { auctionId: string }) {
 
   if (isError || !auction || !auction.seller) {
     return (
-      <div className="flex flex-col min-w-0">
+      <div ref={containerRef} className="flex flex-col min-w-0">
         <span className="text-[13px] font-semibold text-muted-foreground whitespace-nowrap">
           N/A
         </span>
@@ -78,7 +99,7 @@ function SellerInfoCell({ auctionId }: { auctionId: string }) {
   }
 
   return (
-    <div className="flex flex-col min-w-0">
+    <div ref={containerRef} className="flex flex-col min-w-0">
       <span className="text-[13px] font-semibold text-foreground whitespace-nowrap">
         {auction.seller.fullName}
       </span>
