@@ -35,7 +35,7 @@ interface AdminDisputesTableProps {
   onPageSizeChange: (pageSize: number) => void;
 }
 
-function getStatusBadgeVariant(status: string) {
+function getStatusBadgeVariant(status: string): "default" | "secondary" | "destructive" | "outline" | "ghost" | "link" | "success" | "info" | "warning" | "review" {
   const s = status.toLowerCase().replace(/\s+/g, "-");
   if (s === "open") return "info";
   if (s === "under-review") return "review";
@@ -105,7 +105,7 @@ export function AdminDisputesTable({
                 {dispute.category}
               </TableCell>
               <TableCell>
-                <Badge variant={getStatusBadgeVariant(dispute.status) as any}>
+                <Badge variant={getStatusBadgeVariant(dispute.status)}>
                   {dispute.status}
                 </Badge>
               </TableCell>

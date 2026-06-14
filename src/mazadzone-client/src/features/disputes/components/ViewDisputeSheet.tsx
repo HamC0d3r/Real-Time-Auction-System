@@ -1,7 +1,28 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Star, ExternalLink, Quote, User, Store, X } from "lucide-react";
+
+interface ImageWithFallbackProps extends Omit<React.ComponentProps<typeof Image>, 'src'> {
+  src: string;
+  fallbackSrc?: string;
+}
+
+function ImageWithFallback({ src, fallbackSrc = "/assets/images/placeholder.jpg", alt, ...props }: ImageWithFallbackProps) {
+  const [error, setError] = useState(false);
+
+  return (
+    <Image
+      {...props}
+      src={error || !src ? fallbackSrc : src}
+      alt={alt}
+      onError={() => {
+        setError(true);
+      }}
+    />
+  );
+}
 import {
   Sheet,
   SheetContent,
@@ -28,7 +49,7 @@ interface ViewDisputeSheetProps {
   onClose: () => void;
 }
 
-function getStatusBadgeVariant(status: string) {
+function getStatusBadgeVariant(status: string): "default" | "secondary" | "destructive" | "outline" | "ghost" | "link" | "success" | "info" | "warning" | "review" {
   const s = status.toLowerCase().replace(/\s+/g, "-");
   if (s === "open") return "info";
   if (s === "under-review") return "review";
@@ -119,7 +140,7 @@ export function ViewDisputeSheet({ disputeId, isOpen, onClose }: ViewDisputeShee
                 </div>
                 <div className="flex flex-col gap-1.5 col-span-2 md:col-span-1 md:items-end">
                   <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Current Status</span>
-                  <Badge variant={getStatusBadgeVariant(dispute.status) as any} className="w-fit text-sm px-2.5 py-0.5">
+                  <Badge variant={getStatusBadgeVariant(dispute.status)} className="w-fit text-sm px-2.5 py-0.5">
                     {dispute.status}
                   </Badge>
                 </div>
@@ -133,9 +154,16 @@ export function ViewDisputeSheet({ disputeId, isOpen, onClose }: ViewDisputeShee
                     <div className="flex flex-col gap-3">
                       <h3 className="font-bold text-foreground">1. Auction &amp; Product Details</h3>
                       <div className="border border-border rounded-xl p-5 bg-card shadow-sm flex flex-col sm:flex-row gap-5 items-start">
-                        <div className="h-24 w-24 rounded-lg bg-muted border border-border overflow-hidden shrink-0 flex items-center justify-center">
+                        <div className="h-24 w-24 rounded-lg bg-muted border border-border overflow-hidden shrink-0 flex items-center justify-center relative">
                           {auction.mainImageUrl ? (
-                            <img src={auction.mainImageUrl} alt={auction.title} className="w-full h-full object-cover" />
+                            <ImageWithFallback
+                              key={auction.mainImageUrl}
+                              src={auction.mainImageUrl}
+                              alt={auction.title}
+                              fill
+                              sizes="96px"
+                              className="object-cover"
+                            />
                           ) : (
                             <div className="bg-muted-foreground/20 w-full h-full flex items-center justify-center">
                               <span className="text-xs font-semibold text-muted-foreground">Image</span>
@@ -229,8 +257,15 @@ export function ViewDisputeSheet({ disputeId, isOpen, onClose }: ViewDisputeShee
                           <Dialog>
                             {attachments.map((att, idx) => (
                               <DialogTrigger key={idx} asChild>
-                                <div className="h-24 w-24 rounded-lg bg-muted border border-border overflow-hidden cursor-pointer hover:opacity-80 transition-opacity">
-                                  <img src={att.path} alt={att.altText || `Attachment ${idx + 1}`} className="w-full h-full object-cover" />
+                                <div className="h-24 w-24 rounded-lg bg-muted border border-border overflow-hidden cursor-pointer hover:opacity-80 transition-opacity relative">
+                                  <ImageWithFallback
+                                    key={att.path}
+                                    src={att.path}
+                                    alt={att.altText || `Attachment ${idx + 1}`}
+                                    fill
+                                    sizes="96px"
+                                    className="object-cover"
+                                  />
                                 </div>
                               </DialogTrigger>
                             ))}
@@ -246,8 +281,16 @@ export function ViewDisputeSheet({ disputeId, isOpen, onClose }: ViewDisputeShee
                                   <CarouselContent className="ml-0 h-full w-full">
                                     {attachments.map((att, idx) => (
                                       <CarouselItem key={idx} className="pl-0 flex items-center justify-center w-full h-full relative p-4">
-                                        <div className="relative w-full h-full flex items-center justify-center overflow-auto">
-                                          <img src={att.path} alt={att.altText || `Attachment ${idx + 1}`} className="w-auto h-auto max-w-full max-h-[90vh] object-contain drop-shadow-2xl" />
+                                        <div className="relative w-full h-[80vh] md:h-[90vh] flex items-center justify-center overflow-auto">
+                                          <ImageWithFallback
+                                            key={att.path}
+                                            src={att.path}
+                                            alt={att.altText || `Attachment ${idx + 1}`}
+                                            fill
+                                            priority={idx === 0}
+                                            sizes="100vw"
+                                            className="object-contain drop-shadow-2xl"
+                                          />
                                         </div>
                                       </CarouselItem>
                                     ))}

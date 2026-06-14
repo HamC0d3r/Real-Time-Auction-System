@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { memo, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { X, Loader2 } from "lucide-react";
 import {
@@ -25,7 +25,7 @@ interface DisputeTypeDialogProps {
   initialValues?: { id?: string; name: string; description: string } | null;
 }
 
-export function DisputeTypeDialog({
+export const DisputeTypeDialog = memo(function DisputeTypeDialog({
   isOpen,
   onClose,
   onSave,
@@ -68,8 +68,8 @@ export function DisputeTypeDialog({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-[480px] p-6 bg-card border border-border sm:rounded-2xl">
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="w-full max-w-[calc(100%-2rem)] sm:max-w-[480px] p-6 bg-card border border-border sm:rounded-2xl">
         {/* Header */}
         <DialogHeader className="flex flex-row items-start justify-between pb-2">
           <div className="flex flex-col gap-1 text-left">
@@ -150,4 +150,4 @@ export function DisputeTypeDialog({
       </DialogContent>
     </Dialog>
   );
-}
+});

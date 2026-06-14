@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useId, useMemo, useRef } from "react";
+import { memo, useEffect, useId, useMemo, useRef } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -48,7 +48,7 @@ interface DisputeDialogProps {
   itemName: string;
 }
 
-export function DisputeDialog({
+export const DisputeDialog = memo(function DisputeDialog({
   isOpen,
   onClose,
   orderId,
@@ -164,7 +164,7 @@ export function DisputeDialog({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent className="!w-[calc(100vw-2rem)] !max-w-none overflow-hidden border border-border bg-card p-0 sm:!w-[min(1040px,calc(100vw-3rem))] sm:!max-w-[min(1040px,calc(100vw-3rem))] sm:rounded-2xl">
         {/* Header */}
         <form onSubmit={handleSubmit(handleFormSubmit)} className="grid lg:grid-cols-[1.15fr_0.85fr]">
@@ -439,4 +439,4 @@ export function DisputeDialog({
       </DialogContent>
     </Dialog>
   );
-}
+});
