@@ -22,12 +22,17 @@ export const registerSchema = z
       .refine((val) => /[a-z]/.test(val), "Password must include at least one lowercase letter")
       .refine((val) => /[^a-zA-Z0-9]/.test(val), "Password must include at least one special character"),
     confirmPassword: z.string().min(8, "Please confirm your password"),
-    phoneNumber: z.string().min(10, "Please enter a valid phone number"),
+    phoneNumber: z
+      .string()
+      .regex(/^07\d*$/, "Phone number must start with 07")
+      .length(10, "Phone number must be exactly 10 digits"),
     city: z.string().min(2, "City is required"),
     street: z.string().min(2, "Street is required"),
     building: z.string().min(1, "Building/House number is required"),
     landmark: z.string().min(2, "Landmark is required"),
-    nationalId: z.string().min(10, "Please enter a valid national ID"),
+    nationalId: z
+      .string()
+      .length(10, "Please enter a valid national ID"),
     nationalCardFile: z
       .any()
       .refine((file) => file instanceof File, "National card image is required")

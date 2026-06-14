@@ -70,7 +70,7 @@ export function decodeJwtToken(token: string): AuthUser {
     const payload = token.split(".")[1];
     if (!payload) throw new Error("Invalid JWT token structure");
 
-    const decoded = JSON.parse(base64UrlDecode(payload)) as any;
+    const decoded = JSON.parse(base64UrlDecode(payload)) as Record<string, unknown>;
 
     // Standard Claim URIs
     const microsoftRoleClaim = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role";
@@ -78,12 +78,12 @@ export function decodeJwtToken(token: string): AuthUser {
     const microsoftIdClaim = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier";
 
     // 1. Extract Role (can be a string or array of strings under role/roles/claim URI)
-    const rawRole = decoded.role || decoded.roles || decoded[microsoftRoleClaim];
+    const rawRole = decoded.role ?? decoded.roles ?? decoded[microsoftRoleClaim];
     let finalRole: UserRole = "bidder";
 
     if (rawRole) {
       if (Array.isArray(rawRole)) {
-        const rolesLower = rawRole.map((r: string) => r.toLowerCase());
+        const rolesLower = (rawRole as string[]).map((r: string) => r.toLowerCase());
         if (rolesLower.includes("admin")) {
           finalRole = "admin";
         } else if (rolesLower.includes("seller")) {
@@ -104,14 +104,14 @@ export function decodeJwtToken(token: string): AuthUser {
     }
 
     // 2. Extract Full Name
-    const fullName = decoded.name || decoded[microsoftNameClaim] || decoded.fullName || "User";
+    const fullName = String(decoded.name ?? decoded[microsoftNameClaim] ?? decoded.fullName ?? "User");
 
     // 3. Extract User ID
-    const id = decoded.sub || decoded[microsoftIdClaim] || decoded.id || "unknown-id";
+    const id = String(decoded.sub ?? decoded[microsoftIdClaim] ?? decoded.id ?? "unknown-id");
 
     return {
       id,
-      email: decoded.email || decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"] || "",
+      email: String(decoded.email ?? decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"] ?? ""),
       fullName,
       role: finalRole,
     };

@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { User, Mail, Phone, MapPin, IdCard, Building, Navigation, Map } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -17,6 +16,7 @@ import { registerSchema, type RegisterFormValues } from "../validations/register
 import { ROUTES } from "@/config/routes.config";
 import { useRegisterMutation } from "../api";
 import { useNationalIdOcr } from "../hooks/useNationalIdOcr";
+import { MAIN_FIELDS, ADDRESS_FIELDS } from "./register-form.constants";
 
 /**
  * RegisterForm
@@ -60,8 +60,20 @@ export function RegisterForm() {
   const onSubmit = async (data: RegisterFormValues) => {
     try {
       setOcrErrorMessage(null);
-      await registerMutation.mutateAsync(data);
-    } catch (error: any) {
+
+      // Run OCR on submit as a fallback to ensure national ID is extracted from the card image
+      let nationalId = data.nationalId;
+      const cardFile = data.nationalCardFile;
+      if (cardFile instanceof File && cardFile.type.startsWith("image/")) {
+        const detectedId = await scanFile(cardFile);
+        if (detectedId) {
+          nationalId = detectedId;
+          setValue("nationalId", detectedId, { shouldValidate: true });
+        }
+      }
+
+      await registerMutation.mutateAsync({ ...data, nationalId });
+    } catch (error: unknown) {
       console.error("Registration submission error:", error);
       // Catch backend validation errors and map them contextually to form fields
       if (error && typeof error === "object" && "errors" in error && error.errors) {
@@ -105,12 +117,14 @@ export function RegisterForm() {
     }
   };
 
-  const submitLabel = registerMutation.isPending
-    ? "Signing up..."
-    : "Sign up";
+  const submitLabel = isScanning
+    ? "Scanning ID..."
+    : registerMutation.isPending
+      ? "Signing up..."
+      : "Sign up";
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 w-full max-w-[600px] mx-auto px-4 lg:px-8 pt-20">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 w-full max-w-[700px] mx-auto px-4 lg:px-8 pt-20">
       <div>
         <h1 className="text-2xl font-bold text-foreground mb-4">Create Your Account</h1>
         {ocrErrorMessage && (
@@ -124,137 +138,59 @@ export function RegisterForm() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
-        {/* Full Name */}
-        <div className="space-y-2">
-          <Label htmlFor="fullName" className="text-sm font-medium text-foreground">Full Name</Label>
-          <InputWithIcon
-            id="fullName"
-            placeholder="Enter your full name"
-            icon={<User className="h-5 w-5" />}
-            className="border-foreground"
-            {...register("fullName")}
-          />
-          {errors.fullName && <p className="text-xs text-red-500 mt-1">{errors.fullName.message}</p>}
-        </div>
-
-        {/* Email */}
-        <div className="space-y-2">
-          <Label htmlFor="email" className="text-sm font-medium text-foreground">Email</Label>
-          <InputWithIcon
-            id="email"
-            type="email"
-            placeholder="Enter your email"
-            icon={<Mail className="h-5 w-5" />}
-            className="border-foreground"
-            {...register("email")}
-          />
-          {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>}
-        </div>
-
-        {/* Password */}
-        <div className="space-y-2">
-          <Label htmlFor="password" className="text-sm font-medium text-foreground">Password</Label>
-          <PasswordInput
-            id="password"
-            placeholder="Create a password"
-            className="border-foreground"
-            {...register("password")}
-          />
-          {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>}
-        </div>
-
-        {/* Confirm Password */}
-        <div className="space-y-2">
-          <Label htmlFor="confirmPassword" className="text-sm font-medium text-foreground">Confirm Password</Label>
-          <PasswordInput
-            id="confirmPassword"
-            placeholder="Confirm your password"
-            className="border-foreground"
-            {...register("confirmPassword")}
-          />
-          {errors.confirmPassword && <p className="text-xs text-red-500 mt-1">{errors.confirmPassword.message}</p>}
-        </div>
-
-        {/* Phone Number */}
-        <div className="space-y-2">
-          <Label htmlFor="phoneNumber" className="text-sm font-medium text-foreground">Phone Number</Label>
-          <InputWithIcon
-            id="phoneNumber"
-            type="tel"
-            placeholder="Enter your phone Number"
-            icon={<Phone className="h-5 w-5" />}
-            className="border-foreground"
-            {...register("phoneNumber")}
-          />
-          {errors.phoneNumber && <p className="text-xs text-red-500 mt-1">{errors.phoneNumber.message}</p>}
-        </div>
-
-        {/* National ID */}
-        <div className="space-y-2">
-          <Label htmlFor="nationalId" className="text-sm font-medium text-foreground">National Id</Label>
-          <InputWithIcon
-            id="nationalId"
-            placeholder="Enter your national id"
-            icon={<IdCard className="h-5 w-5" />}
-            className="border-foreground"
-            {...register("nationalId")}
-          />
-          {errors.nationalId && <p className="text-xs text-red-500 mt-1">{errors.nationalId.message}</p>}
-        </div>
+        {/* Main form fields */}
+        {MAIN_FIELDS.map((field) => (
+          <div key={field.id} className="space-y-2">
+            <Label htmlFor={field.id} className="text-sm font-medium text-foreground">
+              {field.label}
+            </Label>
+            {field.type === "password" ? (
+              <PasswordInput
+                id={field.id}
+                placeholder={field.placeholder}
+                className="border-foreground"
+                {...register(field.id)}
+              />
+            ) : (
+              <InputWithIcon
+                id={field.id}
+                type={field.type}
+                placeholder={field.placeholder}
+                icon={field.icon}
+                className="border-foreground"
+                maxLength={field.maxLength}
+                {...register(field.id, field.isNumeric ? {
+                  onChange: (e) => {
+                    e.target.value = e.target.value.replace(/\D/g, "");
+                  },
+                } : undefined)}
+              />
+            )}
+            {errors[field.id]?.message && (
+              <p className="text-xs text-red-500 mt-1">{errors[field.id]?.message?.toString()}</p>
+            )}
+          </div>
+        ))}
 
         {/* Address Fields */}
         <div className="col-span-1 md:col-span-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-5">
-          {/* City */}
-          <div className="space-y-2">
-            <Label htmlFor="city" className="text-sm font-medium text-foreground">City</Label>
-            <InputWithIcon
-              id="city"
-              placeholder="Enter City"
-              icon={<Map className="h-5 w-5" />}
-              className="border-foreground"
-              {...register("city")}
-            />
-            {errors.city && <p className="text-xs text-red-500 mt-1">{errors.city.message}</p>}
-          </div>
-
-          {/* Street */}
-          <div className="space-y-2">
-            <Label htmlFor="street" className="text-sm font-medium text-foreground">Street</Label>
-            <InputWithIcon
-              id="street"
-              placeholder="Enter Street"
-              icon={<MapPin className="h-5 w-5" />}
-              className="border-foreground"
-              {...register("street")}
-            />
-            {errors.street && <p className="text-xs text-red-500 mt-1">{errors.street.message}</p>}
-          </div>
-
-          {/* Building */}
-          <div className="space-y-2">
-            <Label htmlFor="building" className="text-sm font-medium text-foreground">Building No.</Label>
-            <InputWithIcon
-              id="building"
-              placeholder="Enter Building Number or Name"
-              icon={<Building className="h-5 w-5" />}
-              className="border-foreground"
-              {...register("building")}
-            />
-            {errors.building && <p className="text-xs text-red-500 mt-1">{errors.building.message}</p>}
-          </div>
-
-          {/* Landmark */}
-          <div className="space-y-2">
-            <Label htmlFor="landmark" className="text-sm font-medium text-foreground">Landmark</Label>
-            <InputWithIcon
-              id="landmark"
-              placeholder="e.g., Near City Mall"
-              icon={<Navigation className="h-5 w-5" />}
-              className="border-foreground"
-              {...register("landmark")}
-            />
-            {errors.landmark && <p className="text-xs text-red-500 mt-1">{errors.landmark.message}</p>}
-          </div>
+          {ADDRESS_FIELDS.map((field) => (
+            <div key={field.id} className="space-y-2">
+              <Label htmlFor={field.id} className="text-sm font-medium text-foreground">
+                {field.label}
+              </Label>
+              <InputWithIcon
+                id={field.id}
+                placeholder={field.placeholder}
+                icon={field.icon}
+                className="border-foreground"
+                {...register(field.id)}
+              />
+              {errors[field.id]?.message && (
+                <p className="text-xs text-red-500 mt-1">{errors[field.id]?.message?.toString()}</p>
+              )}
+            </div>
+          ))}
         </div>
 
         {/* National Card Upload */}
