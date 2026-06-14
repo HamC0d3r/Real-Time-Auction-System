@@ -101,17 +101,22 @@ export const useGetMyOrders = (
  * Hook to query detailed order information.
  * Composes both OrderDetails DTO and AuctionSummary info in parallel.
  */
-export function useGetOrderDetails(id: string) {
+export function useGetOrderDetails(id: string, options?: { enabled?: boolean }) {
+  const isEnabled = (options?.enabled !== undefined ? options.enabled : true) && !!id;
+
   const orderQuery = useQuery({
     queryKey: orderKeys.detail(id),
     queryFn: () => getOrderDetails(id),
-    enabled: !!id,
+    enabled: isEnabled,
   });
 
   const auctionId = orderQuery.data?.auctionId;
 
   // Query details of the corresponding auction
-  const auctionQuery = useGetAuctionById(auctionId || "");
+  const auctionQuery = useGetAuctionById(
+    auctionId || "",
+    { enabled: isEnabled && !!auctionId }
+  );
 
   // Combine raw order DTO with auction info via mapping layer
   const mappedData = orderQuery.data

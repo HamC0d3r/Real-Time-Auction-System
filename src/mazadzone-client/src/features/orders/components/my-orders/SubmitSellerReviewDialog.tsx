@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useState } from "react";
 import { Star, Loader2, MessageSquare } from "lucide-react";
 import { useAuthStore } from "@/stores/auth.store";
 import { useAppToast } from "@/lib/toast/app-toast";
@@ -27,7 +27,7 @@ interface SubmitSellerReviewDialogProps {
   itemName: string;
 }
 
-export function SubmitSellerReviewDialog({
+export const SubmitSellerReviewDialog = memo(function SubmitSellerReviewDialog({
   isOpen,
   onClose,
   orderId,
@@ -219,4 +219,4 @@ export function SubmitSellerReviewDialog({
       </DialogContent>
     </Dialog>
   );
-}
+});
