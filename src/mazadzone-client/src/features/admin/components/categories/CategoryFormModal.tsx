@@ -54,7 +54,7 @@ interface CategoryFormModalProps {
   category: Category | null;
 }
 
-export function CategoryFormModal({
+export const CategoryFormModal = React.memo(function CategoryFormModal({
   isOpen,
   onClose,
   category,
@@ -139,7 +139,7 @@ export function CategoryFormModal({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent className="max-w-[500px] p-6 bg-card border border-border sm:rounded-2xl gap-0 overflow-y-auto max-h-[90vh]">
         <DialogHeader className="text-left mb-6">
           <DialogTitle className="text-xl font-bold text-foreground">
@@ -292,4 +292,4 @@ export function CategoryFormModal({
       </DialogContent>
     </Dialog>
   );
-}
+});

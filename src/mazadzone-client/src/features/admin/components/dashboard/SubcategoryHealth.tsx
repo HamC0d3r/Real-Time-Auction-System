@@ -2,7 +2,6 @@
 
 import React from "react";
 import { Info, ArrowUpRight, Tags } from "lucide-react";
-import { cn } from "@/lib/utils";
 import type { SubcategoryHealthStats } from "../../types/admin.types";
 
 import { SubcategoryHealthSkeleton } from "./skeletons";

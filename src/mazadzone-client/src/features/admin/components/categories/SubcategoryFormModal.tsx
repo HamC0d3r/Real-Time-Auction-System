@@ -52,7 +52,7 @@ interface SubcategoryFormModalProps {
   subcategory: Subcategory | null;
 }
 
-export function SubcategoryFormModal({
+export const SubcategoryFormModal = React.memo(function SubcategoryFormModal({
   isOpen,
   onClose,
   parentCategoryId,
@@ -134,15 +134,15 @@ export function SubcategoryFormModal({
         appToast.success("Subcategory Created", "New subcategory has been created successfully.");
       }
       onClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Failed to save subcategory:", err);
       appToast.fromApiError(err, "Failed to save subcategory. Please try again.");
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-[440px] p-6 bg-card border border-border sm:rounded-2xl gap-0">
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="w-full max-w-[calc(100%-2rem)] sm:max-w-[440px] p-6 bg-card border border-border sm:rounded-2xl gap-0">
         <DialogHeader className="text-left mb-5">
           <DialogTitle className="text-xl font-bold text-foreground">
             {isEdit ? "Edit Subcategory" : "Add Subcategory"}
@@ -262,4 +262,4 @@ export function SubcategoryFormModal({
       </DialogContent>
     </Dialog>
   );
-}
+});

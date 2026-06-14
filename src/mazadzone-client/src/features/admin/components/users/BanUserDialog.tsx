@@ -34,7 +34,7 @@ interface BanUserDialogProps {
   user: ModerateUser | null;
 }
 
-export function BanUserDialog({
+export const BanUserDialog = React.memo(function BanUserDialog({
   isOpen,
   onClose,
   user,
@@ -95,8 +95,8 @@ export function BanUserDialog({
     : "U";
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-[440px] p-6 bg-card border border-border sm:rounded-2xl gap-0">
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="w-full max-w-[calc(100%-2rem)] sm:max-w-[440px] p-6 bg-card border border-border sm:rounded-2xl gap-0">
         <DialogHeader className="text-left mb-4">
           <DialogTitle className="text-xl font-bold text-foreground">
             Ban User
@@ -186,4 +186,4 @@ export function BanUserDialog({
       </DialogContent>
     </Dialog>
   );
-}
+});

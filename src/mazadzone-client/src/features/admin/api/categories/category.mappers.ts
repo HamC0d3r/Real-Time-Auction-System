@@ -1,13 +1,14 @@
 import type { Category, Subcategory } from "../../types/category.types";
 import { getCategoryIconByName } from "../../constants/category.constants";
+import type { BackendCategoryNode } from "./category.contracts";
 
 // Helper to map recursive backend CategoryTreeResponse objects into Category models
-export function mapBackendCategoryTree(backendTree: any[]): Category[] {
+export function mapBackendCategoryTree(backendTree: BackendCategoryNode[]): Category[] {
   return backendTree.map((item) => {
     const iconName = getCategoryIconByName(item.name);
     const slug = item.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
-    const subcategories: Subcategory[] = (item.children || []).map((sub: any) => ({
+    const subcategories: Subcategory[] = (item.children || []).map((sub) => ({
       id: sub.id,
       name: sub.name,
       slug: sub.name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),

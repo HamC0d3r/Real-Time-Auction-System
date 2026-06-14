@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Search, Calendar as CalendarIcon, Download, ChevronDown } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { Search, Download, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -46,13 +46,23 @@ export function ModerateUsersFilters({
   // Local search state for debouncing
   const [localSearch, setLocalSearch] = useState(filters.search || "");
   const [localJoinedDate, setLocalJoinedDate] = useState(filters.joinedDate || "");
+  const initialRenderSearch = useRef(true);
+  const initialRenderDate = useRef(true);
 
   // Keep local inputs in sync when filters change from elsewhere (e.g. URL back/forward)
   useEffect(() => {
+    if (initialRenderSearch.current) {
+      initialRenderSearch.current = false;
+      return;
+    }
     setLocalSearch(filters.search || "");
   }, [filters.search]);
 
   useEffect(() => {
+    if (initialRenderDate.current) {
+      initialRenderDate.current = false;
+      return;
+    }
     setLocalJoinedDate(filters.joinedDate || "");
   }, [filters.joinedDate]);
 
@@ -98,7 +108,7 @@ export function ModerateUsersFilters({
       filters={
         <>
           {/* Role */}
-          <div className="flex flex-col gap-1.5 min-w-[120px]">
+          <div className="flex flex-col gap-1.5 w-full sm:w-auto sm:min-w-[120px]">
             <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider pl-1">Role</span>
             <Select
               value={filters.role}
@@ -117,7 +127,7 @@ export function ModerateUsersFilters({
           </div>
 
           {/* Account Status */}
-          <div className="flex flex-col gap-1.5 min-w-[130px]">
+          <div className="flex flex-col gap-1.5 w-full sm:w-auto sm:min-w-[130px]">
             <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider pl-1">Account Status</span>
             <Select
               value={filters.status}
@@ -136,7 +146,7 @@ export function ModerateUsersFilters({
           </div>
 
           {/* Sort By */}
-          <div className="flex flex-col gap-1.5 min-w-[120px]">
+          <div className="flex flex-col gap-1.5 w-full sm:w-auto sm:min-w-[120px]">
             <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider pl-1">Sort By</span>
             <Select
               value={filters.sortBy}
@@ -154,7 +164,7 @@ export function ModerateUsersFilters({
           </div>
 
           {/* Order */}
-          <div className="flex flex-col gap-1.5 min-w-[110px]">
+          <div className="flex flex-col gap-1.5 w-full sm:w-auto sm:min-w-[110px]">
             <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider pl-1">Order</span>
             <Select
               value={filters.sortOrder || "desc"}
@@ -171,7 +181,7 @@ export function ModerateUsersFilters({
           </div>
 
           {/* Joined Date */}
-          <div className="flex flex-col gap-1.5 min-w-[140px]">
+          <div className="flex flex-col gap-1.5 w-full sm:w-auto sm:min-w-[140px]">
             <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider pl-1">Joined Date</span>
             <Input
               type="date"

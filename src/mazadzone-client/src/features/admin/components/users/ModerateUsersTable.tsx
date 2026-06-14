@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { MoreHorizontal, ArrowUpDown, Ban, PauseCircle, CheckCircle2, Eye, Loader2 } from "lucide-react";
 import { format } from "date-fns";
@@ -33,6 +34,36 @@ import { useRestoreUser } from "../../api";
 import { SuspendUserDialog } from "./SuspendUserDialog";
 import { BanUserDialog } from "./BanUserDialog";
 
+interface UserAvatarImageProps {
+  src?: string;
+  alt: string;
+  fallbackInitials: string;
+}
+
+function UserAvatarImage({ src, alt, fallbackInitials }: UserAvatarImageProps) {
+  const [error, setError] = useState(false);
+
+  if (error || !src) {
+    return (
+      <span className="text-xs font-bold text-primary">
+        {fallbackInitials}
+      </span>
+    );
+  }
+
+  return (
+    <div className="relative w-full h-full">
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        sizes="36px"
+        className="object-cover"
+        onError={() => setError(true)}
+      />
+    </div>
+  );
+}
 
 interface ModerateUsersTableProps {
   users: ModerateUser[];
@@ -196,14 +227,13 @@ export function ModerateUsersTable({
                   {/* User Avatar + Name */}
                   <TableCell>
                     <div className="flex items-center gap-3">
-                      <div className="h-9 w-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center overflow-hidden shrink-0">
-                        {user.avatarUrl ? (
-                          <img src={user.avatarUrl} alt={user.fullName} className="h-full w-full object-cover" />
-                        ) : (
-                          <span className="text-xs font-bold text-primary">
-                            {user.fullName.substring(0, 2).toUpperCase()}
-                          </span>
-                        )}
+                      <div className="h-9 w-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center overflow-hidden shrink-0 relative">
+                        <UserAvatarImage
+                          key={user.avatarUrl}
+                          src={user.avatarUrl}
+                          alt={user.fullName}
+                          fallbackInitials={user.fullName.substring(0, 2).toUpperCase()}
+                        />
                       </div>
                       <span className="text-sm font-semibold text-foreground whitespace-nowrap">
                         {user.fullName}
