@@ -1,13 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import dynamic from "next/dynamic";
+import { memo, useCallback, useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { VisuallyHidden } from "radix-ui";
-import { useGetAddresses, useGetProfile } from "@/features/profile";
+import { useGetAddresses } from "@/features/profile";
 import { useGetSavedPaymentMethods } from "@/features/payment";
 import { cn } from "@/lib/utils";
 import { usePlaceBid } from "../../api/bidding.queries";
 import { useAppToast } from "@/lib/toast/app-toast";
+import { useAuthStore } from "@/stores/auth.store";
 import type {
   PlaceBidModalProps,
   DeliveryAddress,
@@ -15,15 +17,43 @@ import type {
   PlaceBidResponse,
 } from "../../types/place-bid.types";
 
-import { AddressSelectStep } from "@/features/profile";
-import { PaymentMethodDrawer } from "@/features/payment";
-
-// Step components
 import { PlaceBidStep } from "./PlaceBidStep";
 import { ReviewConfirmStep } from "./ReviewConfirmStep";
 import { BidSuccessStep } from "./BidSuccessStep";
 
-export function PlaceBidModal({
+const LazyAddressSelectStep = dynamic(
+  () =>
+    import("@/features/profile/components/AddressSelectStep").then(
+      (module) => module.AddressSelectStep,
+    ),
+  { loading: () => <AddressSelectSkeleton /> },
+);
+
+const LazyPaymentMethodDrawer = dynamic(
+  () =>
+    import("@/features/payment/components/PaymentMethodDrawer").then(
+      (module) => module.PaymentMethodDrawer,
+    ),
+  { loading: () => null },
+);
+
+function AddressSelectSkeleton() {
+  return (
+    <div className="space-y-6 text-left">
+      <div>
+        <div className="h-6 w-48 rounded-lg bg-muted animate-pulse" />
+        <div className="mt-2 h-4 w-72 rounded-lg bg-muted animate-pulse" />
+      </div>
+      <div className="space-y-3">
+        {[1, 2].map((item) => (
+          <div key={item} className="h-24 rounded-xl border border-border bg-muted/20 animate-pulse" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export const PlaceBidModal = memo(function PlaceBidModal({
   auctionId,
   auctionTitle,
   currentBid,
@@ -31,12 +61,6 @@ export function PlaceBidModal({
   isOpen,
   onClose,
 }: PlaceBidModalProps) {
-  const { data: profileAddresses = [] } = useGetAddresses();
-  const { data: savedPaymentMethods = [] } = useGetSavedPaymentMethods();
-  const placeBidMutation = usePlaceBid();
-  const { data: profile } = useGetProfile();
-  const appToast = useAppToast();
-
   const [isPaymentSheetOpen, setIsPaymentSheetOpen] = useState(false);
   const [step, setStep] = useState<"place-bid" | "choose-address" | "review" | "success">("place-bid");
   const [bidAmountOverride, setBidAmountOverride] = useState<number | null>(null);
@@ -48,25 +72,39 @@ export function PlaceBidModal({
   >(undefined);
   const [bidResponse, setBidResponse] = useState<PlaceBidResponse | null>(null);
 
-  const defaultAddressSource =
-    profileAddresses.find((address) => address.isDefault) || profileAddresses[0] || null;
-  const defaultSelectedAddress: DeliveryAddress | null = defaultAddressSource
-    ? {
-        id: defaultAddressSource.id,
-        label: defaultAddressSource.title,
-        fullName: profile?.fullName || "",
-        phoneNumber: profile?.phoneNumber || "",
-        streetAddress: defaultAddressSource.streetAddress,
-        building: defaultAddressSource.building,
-        city: defaultAddressSource.city,
-        isDefault: defaultAddressSource.isDefault,
-      }
-    : null;
+  const { data: profileAddresses = [] } = useGetAddresses({
+    enabled: isOpen && step !== "success" && selectedAddressOverride === undefined,
+  });
+  const { data: savedPaymentMethods = [] } = useGetSavedPaymentMethods({
+    enabled: isOpen && step !== "success" && selectedPaymentOverride === undefined,
+  });
+  const placeBidMutation = usePlaceBid();
+  const user = useAuthStore((state) => state.user);
+  const appToast = useAppToast();
 
-  const defaultSelectedPayment =
-    savedPaymentMethods.find((paymentMethod) => paymentMethod.isDefault) ||
-    savedPaymentMethods[0] ||
-    null;
+  const defaultSelectedAddress = useMemo(() => {
+    const defaultAddressSource =
+      profileAddresses.find((address) => address.isDefault) || profileAddresses[0] || null;
+    if (!defaultAddressSource) return null;
+    return {
+      id: defaultAddressSource.id,
+      label: defaultAddressSource.title,
+      fullName: user?.fullName || "",
+      phoneNumber: "",
+      streetAddress: defaultAddressSource.streetAddress,
+      building: defaultAddressSource.building,
+      city: defaultAddressSource.city,
+      isDefault: defaultAddressSource.isDefault,
+    };
+  }, [profileAddresses, user?.fullName]);
+
+  const defaultSelectedPayment = useMemo(() => {
+    return (
+      savedPaymentMethods.find((method) => method.isDefault) ||
+      savedPaymentMethods[0] ||
+      null
+    );
+  }, [savedPaymentMethods]);
 
   const selectedAddress =
     selectedAddressOverride === undefined
@@ -74,11 +112,11 @@ export function PlaceBidModal({
       : selectedAddressOverride;
   const selectedPayment =
     selectedPaymentOverride === undefined
-      ? defaultSelectedPayment
+      ? (defaultSelectedPayment as SavedPaymentMethod | null)
       : selectedPaymentOverride;
   const bidAmount = bidAmountOverride ?? currentBid + minIncrement;
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setStep("place-bid");
     setBidAmountOverride(null);
     setSelectedAddressOverride(undefined);
@@ -86,20 +124,36 @@ export function PlaceBidModal({
     setBidResponse(null);
     setIsPaymentSheetOpen(false);
     onClose();
-  };
+  }, [onClose]);
 
-  const handleSelectAddress = (address: DeliveryAddress) => {
+  const handleOpenChange = useCallback(
+    (open: boolean) => {
+      if (!open) handleClose();
+    },
+    [handleClose],
+  );
+
+  const handleSelectAddress = useCallback((address: DeliveryAddress) => {
     setSelectedAddressOverride(address);
     setStep("place-bid");
-  };
+  }, []);
 
-  const handleSavePaymentMethod = (paymentMethod: SavedPaymentMethod) => {
+  const handleSavePaymentMethod = useCallback((paymentMethod: SavedPaymentMethod) => {
     setSelectedPaymentOverride(paymentMethod);
     setIsPaymentSheetOpen(false);
-  };
+  }, []);
 
-  const handlePlaceBidSubmit = async () => {
-    if (!selectedAddress) return;
+  const goToChooseAddress = useCallback(() => setStep("choose-address"), []);
+  const goToReview = useCallback(() => {
+    if (!selectedAddress || !selectedPayment) return;
+    setStep("review");
+  }, [selectedAddress, selectedPayment]);
+  const openPaymentSheet = useCallback(() => setIsPaymentSheetOpen(true), []);
+  const goBackToPlaceBid = useCallback(() => setStep("place-bid"), []);
+  const closePaymentSheet = useCallback(() => setIsPaymentSheetOpen(false), []);
+
+  const handlePlaceBidSubmit = useCallback(async () => {
+    if (!selectedAddress || !selectedPayment) return;
 
     try {
       const response = await placeBidMutation.mutateAsync({
@@ -115,11 +169,11 @@ export function PlaceBidModal({
     } catch (err) {
       appToast.fromApiError(err, "Could not place your bid. Please try again.");
     }
-  };
+  }, [selectedAddress, selectedPayment, placeBidMutation, auctionId, bidAmount, appToast]);
 
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+      <Dialog open={isOpen} onOpenChange={handleOpenChange}>
         <DialogContent
           className={cn(
             "w-full bg-card border-border p-6 shadow-xl rounded-xl gap-0 z-50 focus-visible:outline-none transition-all duration-200",
@@ -133,7 +187,7 @@ export function PlaceBidModal({
               Configure and place a bid on the selected auction listing.
             </DialogDescription>
           </VisuallyHidden.Root>
-          {/* Step 1: Place Bid Form */}
+
           {step === "place-bid" && (
             <PlaceBidStep
               auctionTitle={auctionTitle}
@@ -143,25 +197,23 @@ export function PlaceBidModal({
               onBidAmountChange={setBidAmountOverride}
               selectedAddress={selectedAddress}
               selectedPayment={selectedPayment}
-              onChangeAddress={() => setStep("choose-address")}
-              onAddPayment={() => setIsPaymentSheetOpen(true)}
-              onContinue={() => setStep("review")}
+              onChangeAddress={goToChooseAddress}
+              onAddPayment={openPaymentSheet}
+              onContinue={goToReview}
               onCancel={handleClose}
             />
           )}
 
-          {/* Step 2: Choose Address List */}
           {step === "choose-address" && (
-            <AddressSelectStep
+            <LazyAddressSelectStep
               selectedAddressId={selectedAddress?.id}
               onSelectAddress={handleSelectAddress}
-              onCancel={() => setStep("place-bid")}
+              onCancel={goBackToPlaceBid}
               title="Choose Delivery Address"
               subtitle="Select where you want your item to be delivered."
             />
           )}
 
-          {/* Step 4: Review and Confirm Details */}
           {step === "review" && (
             <ReviewConfirmStep
               auctionTitle={auctionTitle}
@@ -171,14 +223,13 @@ export function PlaceBidModal({
               selectedAddress={selectedAddress}
               selectedPayment={selectedPayment}
               onConfirm={handlePlaceBidSubmit}
-              onCancel={() => setStep("place-bid")}
-              onChangeAddress={() => setStep("choose-address")}
-              onChangePayment={() => setIsPaymentSheetOpen(true)}
+              onCancel={goBackToPlaceBid}
+              onChangeAddress={goToChooseAddress}
+              onChangePayment={openPaymentSheet}
               isSubmitting={placeBidMutation.isPending}
             />
           )}
 
-          {/* Step 5: Bid Success */}
           {step === "success" && (
             <BidSuccessStep
               bidResponse={bidResponse}
@@ -189,16 +240,17 @@ export function PlaceBidModal({
         </DialogContent>
       </Dialog>
 
-      {/* Step 3: Payment Sheet overlay on the right side */}
-      <PaymentMethodDrawer
-        isOpen={isPaymentSheetOpen}
-        onClose={() => setIsPaymentSheetOpen(false)}
-        onSaveCard={handleSavePaymentMethod}
-        selectedPaymentMethodId={selectedPayment?.id}
-        mode="payment"
-        amount={bidAmount * 0.1}
-        deliveryAddress={selectedAddress}
-      />
+      {isPaymentSheetOpen && (
+        <LazyPaymentMethodDrawer
+          isOpen={isPaymentSheetOpen}
+          onClose={closePaymentSheet}
+          onSaveCard={handleSavePaymentMethod}
+          selectedPaymentMethodId={selectedPayment?.id}
+          mode="payment"
+          amount={bidAmount * 0.1}
+          deliveryAddress={selectedAddress}
+        />
+      )}
     </>
   );
-}
+});
