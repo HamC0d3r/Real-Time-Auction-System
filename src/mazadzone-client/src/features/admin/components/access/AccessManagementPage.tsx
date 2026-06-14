@@ -11,7 +11,6 @@ import {
   Mail, 
   Phone, 
   Calendar,
-  Loader2
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
