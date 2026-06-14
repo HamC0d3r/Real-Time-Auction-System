@@ -42,6 +42,11 @@ next-env.d.ts
 
 #agent skill files
 .agents/
+.codex/
 CLAUDE.md
 skills-lock.json
 AGENTS.md
+
+# uploads
+/public/uploads/
+
