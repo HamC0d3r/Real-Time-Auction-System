@@ -4,12 +4,13 @@ import { paymentKeys } from "./payment.keys";
 import { mapPaymentMethodResponseToSavedPaymentMethod } from "./payment.mappers";
 import type { SavedPaymentMethod } from "../types";
 
-export function useGetSavedPaymentMethods() {
+export function useGetSavedPaymentMethods(options?: { enabled?: boolean }) {
   return useQuery<SavedPaymentMethod[]>({
     queryKey: paymentKeys.savedMethods(),
     queryFn: async () => {
       const paymentMethods = await fetchSavedPaymentMethods();
       return paymentMethods.map(mapPaymentMethodResponseToSavedPaymentMethod);
     },
+    ...options,
   });
 }
