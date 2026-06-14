@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Inbox, ArrowUpDown, Download, Search, Loader2 } from "lucide-react";
 import { AuctionPagination } from "@/features/auctions";
 import type { SellerOrderSummaryDto } from "@/features/seller";
@@ -93,8 +93,13 @@ export function SellerOrdersTable({
 }: SellerOrdersTableProps) {
   // Local debounced search
   const [localSearch, setLocalSearch] = useState(searchTerm);
+  const initialRenderSellerOrders = useRef(true);
 
   useEffect(() => {
+    if (initialRenderSellerOrders.current) {
+      initialRenderSellerOrders.current = false;
+      return;
+    }
     setLocalSearch(searchTerm);
   }, [searchTerm]);
 

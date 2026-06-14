@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Crown, Trophy, Calendar, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -10,8 +11,29 @@ interface BidHistoryRowProps {
 }
 
 export function BidHistoryRow({ entry }: BidHistoryRowProps) {
+  const [isVisible, setIsVisible] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const observer = new IntersectionObserver(
+      ([obsEntry]) => {
+        if (obsEntry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "100px" }
+    );
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, []);
+
   const isGuid = entry.bidderId ? /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(entry.bidderId) : false;
-  const { data: profile } = useGetPublicUserProfile(isGuid ? entry.bidderId! : "");
+  const { data: profile } = useGetPublicUserProfile(
+    isGuid && isVisible ? entry.bidderId! : "",
+    false
+  );
 
   const bidderId = entry.bidderId || `bidder-${entry.bidderName.toLowerCase().replace(/\s/g, "-").replace(/\./g, "")}`;
   const displayName = profile?.fullName || entry.bidderName;
@@ -20,6 +42,7 @@ export function BidHistoryRow({ entry }: BidHistoryRowProps) {
   if (entry.isHighest) {
     return (
       <div
+        ref={containerRef}
         className={cn(
           "relative flex items-center justify-between p-4 mb-3 rounded-xl border transition-all duration-300",
           "bg-gradient-to-r from-orange-500/[0.04] to-amber-500/[0.02]",
@@ -53,7 +76,7 @@ export function BidHistoryRow({ entry }: BidHistoryRowProps) {
             <div className="flex items-center gap-2 flex-wrap">
               <Link
                 href={`/users/${bidderId}`}
-                className="text-sm font-bold text-foreground hover:text-primary transition-colors cursor-pointer"
+                className="text-sm font-bold text-foreground hover:text-primary transition-colors cursor-pointer truncate max-w-[120px] xs:max-w-[150px] sm:max-w-none"
               >
                 {displayName}
               </Link>
@@ -84,6 +107,7 @@ export function BidHistoryRow({ entry }: BidHistoryRowProps) {
   // Standard bidder card
   return (
     <div
+      ref={containerRef}
       className={cn(
         "flex items-center justify-between p-3.5 mb-2.5 rounded-xl border border-border/50 bg-card/60 transition-all duration-200",
         "hover:border-border hover:shadow-2xs"
@@ -100,7 +124,7 @@ export function BidHistoryRow({ entry }: BidHistoryRowProps) {
         <div className="flex flex-col">
           <Link
             href={`/users/${bidderId}`}
-            className="text-sm font-semibold text-foreground hover:text-primary transition-colors cursor-pointer"
+            className="text-sm font-semibold text-foreground hover:text-primary transition-colors cursor-pointer truncate max-w-[120px] xs:max-w-[150px] sm:max-w-none"
           >
             {displayName}
           </Link>

@@ -1,4 +1,4 @@
-import { AuctionCard, AuctionPagination } from "@/features/auctions";
+import { AuctionCard, AuctionPagination, AuctionActionSlot } from "@/features/auctions";
 import type { AuctionSummary } from "@/features/auctions";
 
 interface SellerAuctionsTabProps {
@@ -32,6 +32,14 @@ export function SellerAuctionsTab({
           <AuctionCard
             key={auction.id}
             auction={auction}
+            actionSlot={
+              <AuctionActionSlot
+                auctionId={auction.id}
+                status={auction.status}
+                isOwner={auction.isOwner}
+                alwaysViewDetails
+              />
+            }
           />
         ))}
       </div>

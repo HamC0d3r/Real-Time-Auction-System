@@ -13,6 +13,12 @@ export interface SellerReview {
   comment: string;
   createdAt: string;
   reply: ReviewReply | null;
+  reviewerId?: string;
+  auction?: {
+    id: string;
+    title: string;
+    imageUrl: string;
+  } | null;
 }
 
 export interface SellerProfile extends AuthUser {

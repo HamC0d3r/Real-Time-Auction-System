@@ -7,16 +7,18 @@ import type { PublicSellerProfileResponse } from "@/features/seller/api/seller.c
 /**
  * Fetches the public user profile details for a given userId.
  */
-export async function getPublicUserProfile(userId: string): Promise<PublicUserProfile> {
+export async function getPublicUserProfile(userId: string, fetchSeller: boolean = true): Promise<PublicUserProfile> {
   const bidderRes = await api.get<BidderProfileDto>(`/bidders/${userId}`);
   const bidder = bidderRes.data;
 
   let seller: PublicSellerProfileResponse | null = null;
-  try {
-    const sellerRes = await api.get<PublicSellerProfileResponse>(`/sellers/${userId}/public`);
-    seller = sellerRes.data;
-  } catch {
-    // If the seller API returns 404, it means the user is not a seller, which is fine.
+  if (fetchSeller) {
+    try {
+      const sellerRes = await api.get<PublicSellerProfileResponse>(`/sellers/${userId}/public`);
+      seller = sellerRes.data;
+    } catch {
+      // If the seller API returns 404, it means the user is not a seller, which is fine.
+    }
   }
 
   const roles: UserRole[] = ["Bidder"];
@@ -45,7 +47,7 @@ export async function getPublicUserProfile(userId: string): Promise<PublicUserPr
     bio: seller 
       ? `Active MazadZone registered seller since ${new Date(seller.memberSince || bidder.memberSince).toLocaleDateString()}.` 
       : `A registered bidder on MazadZone.`,
-    biddingActivityCount: bidder.totalBidsPlaced || 0,
+    biddingActivityCount: bidder.auctionParticipatedCount || 0,
     bidsPlacedCount: bidder.totalBidsPlaced || 0,
     wonAuctionsCount: bidder.auctionsWonCount || 0,
     completedPurchasesCount: bidder.completedPurchasesCount || 0,
@@ -58,10 +60,11 @@ export async function getPublicUserProfile(userId: string): Promise<PublicUserPr
 /**
  * React Query hook to get public user profile by userId.
  */
-export function useGetPublicUserProfile(userId: string) {
+export function useGetPublicUserProfile(userId: string, fetchSeller: boolean = true) {
   return useQuery<PublicUserProfile>({
-    queryKey: ["public-profile", userId],
-    queryFn: () => getPublicUserProfile(userId),
+    queryKey: ["public-profile", userId, fetchSeller],
+    queryFn: () => getPublicUserProfile(userId, fetchSeller),
     enabled: !!userId,
+    staleTime: 5 * 60 * 1000, // 5 minutes caching
   });
 }

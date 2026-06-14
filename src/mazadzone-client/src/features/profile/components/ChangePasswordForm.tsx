@@ -46,10 +46,9 @@ export function ChangePasswordForm() {
       
       // Hide success message after 4 seconds
       setTimeout(() => setSuccessMessage(null), 4000);
-    } catch (err: any) {
-      setErrorMessage(
-        err?.message || "Failed to change password. Please check your credentials and try again."
-      );
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to change password. Please check your credentials and try again.";
+      setErrorMessage(msg);
     }
   };
 

@@ -9,6 +9,7 @@ import type {
 } from "../../types/category.types";
 import { getCategoryIconByName } from "../../constants/category.constants";
 import { mapBackendCategoryTree } from "./category.mappers";
+import type { BackendCategoryNode, BackendCategoryDetail } from "./category.contracts";
 
 // --- persistent mock categories database in-memory for fallback resilient development ---
 export let mockCategories: Category[] = [
@@ -101,7 +102,7 @@ export let mockCategories: Category[] = [
 
 export async function fetchCategoriesTree(): Promise<Category[]> {
   try {
-    const response = await api.get<any[]>("/categories/tree");
+    const response = await api.get<BackendCategoryNode[]>("/categories/tree");
     return mapBackendCategoryTree(response.data);
   } catch (error) {
     console.warn("Failed to fetch admin categories from backend, falling back to mock data:", error);
@@ -111,7 +112,7 @@ export async function fetchCategoriesTree(): Promise<Category[]> {
 
 export async function fetchCategoryDetail(id: string): Promise<Category> {
   try {
-    const response = await api.get<any>(`/categories/${id}`);
+    const response = await api.get<BackendCategoryDetail>(`/categories/${id}`);
     const data = response.data;
     const iconName = getCategoryIconByName(data.name);
     return {

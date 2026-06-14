@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 
@@ -16,26 +16,21 @@ export function AuctionPriceRangeFilter({
   const [isFocusedMin, setIsFocusedMin] = useState(false);
   const [isFocusedMax, setIsFocusedMax] = useState(false);
 
-  useEffect(() => {
-    if (!isFocusedMin) {
-      setMinVal(value[0].toLocaleString());
-    }
-  }, [value[0], isFocusedMin]);
-
-  useEffect(() => {
-    if (!isFocusedMax) {
-      setMaxVal(value[1] === 10000 ? "10,000+" : value[1].toLocaleString());
-    }
-  }, [value[1], isFocusedMax]);
+  const displayMinVal = isFocusedMin ? minVal : value[0].toLocaleString();
+  const displayMaxVal = isFocusedMax
+    ? maxVal
+    : value[1] === 10000
+      ? "10,000+"
+      : value[1].toLocaleString();
 
   const handleMinFocus = () => {
     setIsFocusedMin(true);
-    setMinVal(value[0].toString());
+    setMinVal(String(value[0]));
   };
 
   const handleMaxFocus = () => {
     setIsFocusedMax(true);
-    setMaxVal(value[1] === 10000 ? "10000" : value[1].toString());
+    setMaxVal(String(value[1]));
   };
 
   const handleMinBlur = () => {
@@ -63,7 +58,7 @@ export function AuctionPriceRangeFilter({
   };
 
   return (
-    <div className="flex-2 min-w-[300px] flex flex-col gap-3 px-4 border-x border-border">
+    <div className="w-full sm:w-auto sm:flex-2 sm:min-w-[300px] flex flex-col gap-3 px-4 py-4 sm:py-0 border-y sm:border-y-0 sm:border-x border-border">
       <div className="flex flex-col gap-0.5 text-center">
         <span className="text-[10px] uppercase tracking-widest font-black text-muted-foreground/60">
           Price Range
@@ -88,7 +83,7 @@ export function AuctionPriceRangeFilter({
             </span>
             <Input
               type="text"
-              value={minVal}
+              value={displayMinVal}
               onFocus={handleMinFocus}
               onBlur={handleMinBlur}
               onChange={(e) => setMinVal(e.target.value)}
@@ -101,7 +96,7 @@ export function AuctionPriceRangeFilter({
             </span>
             <Input
               type="text"
-              value={maxVal}
+              value={displayMaxVal}
               onFocus={handleMaxFocus}
               onBlur={handleMaxBlur}
               onChange={(e) => setMaxVal(e.target.value)}

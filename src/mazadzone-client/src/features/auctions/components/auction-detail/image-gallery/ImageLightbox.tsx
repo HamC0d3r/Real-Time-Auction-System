@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { memo, useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { ThumbnailStrip } from "./ThumbnailStrip";
@@ -13,19 +13,33 @@ export interface ImageLightboxProps {
   onClose: () => void;
 }
 
-/**
- * Full-screen lightbox modal for viewing auction images without cropping.
- *
- * Features:
- * - object-contain main image (no cuts)
- * - Prev/Next arrow navigation
- * - ThumbnailStrip rail for direct image jump
- * - Keyboard support: ← → to navigate, Esc to close
- * - Click outside (backdrop) to close
- */
-export function ImageLightbox({ images, title, initialIndex, onClose }: ImageLightboxProps) {
+function useScrollLock(active: boolean) {
+  useEffect(() => {
+    if (!active) return;
+
+    const scrollbarWidth =
+      window.innerWidth - document.documentElement.clientWidth;
+
+    document.body.style.overflow = "hidden";
+    document.body.style.paddingRight = `${scrollbarWidth}px`;
+
+    return () => {
+      document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
+    };
+  }, [active]);
+}
+
+export const ImageLightbox = memo(function ImageLightbox({
+  images,
+  title,
+  initialIndex,
+  onClose,
+}: ImageLightboxProps) {
   const [activeIndex, setActiveIndex] = useState(initialIndex);
   const fallbackImageUrl = getAuctionImageFallback(title, 1200, 900);
+
+  useScrollLock(true);
 
   const goNext = useCallback(() => {
     setActiveIndex((prev) => (prev + 1) % images.length);
@@ -35,21 +49,19 @@ export function ImageLightbox({ images, title, initialIndex, onClose }: ImageLig
     setActiveIndex((prev) => (prev - 1 + images.length) % images.length);
   }, [images.length]);
 
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
       if (e.key === "ArrowRight") goNext();
       if (e.key === "ArrowLeft") goPrev();
-    };
+    },
+    [onClose, goNext, goPrev],
+  );
 
-    document.addEventListener("keydown", handleKey);
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      document.removeEventListener("keydown", handleKey);
-      document.body.style.overflow = "";
-    };
-  }, [onClose, goNext, goPrev]);
+  useEffect(() => {
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [handleKeyDown]);
 
   return (
     <div
@@ -59,12 +71,10 @@ export function ImageLightbox({ images, title, initialIndex, onClose }: ImageLig
       role="dialog"
       aria-label={`Image viewer — ${title}`}
     >
-      {/* Inner content — stops propagation so clicking it doesn't close the modal */}
       <div
         className="relative flex flex-col items-center gap-4 w-full max-w-6xl px-4"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* ── Top Bar ─────────────────────────────────── */}
         <div className="flex w-full items-center justify-between">
           <span className="text-sm font-semibold text-white/60 tracking-widest uppercase">
             {activeIndex + 1} / {images.length}
@@ -79,7 +89,6 @@ export function ImageLightbox({ images, title, initialIndex, onClose }: ImageLig
           </button>
         </div>
 
-        {/* ── Main Image ──────────────────────────────── */}
         <div className="relative w-full" style={{ height: "70vh" }}>
           {images.length > 1 && (
             <button
@@ -117,7 +126,6 @@ export function ImageLightbox({ images, title, initialIndex, onClose }: ImageLig
           )}
         </div>
 
-        {/* ── Thumbnail Rail ──────────────────────────── */}
         {images.length > 1 && (
           <ThumbnailStrip
             images={images}
@@ -130,4 +138,4 @@ export function ImageLightbox({ images, title, initialIndex, onClose }: ImageLig
       </div>
     </div>
   );
-}
+});

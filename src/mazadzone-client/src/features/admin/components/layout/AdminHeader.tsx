@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { Calendar, Bell, ChevronDown, RefreshCw, User, LogOut } from "lucide-react";
+import { Calendar, ChevronDown, RefreshCw, User, LogOut } from "lucide-react";
 import { useAuthStore } from "@/stores/auth.store";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/config/routes.config";
@@ -41,7 +41,9 @@ export function AdminHeader({
   showRefresh = false,
 }: AdminHeaderProps) {
   const router = useRouter();
-  const { user, logout, isAuthenticated } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   // Hook up real-time SignalR notifications and sound/toast synchronizations
   useRealtimeNotifications(user?.id);

@@ -18,7 +18,6 @@ import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { cn } from "@/lib/utils";
 import { useCreateAdminUser } from "../../api";
-import type { CreateAdminUserCommand } from "../../api";
 
 // Strict validation schema aligned with CreateAdminUserCommand backend rules
 const createAdminSchema = z.object({
@@ -73,7 +72,7 @@ interface CreateAdminDialogProps {
   onClose: () => void;
 }
 
-export function CreateAdminDialog({ isOpen, onClose }: CreateAdminDialogProps) {
+export const CreateAdminDialog = React.memo(function CreateAdminDialog({ isOpen, onClose }: CreateAdminDialogProps) {
   const createMutation = useCreateAdminUser();
 
   const {
@@ -119,8 +118,8 @@ export function CreateAdminDialog({ isOpen, onClose }: CreateAdminDialogProps) {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-[600px] p-6 bg-card border border-border sm:rounded-2xl gap-0">
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="w-full max-w-[calc(100%-2rem)] sm:max-w-[600px] p-6 bg-card border border-border sm:rounded-2xl gap-0">
         <DialogHeader className="text-left mb-6">
           <DialogTitle className="text-xl font-bold text-foreground flex items-center gap-2">
             <UserPlus className="h-5.5 w-5.5 text-primary" />
@@ -344,4 +343,4 @@ export function CreateAdminDialog({ isOpen, onClose }: CreateAdminDialogProps) {
       </DialogContent>
     </Dialog>
   );
-}
+});

@@ -10,7 +10,6 @@ import { ROUTES } from "@/config/routes.config";
 import { formatCurrency } from "@/utils/currency.utils";
 import { Badge } from "@/components/ui/badge";
 import { CountdownTimer } from "./CountdownTimer";
-import { PlaceBidButton } from "@/features/bidding";
 import { getAuctionImageFallback } from "../../utils/image.utils";
 import type { AuctionCardProps } from "../../types/auction.types";
 
@@ -18,8 +17,9 @@ const AuctionCardComponent = ({
   auction,
   priority = false,
   className,
+  actionSlot,
 }: AuctionCardProps) => {
-  const { id, title, imageUrl, pricing, timing, isOwner, status, condition } = auction;
+  const { id, title, imageUrl, pricing, timing, status, condition } = auction;
   const isUpcoming = status === "Upcoming";
   const isEnded = status === "Ended";
   const displayPrice = pricing.currentBid ?? pricing.startingPrice;
@@ -29,7 +29,7 @@ const AuctionCardComponent = ({
   return (
     <article
       className={cn(
-        "flex min-h-[416px] w-full min-w-[311px] flex-col rounded-[12px] border border-border bg-card p-3 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg",
+        "flex min-h-[416px] w-full min-w-[280px] xs:min-w-[311px] flex-col rounded-[12px] border border-border bg-card p-3 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg",
         className,
       )}
     >
@@ -88,6 +88,7 @@ const AuctionCardComponent = ({
             endDate={timing.endDate}
             status={status}
             label={isUpcoming ? "UPCOMING IN" : undefined}
+            auctionId={id}
           />
         </div>
 
@@ -137,7 +138,7 @@ const AuctionCardComponent = ({
         </div>
 
 
-        <PlaceBidButton auctionId={id} isOwner={isOwner} status={status} />
+        {actionSlot}
       </div>
     </article >
   );

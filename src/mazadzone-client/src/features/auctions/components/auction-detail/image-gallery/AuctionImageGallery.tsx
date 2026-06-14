@@ -7,6 +7,28 @@ import { ThumbnailStrip } from "./ThumbnailStrip";
 import { ImageLightbox } from "./ImageLightbox";
 import { getAuctionImageFallback } from "../../../utils/image.utils";
 
+interface MainImageWithFallbackProps {
+  src: string;
+  alt: string;
+  fallbackSrc: string;
+}
+
+function MainImageWithFallback({ src, alt, fallbackSrc }: MainImageWithFallbackProps) {
+  const [error, setError] = useState(false);
+
+  return (
+    <Image
+      src={error || !src ? fallbackSrc : src}
+      alt={alt}
+      fill
+      sizes="(max-width: 768px) 100vw, 800px"
+      className="object-cover transition-all duration-700 ease-out animate-in fade-in zoom-in-95"
+      priority
+      onError={() => setError(true)}
+    />
+  );
+}
+
 interface AuctionImageGalleryProps {
   images: string[];
   title: string;
@@ -50,18 +72,11 @@ export function AuctionImageGallery({ images, title }: AuctionImageGalleryProps)
           aria-label="Open full image viewer"
           className="group/main relative flex-1 aspect-square md:h-[639px] overflow-hidden rounded-2xl bg-muted border border-border cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
-          <Image
+          <MainImageWithFallback
             key={mainImage}
             src={mainImage}
             alt={`${title} — image ${activeIndex + 1}`}
-            fill
-            sizes="(max-width: 768px) 100vw, 800px"
-            className="object-cover transition-all duration-700 ease-out animate-in fade-in zoom-in-95"
-            priority
-            onError={(event) => {
-              event.currentTarget.src = fallbackImageUrl;
-              event.currentTarget.srcset = fallbackImageUrl;
-            }}
+            fallbackSrc={fallbackImageUrl}
           />
 
           {/* Vignette */}

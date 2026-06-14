@@ -7,8 +7,9 @@ import { ROUTES } from "@/config/routes.config";
 import { useAuthStore } from "@/stores/auth.store";
 import { DesktopHeader, DesktopBottomRow } from "./DesktopHeader";
 import { MobileHeader } from "./MobileHeader";
-import { useRealtimeNotifications, useNotificationSync } from "@/features/notifications";
-import { useRealtimeAuctions } from "@/features/auctions";
+import { useGetUnreadCount } from "@/features/notifications";
+import { useNotificationStore } from "@/features/notifications/store/notification.store";
+import { useGetProfile } from "@/features/profile";
 
 /**
  * Header
@@ -21,24 +22,39 @@ export function Header() {
   const pathname = usePathname();
 
   // Auth state
-  const { user, logout, isAuthenticated } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const role = user?.role;
-
-  // Listen for real-time notifications and auctions
-  useRealtimeNotifications(user?.id);
-  useRealtimeAuctions();
-
-  // Keep Zustand notification store in sync with server data.
-  // When auction events trigger notification query refetch, this detects
-  // new unread notifications and fires toasts even with the popover closed.
-  useNotificationSync();
-
-
+  const userId = user?.id;
 
   // States
   const [mounted, setMounted] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  // Fetch unread count once at the Header level (shared by DesktopHeader and MobileHeader)
+  const { data: serverUnreadCount } = useGetUnreadCount(userId || "", {
+    enabled: isAuthenticated,
+  });
+
+  // Fetch user profile to display the real name (first and last name) in the header profile dropdown
+  const { data: profile } = useGetProfile({
+    enabled: isAuthenticated,
+  });
+  const setUnreadCount = useNotificationStore((state) => state.setUnreadCount);
+  const unreadCount = useNotificationStore((state) => state.unreadCount);
+  const consumeOptimistic = useNotificationStore((state) => state._consumeOptimistic);
+
+  // Hydrate the Zustand badge from server data
+  useEffect(() => {
+    if (serverUnreadCount !== undefined) {
+      const wasOptimistic = consumeOptimistic();
+      if (!wasOptimistic) {
+        setUnreadCount(serverUnreadCount);
+      }
+    }
+  }, [serverUnreadCount, setUnreadCount, consumeOptimistic]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -65,7 +81,6 @@ export function Header() {
     if (role === "seller") {
       router.push(ROUTES.SELLER.CREATE_AUCTION);
     } else {
-      // If user is a bidder or any other role, navigate them to become a seller
       router.push(ROUTES.SELLER.BECOME);
     }
   };
@@ -78,7 +93,7 @@ export function Header() {
       <div className="mx-auto flex h-16 max-w-[1408px] items-center justify-between border-b border-white/10 relative md:mt-4 md:pb-4.5 px-4 md:px-0">
 
         {/* Logo (Shared) */}
-        <Link href={ROUTES.HOME} className="text-3xl font-bold tracking-tight flex items-center shrink-0">
+        <Link href={ROUTES.HOME} className="text-2xl xs:text-3xl font-bold tracking-tight flex items-center shrink-0">
           <span className="text-white">Mazad</span>
           <span className="text-primary">Zone</span>
         </Link>
@@ -91,6 +106,8 @@ export function Header() {
           logout={logout}
           mounted={mounted}
           pathname={pathname}
+          unreadCount={unreadCount}
+          profile={profile}
         />
 
         {/* Mobile View Components */}
@@ -106,6 +123,9 @@ export function Header() {
           handleSellClick={handleSellClick}
           logout={logout}
           pathname={pathname}
+          unreadCount={unreadCount}
+          user={user}
+          profile={profile}
         />
       </div>
 

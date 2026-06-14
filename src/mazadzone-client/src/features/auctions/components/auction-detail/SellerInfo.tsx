@@ -1,4 +1,5 @@
 import Link from "next/link";
+// Force hot-reload trigger for seller profile navigation fix
 import { Mail, Star, ChevronRight } from "lucide-react";
 import { ROUTES } from "@/config/routes.config";
 import type { Seller } from "../../types/auction.types";
@@ -22,36 +23,46 @@ export function SellerInfo({ seller }: SellerInfoProps) {
         )}
       </div>
 
-      <div className="grid grid-cols-12 items-center gap-4">
-        {/* Avatar & Info (Left Column) */}
-        <div className="col-span-6 flex items-center gap-3.5 min-w-0">
-          {/* Avatar */}
-          <Link
-            href={ROUTES.SELLER.PROFILE(seller.id)}
-            className="flex size-12 items-center justify-center rounded-full bg-primary/10 border border-primary/20 text-base font-extrabold text-primary select-none hover:bg-primary/20 transition-all cursor-pointer shrink-0"
-          >
-            {seller.avatarInitial}
-          </Link>
-
-          {/* Info */}
-          <div className="flex flex-col gap-1 min-w-0">
+      <div className="flex flex-col sm:grid sm:grid-cols-12 items-stretch sm:items-center gap-4">
+        {/* Avatar, Info & Chevron Row on Mobile */}
+        <div className="flex items-center justify-between sm:col-span-6 min-w-0">
+          <div className="flex items-center gap-3.5 min-w-0">
+            {/* Avatar */}
             <Link
               href={ROUTES.SELLER.PROFILE(seller.id)}
-              className="text-base font-bold text-foreground hover:text-primary transition-colors cursor-pointer truncate"
+              className="flex size-12 items-center justify-center rounded-full bg-primary/10 border border-primary/20 text-base font-extrabold text-primary select-none hover:bg-primary/20 transition-all cursor-pointer shrink-0"
             >
-              {seller.fullName}
+              {seller.avatarInitial}
             </Link>
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Mail className="size-3.5 shrink-0 text-muted-foreground/60" />
-              <span className="truncate">{seller.email}</span>
+
+            {/* Info */}
+            <div className="flex flex-col gap-1 min-w-0">
+              <Link
+                href={ROUTES.SELLER.PROFILE(seller.id)}
+                className="text-base font-bold text-foreground hover:text-primary transition-colors cursor-pointer truncate"
+              >
+                {seller.fullName}
+              </Link>
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Mail className="size-3.5 shrink-0 text-muted-foreground/60" />
+                <span className="truncate">{seller.email}</span>
+              </div>
             </div>
           </div>
+
+          {/* Chevron for Mobile Only */}
+          <Link
+            href={ROUTES.SELLER.PROFILE(seller.id)}
+            className="group block sm:hidden cursor-pointer"
+          >
+            <ChevronRight className="size-5 text-muted-foreground group-hover:text-primary transition-transform group-hover:translate-x-0.5" />
+          </Link>
         </div>
 
-        {/* Stats (Middle Column) — centered, larger star and rating */}
+        {/* Stats Column/Row */}
         <Link
           href={ROUTES.SELLER.PROFILE(seller.id)}
-          className="group col-span-5 flex flex-col items-center justify-center text-center transition-all hover:opacity-85 cursor-pointer border-l border-border/50 py-1"
+          className="group flex flex-row sm:flex-col items-center justify-between sm:justify-center text-center transition-all hover:opacity-85 cursor-pointer sm:col-span-5 sm:border-l sm:border-border/50 py-2 sm:py-1 border-t border-border/40 sm:border-t-0 mt-1 sm:mt-0 pt-3 sm:pt-1"
         >
           <div className="flex items-center gap-1.5">
             <Star className="size-5 fill-yellow-400 text-yellow-400 group-hover:scale-110 transition-transform duration-200" />
@@ -59,13 +70,13 @@ export function SellerInfo({ seller }: SellerInfoProps) {
               {seller.rating.toFixed(1)}
             </span>
           </div>
-          <span className="text-xs font-bold text-muted-foreground transition-colors group-hover:text-primary/80 mt-1 select-none">
+          <span className="text-xs font-bold text-muted-foreground transition-colors group-hover:text-primary/80 sm:mt-1 select-none">
             {seller.reviews} {seller.reviews === 1 ? "review" : "reviews"}
           </span>
         </Link>
 
-        {/* Navigation Chevron (Right Column) */}
-        <div className="col-span-1 flex justify-end">
+        {/* Navigation Chevron (Desktop Only) */}
+        <div className="hidden sm:flex sm:col-span-1 justify-end">
           <Link
             href={ROUTES.SELLER.PROFILE(seller.id)}
             className="group cursor-pointer"

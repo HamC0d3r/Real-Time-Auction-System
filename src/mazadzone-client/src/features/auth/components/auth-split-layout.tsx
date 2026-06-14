@@ -55,7 +55,7 @@ export function AuthSplitLayout({ children }: AuthSplitLayoutProps) {
         </div>
 
         {/* Right Panel (Form Content) */}
-        <div className="flex-1 flex items-center justify-center bg-background   relative overflow-y-auto">
+        <div className="flex-1 flex items-start md:items-center justify-center bg-background relative overflow-y-auto py-12 md:py-0">
           {children}
         </div>
       </div>

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { ROUTES } from "@/config/routes.config";
-import { CountdownTimer } from "@/components/ui/CountdownTimer";
+import { CountdownTimer } from "@/features/auctions";
 import { BidStatusBadge } from "./BidStatusBadge";
 import {
   ActivityListItem,

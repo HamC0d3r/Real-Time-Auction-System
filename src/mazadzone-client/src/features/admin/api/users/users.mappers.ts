@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import type { ModerateUser, ModerateUsersResponse } from "../../types/admin.types";
+import type { ModerateUser, ModerateUserRole, ModerateUserStatus, ModerateUsersResponse } from "../../types/admin.types";
 import type { UserDto, PagedListOfUserDto } from "./users.contracts";
 
 export function mapUserDtoToViewModel(user: UserDto): ModerateUser {
@@ -16,8 +16,8 @@ export function mapUserDtoToViewModel(user: UserDto): ModerateUser {
     id: user.id,
     fullName: user.fullName,
     email: user.email,
-    role: (user.role || "Bidder") as any,
-    status: (user.status || "Active") as any,
+    role: (user.role || "Bidder") as ModerateUserRole,
+    status: (user.status || "Active") as ModerateUserStatus,
     activity: {
       auctions: 0,
       bids: 0,

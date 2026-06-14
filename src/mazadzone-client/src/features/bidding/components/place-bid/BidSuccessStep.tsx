@@ -22,7 +22,6 @@ export function BidSuccessStep({
     auctionTitle,
     bidAmount,
     authorizationHold,
-    deliveryAddress,
     paymentMethod,
   } = bidResponse;
 
@@ -96,16 +95,10 @@ export function BidSuccessStep({
           <span className="text-muted-foreground">Bid Deposit (10%):</span>
           <span className="text-foreground font-bold">{formatCurrency(authorizationHold)}</span>
         </div>
-        <div className="flex justify-between items-start gap-4">
-          <span className="text-muted-foreground shrink-0">Delivery to:</span>
-          <span className="text-foreground font-semibold text-right">
-            {deliveryAddress.label} ({deliveryAddress.city})
-          </span>
-        </div>
         <div className="flex justify-between items-center">
           <span className="text-muted-foreground">Payment Method:</span>
           <span className="text-foreground font-semibold">
-            {paymentMethod.cardType} •••• {paymentMethod.lastFourDigits}
+            {paymentMethod.cardType === "UNKNOWN" ? "Card" : paymentMethod.cardType} •••• {paymentMethod.lastFourDigits}
           </span>
         </div>
       </div>

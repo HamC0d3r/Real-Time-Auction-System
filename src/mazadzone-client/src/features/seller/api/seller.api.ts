@@ -2,8 +2,8 @@ import { api } from "@/lib/api/client";
 import type { SellerProfile, SellerReview, ReviewReply } from "../types/seller.types";
 import { mapAuctionsListDtoToSummary } from "@/features/auctions";
 import type { AuctionSummary } from "@/features/auctions";
+import type { AuctionsListDto } from "@/features/auctions/api/auction.contracts";
 import type { PaginatedResult } from "@/types/api.types";
-import { getMockSellerReviews, addMockReviewReply } from "../testing/mock-seller";
 import type { PublicSellerProfileResponse } from "./seller.contracts";
 import type { BidderProfileDto } from "@/features/profile";
 import { useAuthStore } from "@/stores/auth.store";
@@ -49,59 +49,63 @@ export async function fetchSellerReviews(
   pageSize: number
 ): Promise<PaginatedResult<SellerReview>> {
   try {
-    const response = await api.get<any>(`/sellers/${id}/feedbacks`, {
+    const response = await api.get<Record<string, unknown>>(`/sellers/${id}/feedbacks`, {
       params: { page, pageSize },
     });
     const pagedList = response.data;
-    const items = (pagedList.items || []).map((item: any) => ({
-      id: item.id || "",
-      reviewerName: item.authorName || "Anonymous",
-      reviewerInitial: (item.authorName || "A")
-        .split(" ")
-        .map((n: string) => n[0])
-        .join("")
-        .substring(0, 2)
-        .toUpperCase(),
-      rating: item.rating || 5,
-      comment: item.comment || "",
-      createdAt: new Date(item.createdAt).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      }),
-      reply: item.reply
-        ? {
-            comment: item.reply,
-            createdAt: "Just now",
-          }
-        : null,
-    }));
+    const items = (pagedList.items as Record<string, unknown>[] || []).map((item) => {
+      const authorName = String(item.authorName ?? "Anonymous");
+      return {
+        id: String(item.id ?? ""),
+        reviewerName: authorName,
+        reviewerInitial: authorName
+          .split(" ")
+          .map((n: string) => n[0])
+          .join("")
+          .substring(0, 2)
+          .toUpperCase(),
+        rating: Number(item.rating ?? 5),
+        comment: String(item.comment ?? ""),
+        createdAt: new Date(String(item.createdAt)).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        }),
+        reply: item.reply
+          ? {
+              comment: String(item.reply),
+              createdAt: "Just now",
+            }
+          : null,
+        reviewerId: item.authorId ? String(item.authorId) : undefined,
+        auction: item.auctionId
+          ? {
+              id: String(item.auctionId ?? ""),
+              title: String(item.auctionTitle ?? ""),
+              imageUrl: String(item.auctionImageUrl ?? ""),
+            }
+          : item.auction
+          ? {
+              id: String((item.auction as Record<string, unknown>).id ?? ""),
+              title: String((item.auction as Record<string, unknown>).title ?? ""),
+              imageUrl: String((item.auction as Record<string, unknown>).imageUrl ?? ""),
+            }
+          : null,
+      };
+    });
 
     return {
       items,
-      page: pagedList.pageNumber || page,
-      pageSize: pagedList.pageSize || pageSize,
-      totalCount: pagedList.totalCount || items.length,
-      totalPages: pagedList.totalPages || 1,
-      hasNextPage: pagedList.hasNextPage || false,
-      hasPreviousPage: pagedList.hasPreviousPage || false,
+      page: Number(pagedList.pageNumber) || page,
+      pageSize: Number(pagedList.pageSize) || pageSize,
+      totalCount: Number(pagedList.totalCount) || items.length,
+      totalPages: Number(pagedList.totalPages) || 1,
+      hasNextPage: Boolean(pagedList.hasNextPage) || false,
+      hasPreviousPage: Boolean(pagedList.hasPreviousPage) || false,
     };
   } catch (error) {
-    console.warn("Failed to fetch seller reviews, falling back to mock reviews:", error);
-    const allReviews = getMockSellerReviews(id);
-    const startIndex = (page - 1) * pageSize;
-    const paginatedReviews = allReviews.slice(startIndex, startIndex + pageSize);
-    const totalPages = Math.ceil(allReviews.length / pageSize);
-
-    return {
-      items: paginatedReviews,
-      page,
-      pageSize,
-      totalCount: allReviews.length,
-      totalPages,
-      hasNextPage: page < totalPages,
-      hasPreviousPage: page > 1,
-    };
+    console.error("Failed to fetch seller reviews:", error);
+    throw error;
   }
 }
 
@@ -113,7 +117,7 @@ export async function fetchSellerAuctions(
   page: number,
   pageSize: number
 ): Promise<PaginatedResult<AuctionSummary>> {
-  const response = await api.get<any>("/auctions", {
+  const response = await api.get<Record<string, unknown>>("/auctions", {
     params: { SellerId: id, PageNumber: page, PageSize: pageSize },
   });
 
@@ -121,19 +125,19 @@ export async function fetchSellerAuctions(
   const currentUserId = useAuthStore.getState().user?.id;
   const isOwner = id === currentUserId;
 
-  const items = (pagedList.items || []).map((item: any) => ({
-    ...mapAuctionsListDtoToSummary(item),
+  const items = ((pagedList.items as Record<string, unknown>[]) || []).map((item) => ({
+    ...mapAuctionsListDtoToSummary(item as unknown as AuctionsListDto),
     isOwner,
   }));
 
   return {
     items,
-    page: pagedList.pageNumber || page,
-    pageSize: pagedList.pageSize || pageSize,
-    totalCount: pagedList.totalCount || items.length,
-    totalPages: pagedList.totalPages || 1,
-    hasNextPage: pagedList.hasNextPage || false,
-    hasPreviousPage: pagedList.hasPreviousPage || false,
+    page: Number(pagedList.pageNumber) || page,
+    pageSize: Number(pagedList.pageSize) || pageSize,
+    totalCount: Number(pagedList.totalCount) || items.length,
+    totalPages: Number(pagedList.totalPages) || 1,
+    hasNextPage: Boolean(pagedList.hasNextPage) || false,
+    hasPreviousPage: Boolean(pagedList.hasPreviousPage) || false,
   };
 }
 
@@ -149,12 +153,6 @@ export async function submitReviewReply(
   await api.post(`/orders/api/orders/${reviewId}/feedback/reply`, {
     replyText: comment,
   });
-
-  // Local fallback response to sync the UI state seamlessly
-  const localReply = addMockReviewReply(reviewId, comment);
-  if (localReply) {
-    return localReply;
-  }
 
   return {
     comment,

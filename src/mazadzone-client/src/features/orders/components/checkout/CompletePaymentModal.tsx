@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { VisuallyHidden } from "radix-ui";
 import { useGetSavedPaymentMethods } from "@/features/payment";
@@ -32,7 +32,7 @@ export interface CompletePaymentModalProps {
   onPaymentSuccess?: () => void;
 }
 
-export function CompletePaymentModal({
+export const CompletePaymentModal = memo(function CompletePaymentModal({
   orderId,
   orderNumber,
   finalBid,
@@ -60,35 +60,37 @@ export function CompletePaymentModal({
   >(undefined);
   const [paymentResponse, setPaymentResponse] = useState<CheckoutPaymentResponse | null>(null);
 
-  const defaultAddressSource =
-    profileAddresses.find((address) => address.isDefault) || profileAddresses[0] || null;
-  const defaultSelectedAddress: CheckoutAddress | null = defaultAddressSource
-    ? {
-        id: defaultAddressSource.id,
-        label: defaultAddressSource.title,
-        fullName: profile?.fullName || "",
-        phoneNumber: profile?.phoneNumber || "",
-        streetAddress: defaultAddressSource.streetAddress,
-        building: defaultAddressSource.building,
-        city: defaultAddressSource.city,
-        isDefault: defaultAddressSource.isDefault,
-      }
-    : null;
+  const defaultSelectedAddress = useMemo(() => {
+    const defaultAddressSource =
+      profileAddresses.find((address) => address.isDefault) || profileAddresses[0] || null;
+    if (!defaultAddressSource) return null;
+    return {
+      id: defaultAddressSource.id,
+      label: defaultAddressSource.title,
+      fullName: profile?.fullName || "",
+      phoneNumber: profile?.phoneNumber || "",
+      streetAddress: defaultAddressSource.streetAddress,
+      building: defaultAddressSource.building,
+      city: defaultAddressSource.city,
+      isDefault: defaultAddressSource.isDefault,
+    };
+  }, [profileAddresses, profile?.fullName, profile?.phoneNumber]);
 
-  const defaultPaymentSource =
-    savedPaymentMethods.find((paymentMethod) => paymentMethod.isDefault) ||
-    savedPaymentMethods[0] ||
-    null;
-  const defaultSelectedPayment: CheckoutPaymentMethod | null = defaultPaymentSource
-    ? {
-        id: defaultPaymentSource.id,
-        cardType: defaultPaymentSource.cardType,
-        lastFourDigits: defaultPaymentSource.lastFourDigits,
-        expiryDate: defaultPaymentSource.expiryDate,
-        cardholderName: defaultPaymentSource.cardholderName,
-        isDefault: defaultPaymentSource.isDefault,
-      }
-    : null;
+  const defaultSelectedPayment = useMemo(() => {
+    const defaultPaymentSource =
+      savedPaymentMethods.find((paymentMethod) => paymentMethod.isDefault) ||
+      savedPaymentMethods[0] ||
+      null;
+    if (!defaultPaymentSource) return null;
+    return {
+      id: defaultPaymentSource.id,
+      cardType: defaultPaymentSource.cardType,
+      lastFourDigits: defaultPaymentSource.lastFourDigits,
+      expiryDate: defaultPaymentSource.expiryDate,
+      cardholderName: defaultPaymentSource.cardholderName,
+      isDefault: defaultPaymentSource.isDefault,
+    };
+  }, [savedPaymentMethods]);
 
   const selectedAddress =
     selectedAddressOverride === undefined
@@ -99,26 +101,33 @@ export function CompletePaymentModal({
       ? defaultSelectedPayment
       : selectedPaymentOverride;
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setStep("details");
     setSelectedAddressOverride(undefined);
     setSelectedPaymentOverride(undefined);
     setPaymentResponse(null);
     setIsPaymentSheetOpen(false);
     onClose();
-  };
+  }, [onClose]);
 
-  const handleSelectAddress = (address: CheckoutAddress) => {
+  const handleOpenChange = useCallback(
+    (open: boolean) => {
+      if (!open) handleClose();
+    },
+    [handleClose],
+  );
+
+  const handleSelectAddress = useCallback((address: CheckoutAddress) => {
     setSelectedAddressOverride(address);
     setStep("details");
-  };
+  }, []);
 
-  const handleSavePaymentMethod = (paymentMethod: CheckoutPaymentMethod) => {
+  const handleSavePaymentMethod = useCallback((paymentMethod: CheckoutPaymentMethod) => {
     setSelectedPaymentOverride(paymentMethod);
     setIsPaymentSheetOpen(false);
-  };
+  }, []);
 
-  const handlePaymentSubmit = async () => {
+  const handlePaymentSubmit = useCallback(async () => {
     if (!selectedAddress || !selectedPayment) return;
 
     try {
@@ -138,11 +147,11 @@ export function CompletePaymentModal({
     } catch (err) {
       console.error("Failed to complete order payment:", err);
     }
-  };
+  }, [selectedAddress, selectedPayment, completePaymentMutation, orderId, onPaymentSuccess]);
 
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+      <Dialog open={isOpen} onOpenChange={handleOpenChange}>
         <DialogContent
           className={cn(
             "w-full bg-card border-border p-6 shadow-xl rounded-xl gap-0 z-50 focus-visible:outline-none transition-all duration-200 text-left",
@@ -209,7 +218,7 @@ export function CompletePaymentModal({
         </DialogContent>
       </Dialog>
 
-      {/* Step 3: Card Setup side panel */}
+      {isPaymentSheetOpen && (
       <PaymentMethodDrawer
         isOpen={isPaymentSheetOpen}
         onClose={() => setIsPaymentSheetOpen(false)}
@@ -219,6 +228,7 @@ export function CompletePaymentModal({
         amount={amountDue}
         deliveryAddress={selectedAddress}
       />
+      )}
     </>
   );
-}
+});

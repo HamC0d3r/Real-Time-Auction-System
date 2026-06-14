@@ -110,7 +110,16 @@ export async function POST(request: Request) {
       fs.writeFileSync(filePath, buffer);
 
       // Construct dynamic public-facing serving URL
-      const publicUrl = `/uploads/${uploadTarget.scope}/${uploadTarget.entityId}/${newFileName}`;
+      let baseUrl = process.env.NEXT_PUBLIC_APP_URL || "";
+      if (!baseUrl) {
+        const urlObj = new URL(request.url);
+        baseUrl = urlObj.origin;
+      }
+      if (baseUrl.endsWith("/")) {
+        baseUrl = baseUrl.slice(0, -1);
+      }
+
+      const publicUrl = `${baseUrl}/uploads/${uploadTarget.scope}/${uploadTarget.entityId}/${newFileName}`;
       savedUrls.push(publicUrl);
     }
 

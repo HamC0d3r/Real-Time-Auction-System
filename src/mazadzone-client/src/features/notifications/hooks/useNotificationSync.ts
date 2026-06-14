@@ -23,9 +23,14 @@ export function useNotificationSync(): void {
 
   const { data } = useGetNotifications(userId || "", 1, 10);
 
+  // Map items to a primitive string key to prevent running synchronization on identical data
+  const itemsKey = data?.items
+    ? data.items.map((i) => `${i.id}-${i.isRead}`).join(",")
+    : "";
+
   useEffect(() => {
     if (data?.items) {
       syncFromServer(data.items);
     }
-  }, [data?.items, syncFromServer]);
+  }, [itemsKey, syncFromServer]);
 }

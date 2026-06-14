@@ -17,6 +17,8 @@ export interface AuctionDto {
   itemTitle: string;
   itemDescription: string;
   imageUrls: string[];
+  sellerId?: string;
+  SellerId?: string;
   sellerName: string;
   sellerEmail: string;
   sellerRating: number;

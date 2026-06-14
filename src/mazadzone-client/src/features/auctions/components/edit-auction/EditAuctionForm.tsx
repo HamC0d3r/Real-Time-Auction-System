@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -95,14 +95,21 @@ export function EditAuctionForm({ auction }: EditAuctionFormProps) {
     };
   }, [imagePreviews]);
 
+  const initialRenderEdit = useRef(true);
+
   // Sync and pre-populate form values once auction details are loaded
   useEffect(() => {
+    if (initialRenderEdit.current) {
+      initialRenderEdit.current = false;
+      return;
+    }
     if (auction) {
       // Populate remote URLs as previews
       const initialPreviews = (auction.images || []).map((imgUrl, index) => ({
         id: `existing_${index}`,
         url: imgUrl,
       }));
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setImagePreviews(initialPreviews);
 
       // We derive reasonable fallbacks for fields not fully present in the mock data shape

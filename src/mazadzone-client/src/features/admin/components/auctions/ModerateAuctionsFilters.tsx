@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Search, Download, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -40,9 +40,14 @@ export function ModerateAuctionsFilters({
 
   // Local search state for debouncing
   const [localSearch, setLocalSearch] = useState(filters.search || "");
+  const initialRenderSearch = useRef(true);
 
   // Keep local search query in sync when search filter changes from elsewhere (e.g. URL query)
   useEffect(() => {
+    if (initialRenderSearch.current) {
+      initialRenderSearch.current = false;
+      return;
+    }
     setLocalSearch(filters.search || "");
   }, [filters.search]);
 
@@ -77,7 +82,7 @@ export function ModerateAuctionsFilters({
       filters={
         <>
           {/* Category */}
-          <div className="flex flex-col gap-1.5 min-w-[140px]">
+          <div className="flex flex-col gap-1.5 w-full sm:w-auto sm:min-w-[140px]">
             <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider pl-1">
               Category
             </span>
@@ -101,7 +106,7 @@ export function ModerateAuctionsFilters({
           </div>
 
           {/* Auction Status */}
-          <div className="flex flex-col gap-1.5 min-w-[130px]">
+          <div className="flex flex-col gap-1.5 w-full sm:w-auto sm:min-w-[130px]">
             <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider pl-1">
               Auction Status
             </span>
@@ -138,7 +143,7 @@ export function ModerateAuctionsFilters({
           </div>
 
           {/* Sort By */}
-          <div className="flex flex-col gap-1.5 min-w-[120px]">
+          <div className="flex flex-col gap-1.5 w-full sm:w-auto sm:min-w-[120px]">
             <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider pl-1">
               Sort By
             </span>
@@ -167,7 +172,7 @@ export function ModerateAuctionsFilters({
           </div>
 
           {/* Order */}
-          <div className="flex flex-col gap-1.5 min-w-[110px]">
+          <div className="flex flex-col gap-1.5 w-full sm:w-auto sm:min-w-[110px]">
             <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider pl-1">Order</span>
             <Select
               value={filters.sortOrder || "desc"}
@@ -184,7 +189,7 @@ export function ModerateAuctionsFilters({
           </div>
 
           {/* Created Date */}
-          <div className="flex flex-col gap-1.5 min-w-[140px]">
+          <div className="flex flex-col gap-1.5 w-full sm:w-auto sm:min-w-[140px]">
             <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider pl-1">
               Created Date
             </span>

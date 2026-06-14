@@ -34,10 +34,9 @@ export const NotificationPagination = ({
               if (currentPage > 1) onPageChange(currentPage - 1);
             }}
             className={cn(
-              "h-8 w-8 p-0 flex items-center justify-center border-none shadow-none",
+              "h-8 w-8 p-0! flex items-center justify-center border-none shadow-none [&_span]:hidden [&_svg]:size-4!",
               currentPage === 1 && "pointer-events-none opacity-50"
             )}
-            text="" // Remove text
           />
         </PaginationItem>
 
@@ -70,10 +69,9 @@ export const NotificationPagination = ({
               if (currentPage < totalPages) onPageChange(currentPage + 1);
             }}
             className={cn(
-              "h-8 w-8 p-0 flex items-center justify-center border-none shadow-none",
+              "h-8 w-8 p-0! flex items-center justify-center border-none shadow-none [&_span]:hidden [&_svg]:size-4!",
               currentPage === totalPages && "pointer-events-none opacity-50"
             )}
-            text="" // Remove text
           />
         </PaginationItem>
       </PaginationContent>

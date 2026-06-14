@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Search, Calendar } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -52,8 +52,13 @@ export function AdminDisputesFilters({
 
   // Local search state for debouncing
   const [localSearch, setLocalSearch] = useState(search);
+  const initialRenderDispute = useRef(true);
 
   useEffect(() => {
+    if (initialRenderDispute.current) {
+      initialRenderDispute.current = false;
+      return;
+    }
     setLocalSearch(search);
   }, [search]);
 
@@ -85,7 +90,7 @@ export function AdminDisputesFilters({
       filters={
         <>
           {/* Dispute Status */}
-          <div className="flex flex-col gap-1.5 min-w-[160px]">
+          <div className="flex flex-col gap-1.5 w-full sm:w-auto sm:min-w-[160px]">
             <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider pl-1">Dispute Status</span>
             <Select value={status} onValueChange={setStatus}>
               <SelectTrigger className="h-9 w-full text-xs rounded-lg cursor-pointer">
@@ -102,7 +107,7 @@ export function AdminDisputesFilters({
           </div>
 
           {/* Dispute Type (Category) — dynamic from backend */}
-          <div className="flex flex-col gap-1.5 min-w-[160px]">
+          <div className="flex flex-col gap-1.5 w-full sm:w-auto sm:min-w-[160px]">
             <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider pl-1">Dispute Type</span>
             <Select
               value={categoryId}
@@ -123,7 +128,7 @@ export function AdminDisputesFilters({
           </div>
 
           {/* Sort By */}
-          <div className="flex flex-col gap-1.5 min-w-[160px]">
+          <div className="flex flex-col gap-1.5 w-full sm:w-auto sm:min-w-[160px]">
             <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider pl-1">Sort By</span>
             <Select value={sortColumn} onValueChange={setSortColumn}>
               <SelectTrigger className="h-9 w-full text-xs rounded-lg cursor-pointer">
@@ -137,7 +142,7 @@ export function AdminDisputesFilters({
           </div>
 
           {/* Order */}
-          <div className="flex flex-col gap-1.5 min-w-[120px]">
+          <div className="flex flex-col gap-1.5 w-full sm:w-auto sm:min-w-[120px]">
             <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider pl-1">Order</span>
             <Select
               value={isDescending ? "desc" : "asc"}

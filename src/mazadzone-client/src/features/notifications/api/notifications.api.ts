@@ -46,17 +46,10 @@ export const notificationsApi = {
   },
 
   getUnreadCount: async (userId: string): Promise<number> => {
-    // Retrieve the first page of notifications and compute count locally
     const response = await api.get<NotificationsListDto>("/notifications", {
-      params: { 
-        PageNumber: 1, 
-        PageSize: 100,
-        t: Date.now(), // Prevent browser caching
-      },
-      headers: {
-        "Cache-Control": "no-cache, no-store, must-revalidate",
-        "Pragma": "no-cache",
-        "Expires": "0",
+      params: {
+        PageNumber: 1,
+        PageSize: 20,
       },
     });
 

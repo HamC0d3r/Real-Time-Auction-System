@@ -23,7 +23,7 @@ export function mapFiltersToQueryParams(filters: UseModerateAuctionsFilters): Ge
 
   // Map UI sorting parameters to backend expected fields
   let backendSortBy: string | undefined = undefined;
-  let backendSortDirection = filters.sortOrder || "desc";
+  const backendSortDirection = filters.sortOrder || "desc";
 
   if (filters.sortBy === "dateCreated") {
     backendSortBy = "StartTime";

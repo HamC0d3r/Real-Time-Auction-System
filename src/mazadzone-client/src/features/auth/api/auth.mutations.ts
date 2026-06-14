@@ -36,7 +36,14 @@ export function useLoginMutation() {
       // Log in store and localStorage
       loginStore(decodedUser, data.token, data.refreshToken);
 
-      appToast.success("Welcome Back", `Successfully signed in as ${decodedUser.fullName}.`);
+      const roleDisplayName =
+        decodedUser.role === "admin"
+          ? "Admin"
+          : decodedUser.role === "seller"
+          ? "Seller"
+          : "Bidder";
+
+      appToast.success("Welcome Back", `Successfully signed in as ${roleDisplayName}.`);
 
       // Redirect depending on user role
       if (decodedUser.role === "admin") {
@@ -48,7 +55,14 @@ export function useLoginMutation() {
       }
     },
     onError: (err: ApiError) => {
-      appToast.error("Sign In Failed", err.message || "Invalid email or password.");
+      const isValidationError =
+        err.message === "One or more validation errors occurred." ||
+        err.statusCode === 400 ||
+        err.statusCode === 401;
+      const displayMessage = isValidationError
+        ? "Email or password incorrect."
+        : (err.message || "Invalid email or password.");
+      appToast.error("Sign In Failed", displayMessage);
     },
   });
 }

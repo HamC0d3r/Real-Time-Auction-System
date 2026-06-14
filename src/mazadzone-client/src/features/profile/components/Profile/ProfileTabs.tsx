@@ -25,7 +25,7 @@ export function ProfileTabs({
           "flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold cursor-pointer h-auto transition-all duration-300",
           activeTab === "reviews"
             ? "bg-primary text-primary-foreground hover:bg-primary/90"
-            : "border-border hover:bg-muted text-foreground"
+            : "bg-white border-border hover:bg-muted text-foreground"
         )}
       >
         <MessageSquare className="size-4 shrink-0" />
@@ -40,7 +40,7 @@ export function ProfileTabs({
           "flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold cursor-pointer h-auto transition-all duration-300",
           activeTab === "auctions"
             ? "bg-primary text-primary-foreground hover:bg-primary/90"
-            : "border-border hover:bg-muted text-foreground"
+            : "bg-white border-border hover:bg-muted text-foreground"
         )}
       >
         <ShoppingBag className="size-4 shrink-0" />

@@ -7,22 +7,6 @@ import { useAuthStore } from "@/stores/auth.store";
 import { APP_CONFIG } from "@/config/app.config";
 import { auctionKeys } from "../api/auction.keys";
 
-/**
- * Hook to establish a real-time SignalR connection to the Bidding / Auctions hub.
- *
- * Listens for `BidPlaced`, `StatusChanged`, and `AuctionCreated` events globally.
- * On each event, invalidates ALL auction queries so any page the user is currently
- * viewing (list, detail, ending-soon, upcoming, seller, category) re-fetches
- * immediately without requiring a page refresh.
- *
- * Why invalidateQueries instead of setQueriesData?
- * - setQueriesData requires the updater to match the exact data shape of every
- *   query variant. A shape mismatch silently returns the old value → no re-render.
- * - invalidateQueries with auctionKeys.all covers every query that starts with
- *   ["auctions"], regardless of variant or filters.
- * - refetchType: "active" ensures only currently-mounted queries re-fetch
- *   immediately; background queries are just marked stale.
- */
 export function useRealtimeAuctions(): void {
   const queryClient = useQueryClient();
 
@@ -41,19 +25,6 @@ export function useRealtimeAuctions(): void {
     let currentRetry = 0;
     const maxRetries = 3;
 
-    /**
-     * Invalidate all active auction queries so the UI re-renders immediately.
-     * Using auctionKeys.all (["auctions"]) as the prefix ensures every query
-     * variant (list, detail, ending-soon, upcoming, category, seller) is covered.
-     */
-    const invalidateAllAuctions = () => {
-      if (!isMounted) return;
-      void queryClient.invalidateQueries({
-        queryKey: auctionKeys.all,
-        refetchType: "active",
-      });
-    };
-
     const startHub = async () => {
       try {
         await hub.start();
@@ -63,37 +34,27 @@ export function useRealtimeAuctions(): void {
         }
 
         isConnected = true;
-        console.log("[SignalR Auctions] Connected successfully to AuctionsHub.");
 
-        // 1. Bid Placed — current bid price changed
         unsubscribeBidPlaced = hub.onBidPlaced((event) => {
-          const rawId = event.auctionId || (event as any).AuctionId;
+          const rawId = event.auctionId || (event as unknown as Record<string, unknown>)["AuctionId"] as string;
           const targetId = rawId ? rawId.toLowerCase() : "";
-          const newPrice = event.newPrice ?? (event as any).NewPrice;
+          if (!targetId) return;
 
-          if (!targetId || typeof newPrice !== "number") return;
-
-          console.log(`[SignalR Auctions] BidPlaced: ${targetId} → $${newPrice}`);
-          invalidateAllAuctions();
+          queryClient.invalidateQueries({ queryKey: auctionKeys.detail(targetId) });
         });
 
-        // 2. Status Changed — auction became active, ended, cancelled, etc.
         unsubscribeStatusChanged = hub.onStatusChanged((event) => {
-          const rawId = event.auctionId || (event as any).AuctionId;
+          const rawId = event.auctionId || (event as unknown as Record<string, unknown>)["AuctionId"] as string;
           const targetId = rawId ? rawId.toLowerCase() : "";
-          const rawStatus = event.status || (event as any).Status;
+          if (!targetId) return;
 
-          if (!targetId || !rawStatus) return;
-
-          console.log(`[SignalR Auctions] StatusChanged: ${targetId} → ${rawStatus}`);
-          invalidateAllAuctions();
+          queryClient.invalidateQueries({ queryKey: auctionKeys.detail(targetId) });
         });
 
-        // 3. Auction Created — new auction appeared on the platform
         unsubscribeAuctionCreated = hub.onAuctionCreated((event) => {
-          const rawId = event.auctionId || (event as any).AuctionId;
-          console.log(`[SignalR Auctions] AuctionCreated: ${rawId}`);
-          invalidateAllAuctions();
+          const rawId = event.auctionId || (event as unknown as Record<string, unknown>)["AuctionId"] as string;
+          if (!rawId) return;
+          queryClient.invalidateQueries({ queryKey: auctionKeys.lists(), refetchType: "active" });
         });
 
       } catch (err) {

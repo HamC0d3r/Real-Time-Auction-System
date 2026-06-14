@@ -121,7 +121,7 @@ export function ReviewConfirmStep({
             <div className="flex-1 text-xs md:text-sm flex justify-between items-center">
               <div>
                 <p className="font-bold text-foreground">
-                  {selectedPayment.cardType} •••• {selectedPayment.lastFourDigits}
+                  {selectedPayment.cardType === "UNKNOWN" ? "Card" : selectedPayment.cardType} •••• {selectedPayment.lastFourDigits}
                 </p>
                 <p className="text-muted-foreground text-xs">{selectedPayment.cardholderName}</p>
               </div>

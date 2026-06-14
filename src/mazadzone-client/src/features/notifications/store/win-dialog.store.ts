@@ -24,10 +24,29 @@ export const useWinDialogStore = create<WinDialogState>()((set) => ({
 /**
  * Reusable utility to trigger the Win Celebration Dialog from a notification object.
  */
-export function triggerWinDialogFromNotification(notification: { title: string; message: string; link?: string }) {
+export function triggerWinDialogFromNotification(notification: { title: string; message: string; link?: string; type?: string }) {
   const messageText = notification.message || "";
   const titleText = notification.title || "";
   const linkText = notification.link || "";
+
+  // Strict check: verify this is indeed a won-auction notification
+  const isWinNotification =
+    notification.type === "auction_won" ||
+    titleText.toLowerCase().includes("won") ||
+    titleText.toLowerCase().includes("win") ||
+    messageText.toLowerCase().includes("won") ||
+    messageText.toLowerCase().includes("win");
+
+  const isShippingNotification =
+    notification.type === "order_shipped" ||
+    titleText.toLowerCase().includes("shipped") ||
+    messageText.toLowerCase().includes("shipped") ||
+    titleText.toLowerCase().includes("on the way") ||
+    messageText.toLowerCase().includes("on the way");
+
+  if (!isWinNotification || isShippingNotification) {
+    return;
+  }
 
   // Parse auction ID from link first, fallback to message/title
   const idRegex = /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/;
@@ -63,14 +82,6 @@ export function triggerWinDialogFromNotification(notification: { title: string; 
     });
     return;
   }
-
-  // Fallback: If no UUID is found but this is an auction won notification,
-  // we fetch user's bids and match by title
-  const isWinNotification =
-    titleText.toLowerCase().includes("won") ||
-    titleText.toLowerCase().includes("win") ||
-    messageText.toLowerCase().includes("won") ||
-    messageText.toLowerCase().includes("win");
 
   if (isWinNotification && title) {
     fetchMyBids({ filter: "All", pageSize: 50 })

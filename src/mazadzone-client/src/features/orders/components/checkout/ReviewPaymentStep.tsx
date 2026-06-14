@@ -94,7 +94,7 @@ export function ReviewPaymentStep({
           <h4 className="font-bold text-foreground">Payment Method</h4>
           <div className="text-muted-foreground space-y-0.5 leading-relaxed">
             <p className="font-bold text-foreground flex items-center gap-1">
-              {selectedPayment.cardType} •••• {selectedPayment.lastFourDigits}
+              {selectedPayment.cardType === "UNKNOWN" ? "Card" : selectedPayment.cardType} •••• {selectedPayment.lastFourDigits}
             </p>
             <p className="truncate">{selectedPayment.cardholderName}</p>
             <p>Expires: {selectedPayment.expiryDate}</p>

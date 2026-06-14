@@ -1,2 +1,14 @@
-// Categories-specific API contract types (empty as of now, as ViewModel and response types are declared globally or mapped inline)
-export {};
+/** Backend category tree node from GET /categories/tree */
+export interface BackendCategoryNode {
+  id: string;
+  name: string;
+  description?: string;
+  children?: BackendCategoryNode[];
+}
+
+/** Backend category detail from GET /categories/{id} */
+export interface BackendCategoryDetail {
+  id: string;
+  name: string;
+  description?: string;
+}

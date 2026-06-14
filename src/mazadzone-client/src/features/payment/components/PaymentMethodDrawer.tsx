@@ -59,7 +59,7 @@ export function PaymentMethodDrawer({
     data: savedPaymentMethods = [],
     isLoading: isLoadingSavedPaymentMethods,
     isError: isSavedPaymentMethodsError,
-  } = useGetSavedPaymentMethods();
+  } = useGetSavedPaymentMethods({ enabled: isOpen });
 
   const getErrorMessage = (error: unknown): string => {
     if (error instanceof Error && error.message) {
@@ -323,7 +323,7 @@ export function PaymentMethodDrawer({
                                   htmlFor={`payment-method-${paymentMethod.id}`}
                                   className="cursor-pointer text-sm font-bold text-foreground"
                                 >
-                                  {paymentMethod.cardType} •••• {paymentMethod.lastFourDigits}
+                                  {paymentMethod.cardType === "UNKNOWN" ? "Card" : paymentMethod.cardType} •••• {paymentMethod.lastFourDigits}
                                 </Label>
                                 <p className="text-xs text-muted-foreground">
                                   {paymentMethod.cardholderName}

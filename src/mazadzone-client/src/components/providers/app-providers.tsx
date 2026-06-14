@@ -4,6 +4,7 @@ import { type ReactNode } from "react";
 import { ThemeProvider } from "./theme-provider";
 import { QueryProvider } from "./query-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { CountdownProvider } from "@/features/auctions";
 
 /**
  * Composes all application providers into a single wrapper.
@@ -22,7 +23,9 @@ export function AppProviders({ children }: { children: ReactNode }) {
       defaultTheme="light"
       enableSystem={false}
     >
-      <QueryProvider>{children}</QueryProvider>
+      <QueryProvider>
+        <CountdownProvider>{children}</CountdownProvider>
+      </QueryProvider>
       <Toaster position="top-center" richColors closeButton />
     </ThemeProvider>
   );

@@ -34,7 +34,7 @@ public sealed class SellerQueries : ResilientRepository, ISellerQueries
             COALESCE(b.TotalPidsPlaced, 0) AS TotalBidsPlaced, 
             COALESCE(b.AuctionParticipatedCount, 0) AS AuctionParticipatedCount,
             COALESCE(b.AuctionsWonCount, 0) AS AuctionsWonCount,
-            COALESCE(b.CompletedPurchasesCount, 0) AS CompletedPurchasesCount
+            (SELECT COUNT(o.Id) FROM Orders o JOIN Auctions a ON o.AuctionId = a.Id WHERE a.SellerId = u.Id AND o.Status >= 2) AS CompletedPurchasesCount
         FROM Users u 
         JOIN Sellers s ON u.Id = s.Id
         LEFT JOIN Bidders b ON u.Id = b.Id 
@@ -66,16 +66,21 @@ public sealed class SellerQueries : ResilientRepository, ISellerQueries
 
         -- 2. Paginated Data
         SELECT 
-            f.Id,
+            o.Id,
             u.FirstName + ' ' + u.LastName AS AuthorName,
             f.Rating,
             f.Comment,
             f.Reply,
-            f.CreatedAtUtc AS CreatedAt
+            f.CreatedAtUtc AS CreatedAt,
+            a.Id AS AuctionId,
+            it.Title AS AuctionTitle,
+            (SELECT TOP(1) img.ImageUrl FROM ItemImages img WHERE img.ItemId = it.Id AND img.isMain = 1) AS AuctionImageUrl,
+            u.Id AS AuthorId
         FROM Orders o
         JOIN Feedbacks f ON o.Id = f.OrderId
         JOIN Users u ON o.BidderId = u.Id 
         JOIN Auctions a ON o.AuctionId = a.Id
+        JOIN Items it ON it.AuctionId = a.Id
         WHERE a.SellerId = @SellerId
         ORDER BY f.CreatedAtUtc DESC
         OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;

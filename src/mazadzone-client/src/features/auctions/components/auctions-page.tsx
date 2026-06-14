@@ -8,16 +8,13 @@ import { AuctionFilterBar } from "./auction-filter-bar";
 import { AuctionPagination } from "./auction-pagination";
 import { useGetAuctions } from "../api";
 import { AuctionFilters } from "../types/auction.types";
+import { PlaceBidButton } from "@/features/bidding";
 
 /**
  * Auctions page-level component.
  *
  * This is the main entry point rendered by `app/(main)/auctions/page.tsx`.
  * It owns the page layout, data fetching orchestration, and feature composition.
- *
- * Uses TanStack Query (`useGetAuctions`) for server state management.
- * The query is backed by mock data during development and will seamlessly
- * switch to real API calls when the backend is ready.
  */
 export function AuctionsPage() {
   const { searchParams, setFilters } = useUrlFilters<AuctionFilters>();
@@ -27,7 +24,6 @@ export function AuctionsPage() {
     searchParams.forEach((value, key) => {
       if (value) {
         const num = Number(value);
-        // Convert to number if numeric and not the 'search' field
         if (!isNaN(num) && value.trim() !== "" && key !== "search") {
           f[key] = num;
         } else {
@@ -35,7 +31,6 @@ export function AuctionsPage() {
         }
       }
     });
-    // Ensure page is at least 1
     if (!f.page) f.page = 1;
     if (!f.pageSize) f.pageSize = 12;
     return f as AuctionFilters;
@@ -53,10 +48,25 @@ export function AuctionsPage() {
     setFilters({ page } as Partial<AuctionFilters>);
   }, [setFilters]);
 
+  // Stable action slot references so React.memo on AuctionCard can work
+  const actionSlots = useMemo(() => {
+    if (!auctions) return new Map<string, React.ReactNode>();
+    const map = new Map<string, React.ReactNode>();
+    for (const auction of auctions) {
+      map.set(auction.id, (
+        <PlaceBidButton
+          auctionId={auction.id}
+          isOwner={auction.isOwner}
+          status={auction.status}
+        />
+      ));
+    }
+    return map;
+  }, [auctions]);
+
   return (
     <PageWrapper>
       <div className="space-y-6">
-        {/* Page header */}
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Auctions</h1>
           <p className="text-muted-foreground">
@@ -64,13 +74,11 @@ export function AuctionsPage() {
           </p>
         </div>
 
-        {/* Filter bar */}
         <AuctionFilterBar
           initialFilters={filters}
           onFilterChange={handleFilterChange}
         />
 
-        {/* Loading state */}
         {isLoading && (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {Array.from({ length: 8 }).map((_, i) => (
@@ -79,7 +87,6 @@ export function AuctionsPage() {
           </div>
         )}
 
-        {/* Error state */}
         {isError && (
           <div className="flex flex-col items-center justify-center gap-4 py-16">
             <p className="text-lg font-medium text-destructive">
@@ -95,7 +102,6 @@ export function AuctionsPage() {
           </div>
         )}
 
-        {/* Empty state */}
         {!isLoading && !isError && auctions?.length === 0 && (
           <div className="flex flex-col items-center justify-center gap-2 py-16">
             <p className="text-lg font-medium text-muted-foreground">
@@ -107,26 +113,23 @@ export function AuctionsPage() {
           </div>
         )}
 
-        {/* Success state */}
         {!isLoading && !isError && auctions && auctions.length > 0 && (
           <>
-            {/* Auction count */}
             <p className="text-sm text-muted-foreground">
               Showing {auctions.length} {filters.status?.toLowerCase() || "active"} auctions
             </p>
 
-            {/* Auction grid */}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {auctions.map((auction, index) => (
                 <AuctionCard
                   key={auction.id}
                   auction={auction}
                   priority={index < 4}
+                  actionSlot={actionSlots.get(auction.id)}
                 />
               ))}
             </div>
 
-            {/* Pagination */}
             {pagination && (
               <AuctionPagination
                 currentPage={pagination.page}

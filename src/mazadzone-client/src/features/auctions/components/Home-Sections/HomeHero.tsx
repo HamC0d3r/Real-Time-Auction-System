@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { MoveRight } from "lucide-react";
 import { ROUTES } from "@/config/routes.config";
-import homeHeroImg from "@/assets/Images/Home.png";
+import homeHeroImg from "@/assets/Images/Home.webp";
 
 export function HomeHero() {
   return (
@@ -17,8 +17,8 @@ export function HomeHero() {
           className="object-cover object-center"
           priority
         />
-        {/* Dark gradient overlay on the right side behind the text to improve readability */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#0b101b]/50 to-[#0b101b]/95" />
+        {/* Dark gradient overlay behind the text to improve readability (responsive direction) */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0b101b]/70 via-[#0b101b]/80 to-[#0b101b]/95 md:bg-gradient-to-r md:from-transparent md:via-[#0b101b]/50 md:to-[#0b101b]/95" />
       </div>
 
       <div className="w-full max-w-[1600px] mx-auto px-6 md:px-12 lg:px-16 relative z-10 flex justify-end">
@@ -38,7 +38,7 @@ export function HomeHero() {
 
           <div className="pt-2">
             <Link
-              href={ROUTES.AUCTIONS.LIST}
+              href={`${ROUTES.AUCTIONS.LIST}?status=Active&sortBy=EndTime`}
               className="inline-flex items-center gap-2 rounded-xl bg-primary px-8 py-2.5 text-base font-bold text-white transition-all hover:bg-primary/90 hover:scale-105 active:scale-95 shadow-md shadow-black/20"
             >
               Explore Auctions <MoveRight className="size-4" />

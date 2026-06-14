@@ -1,8 +1,3 @@
-/**
- * React Query hooks for fetching Auctions data.
- * Fully aligned with the real backend DTO contracts.
- */
-
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
   AuctionSummary,
@@ -30,61 +25,65 @@ import {
   mapAuctionDtoToSummary,
 } from "./auction.mappers";
 
-// Re-export query keys
 export { auctionKeys };
 
-/**
- * Fetches active auctions with optional filters and sorting.
- * Maps raw backend paginated list to presentational ViewModels.
- */
+const CATEGORY_TREE_KEY = ["categories", "tree"] as const;
+
+async function resolveCategoryId(
+  queryClient: ReturnType<typeof useQueryClient>,
+  category?: string,
+  subcategory?: string,
+): Promise<string | undefined> {
+  if (!category || (category as string) === "all") return undefined;
+
+  const cached = queryClient.getQueryData<CategoryDto[]>(CATEGORY_TREE_KEY);
+  const tree: CategoryDto[] = cached ?? await queryClient.fetchQuery({
+    queryKey: CATEGORY_TREE_KEY,
+    queryFn: getCategoryTree,
+    staleTime: 60 * 60 * 1000,
+  });
+
+  const matchedCat = tree.find(
+    (c) => c.name.toLowerCase() === category.toLowerCase()
+  );
+  if (!matchedCat) return undefined;
+
+  if (!subcategory || (subcategory as string) === "all") {
+    return matchedCat.id;
+  }
+
+  const subList = matchedCat.subCategories || matchedCat.subcategories || matchedCat.children || [];
+  const subQuery = subcategory.toLowerCase();
+  const matchedSub = subList.find((s) => {
+    const sName = s.name.toLowerCase();
+    if (sName === subQuery) return true;
+    if (sName.includes(subQuery)) return true;
+    if (subQuery.includes(sName)) return true;
+    if (subQuery.startsWith("other") && sName.startsWith("other")) return true;
+    return false;
+  });
+
+  return matchedSub?.id;
+}
+
 export function useGetAuctions(filters?: AuctionFilters) {
+  const queryClient = useQueryClient();
+
   return useQuery<PaginatedResponse<AuctionSummary>>({
     queryKey: auctionKeys.list(filters || {}),
     queryFn: async () => {
-      let resolvedCategoryId: string | undefined = undefined;
-
-      if (filters?.category && (filters.category as string) !== "all") {
-        try {
-          const tree = await getCategoryTree();
-          const matchedCat = tree.find(
-            (c) => c.name.toLowerCase() === filters.category?.toLowerCase()
-          );
-          if (matchedCat) {
-            if (filters.subcategory && (filters.subcategory as string) !== "all") {
-              const subList = matchedCat.subCategories || matchedCat.subcategories || matchedCat.children || [];
-              const subQuery = filters.subcategory?.toLowerCase() || "";
-              const matchedSub = subList.find(
-                (s) => {
-                  const sName = s.name.toLowerCase();
-                  if (sName === subQuery) return true;
-                  if (sName.includes(subQuery)) return true;
-                  if (subQuery.includes(sName)) return true;
-                  if (subQuery.startsWith("other") && sName.startsWith("other")) return true;
-                  return false;
-                }
-              );
-              if (matchedSub) {
-                resolvedCategoryId = matchedSub.id;
-              }
-            }
-          }
-        } catch (err) {
-          console.warn("Failed to fetch category tree for GUID mapping:", err);
-        }
-      }
+      const resolvedCategoryId = await resolveCategoryId(
+        queryClient,
+        filters?.category,
+        filters?.subcategory,
+      );
 
       const queryParams = mapFiltersToQueryParams(filters);
-      if (resolvedCategoryId) {
-        queryParams.CategoryId = resolvedCategoryId;
-      } else {
-        queryParams.CategoryId = undefined;
-      }
-      
-      // Clear SubCategoryId to ensure backend queries only use the mapped CategoryId
+      queryParams.CategoryId = resolvedCategoryId;
       queryParams.SubCategoryId = undefined;
 
       const raw = await getAuctions(queryParams);
-      
+
       return {
         items: raw.items.map(mapAuctionsListDtoToSummary),
         totalCount: raw.totalCount,
@@ -98,10 +97,7 @@ export function useGetAuctions(filters?: AuctionFilters) {
   });
 }
 
-/**
- * Fetches detailed information about a single auction by ID.
- */
-export function useGetAuctionById(id: string) {
+export function useGetAuctionById(id: string, options?: { enabled?: boolean }) {
   const queryClient = useQueryClient();
 
   return useQuery<AuctionSummary | null>({
@@ -110,14 +106,13 @@ export function useGetAuctionById(id: string) {
       const raw = await getAuctionById(id);
       const summary = mapAuctionDtoToSummary(raw);
 
-      // Resolve condition from list cache first (fast — no network call).
-      // The list cache is already populated when the user navigated from the list page.
       const listsData = queryClient.getQueriesData<PaginatedResponse<AuctionSummary>>({
         queryKey: auctionKeys.lists(),
       });
 
       let cachedItem: AuctionSummary | undefined;
-      for (const [_, data] of listsData) {
+      for (const entry of listsData) {
+        const data = entry[1];
         if (data?.items) {
           cachedItem = data.items.find((item) => item.id === id);
           if (cachedItem) break;
@@ -125,45 +120,24 @@ export function useGetAuctionById(id: string) {
       }
 
       if (cachedItem) {
-        // Use cached condition — no extra network call needed
         summary.condition = cachedItem.condition;
         summary.conditionDescription = cachedItem.conditionDescription;
       }
-      // Note: if no list cache exists (direct URL navigation), condition
-      // falls back to the mapper default. This is acceptable — condition
-      // is a static field that doesn't change in real-time.
 
       return summary;
     },
-    enabled: !!id,
-    // staleTime: 0 — every invalidateQueries call from SignalR triggers
-    // an immediate background refetch so status and price stay current.
-    staleTime: 0,
+    enabled: (options?.enabled !== undefined ? options.enabled : true) && !!id,
+    staleTime: 60 * 1000,
   });
 }
 
-/**
- * Fetches auctions by category display string.
- */
 export function useGetAuctionsByCategory(category: AuctionCategory) {
+  const queryClient = useQueryClient();
+
   return useQuery<PaginatedResponse<AuctionSummary>>({
     queryKey: [...auctionKeys.all, "category", category],
     queryFn: async () => {
-      let resolvedCategoryId: string | undefined = undefined;
-
-      if (category && (category as string) !== "all") {
-        try {
-          const tree = await getCategoryTree();
-          const matchedCat = tree.find(
-            (c) => c.name.toLowerCase() === category.toLowerCase()
-          );
-          if (matchedCat) {
-            resolvedCategoryId = matchedCat.id;
-          }
-        } catch (err) {
-          console.warn("Failed to fetch category tree for GUID mapping in useGetAuctionsByCategory:", err);
-        }
-      }
+      const resolvedCategoryId = await resolveCategoryId(queryClient, category);
 
       const raw = await getAuctions({
         Page: 1,
@@ -185,48 +159,39 @@ export function useGetAuctionsByCategory(category: AuctionCategory) {
   });
 }
 
-/**
- * Hook to get active auctions ending soon.
- */
-export function useGetEndingSoonAuctions(limit: number = 4) {
-  return useQuery<AuctionSummary[]>({
-    queryKey: [...auctionKeys.all, "ending-soon", limit],
+interface HomeAuctionsData {
+  endingSoon: AuctionSummary[];
+  upcoming: AuctionSummary[];
+}
+
+export function useGetHomeAuctions(limit: number = 4) {
+  return useQuery<HomeAuctionsData>({
+    queryKey: [...auctionKeys.all, "home", limit],
     queryFn: async () => {
-      const raw = await getAuctions({
-        Page: 1,
-        PageSize: limit,
-        Status: "Active",
-        SortBy: "EndTime",
-        SortDirection: "asc",
-      });
-      return raw.items.map(mapAuctionsListDtoToSummary);
+      const [endingSoonRaw, upcomingRaw] = await Promise.all([
+        getAuctions({
+          Page: 1,
+          PageSize: limit,
+          Status: "Active",
+          SortBy: "EndTime",
+          SortDirection: "asc",
+        }),
+        getAuctions({
+          Page: 1,
+          PageSize: limit,
+          Status: "Pending",
+          SortBy: "StartTime",
+          SortDirection: "asc",
+        }),
+      ]);
+      return {
+        endingSoon: endingSoonRaw.items.map(mapAuctionsListDtoToSummary),
+        upcoming: upcomingRaw.items.map(mapAuctionsListDtoToSummary),
+      };
     },
   });
 }
 
-/**
- * Hook to get upcoming active auctions.
- */
-export function useGetUpcomingAuctions(limit: number = 4) {
-  return useQuery<AuctionSummary[]>({
-    queryKey: [...auctionKeys.all, "upcoming", limit],
-    queryFn: async () => {
-      const raw = await getAuctions({
-        Page: 1,
-        PageSize: limit,
-        Status: "Pending",
-        SortBy: "StartTime",
-        SortDirection: "asc",
-      });
-      return raw.items.map(mapAuctionsListDtoToSummary);
-    },
-  });
-}
-
-/**
- * Hook to get bid history for a specific auction.
- * Extracts bid list directly from the detailed auction DTO.
- */
 export function useGetBidHistory(auctionId: string) {
   return useQuery({
     queryKey: [...auctionKeys.detail(auctionId), "bids"],
@@ -245,9 +210,6 @@ export function useGetBidHistory(auctionId: string) {
   });
 }
 
-/**
- * Hook to get similar auctions.
- */
 export function useGetSimilarAuctions(
   auctionId: string,
   category: AuctionCategory,
@@ -264,9 +226,6 @@ export function useGetSimilarAuctions(
   });
 }
 
-/**
- * Hook to get auctions owned by the current seller.
- */
 export function useGetSellerAuctions(filters?: {
   status?: string;
   sortBy?: string;
@@ -301,23 +260,17 @@ export function useGetSellerAuctions(filters?: {
   });
 }
 
-/**
- * Hook to retrieve root categories from the API.
- */
 export function useGetRootCategories() {
   return useQuery<CategoryDto[]>({
-    queryKey: ["categories", "roots"],
+    queryKey: [...CATEGORY_TREE_KEY, "roots"],
     queryFn: getRootCategories,
-    staleTime: 60 * 60 * 1000, // Keep cached for 1 hour since category structure rarely changes
+    staleTime: 60 * 60 * 1000,
   });
 }
 
-/**
- * Hook to retrieve the complete categories and subcategories tree from the API.
- */
 export function useGetCategoryTree() {
   return useQuery<CategoryDto[]>({
-    queryKey: ["categories", "tree"],
+    queryKey: CATEGORY_TREE_KEY,
     queryFn: getCategoryTree,
     staleTime: 60 * 60 * 1000,
   });

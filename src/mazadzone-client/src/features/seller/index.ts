@@ -35,6 +35,3 @@ export type {
   SellerFinancialsResponse,
 } from "./api";
 export type { SellerProfile, SellerReview, ReviewReply } from "./types/seller.types";
-
-// Testing
-export { resetMockReviews } from "./testing/mock-seller";

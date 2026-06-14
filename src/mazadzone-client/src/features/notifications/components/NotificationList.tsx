@@ -20,6 +20,8 @@ import { useAuthStore } from "@/stores/auth.store";
 import { useEffect } from "react";
 import { useNotificationStore } from "../store/notification.store";
 import { triggerWinDialogFromNotification } from "../store/win-dialog.store";
+import { triggerShippingDialogFromNotification } from "../store/shipping-dialog.store";
+import { triggerDeliveredDialogFromNotification } from "../store/delivered-dialog.store";
 
 import Link from "next/link";
 
@@ -31,6 +33,7 @@ export const NotificationList = () => {
   const { data, isLoading, isError } = useGetNotifications(user?.id || "", currentPage, pageSize);
   const notifications = useNotificationStore((state) => state.notifications);
   const setNotifications = useNotificationStore((state) => state.setNotifications);
+  const unreadCount = useNotificationStore((state) => state.unreadCount);
   const decrementUnreadCount = useNotificationStore((state) => state.decrementUnreadCount);
   const resetUnreadCount = useNotificationStore((state) => state.resetUnreadCount);
   const localMarkAsRead = useNotificationStore((state) => state.markAsRead);
@@ -51,12 +54,15 @@ export const NotificationList = () => {
   const markAllAsRead = useMarkAllAsRead();
 
   const handleMarkAllAsRead = () => {
+    const unreadIds = notifications.filter((n) => !n.isRead).map((n) => n.id);
+    if (unreadIds.length === 0) return;
+
     // 1. Zero the badge instantly (synchronous)
     resetUnreadCount();
     // 2. Update the notification list in the store instantly
     localMarkAllAsRead();
     // 3. Mutate backend in background
-    markAllAsRead.mutate();
+    markAllAsRead.mutate(unreadIds);
   };
 
   const handleNotificationClick = (notification: Notification) => {
@@ -71,11 +77,15 @@ export const NotificationList = () => {
 
     if (notification.type === "auction_won") {
       triggerWinDialogFromNotification(notification);
+    } else if (notification.type === "order_shipped") {
+      triggerShippingDialogFromNotification(notification);
+    } else if (notification.type === "order_received") {
+      triggerDeliveredDialogFromNotification(notification);
     }
   };
 
   const totalPages = data?.totalPages || 0;
-  const showMarkAll = !isError && !isLoading && notifications.length > 0;
+  const showMarkAll = !isError && !isLoading && unreadCount > 0;
 
   return (
     <div className="flex flex-col w-full max-w-[400px] bg-card rounded-2xl shadow-xl overflow-hidden border border-border min-h-[300px]">

@@ -15,12 +15,16 @@ export interface MetricStripProps {
   items: MetricStripItem[];
   isLoading?: boolean;
   className?: string;
+  labelClassName?: string;
+  valueClassName?: string;
 }
 
 export function MetricStrip({
   items,
   isLoading = false,
   className,
+  labelClassName,
+  valueClassName,
 }: MetricStripProps) {
   if (isLoading) {
     return <MetricStripSkeleton count={items.length || 6} className={className} />;
@@ -38,13 +42,13 @@ export function MetricStrip({
         className,
       )}
     >
-      {items.map((item, i) => {
+      {items.map((item) => {
         const Icon = item.icon;
         return (
           <div
             key={item.label}
             className={cn(
-              "flex flex-col justify-center px-5 py-4 text-left relative",
+              "flex flex-col justify-center px-3.5 sm:px-5 py-4 text-left relative",
               // Vertical dividers — right border on all except last in each visual row
               "border-r border-border last:border-r-0",
               // Bottom border for wrapped rows on mobile
@@ -65,10 +69,10 @@ export function MetricStrip({
           >
             <div className="flex items-center justify-between gap-2">
               <div className="flex flex-col gap-0.5 min-w-0">
-                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider truncate">
+                <span className={cn("text-[11px] font-semibold text-muted-foreground uppercase tracking-wider truncate", labelClassName)}>
                   {item.label}
                 </span>
-                <span className="text-xl font-bold tracking-tight text-foreground">
+                <span className={cn("text-lg sm:text-xl font-bold tracking-tight text-foreground", valueClassName)}>
                   {item.value}
                 </span>
               </div>
@@ -130,7 +134,7 @@ function MetricStripSkeleton({
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="flex flex-col justify-center px-5 py-4 border-r border-b border-border last:border-r-0 animate-pulse"
+          className="flex flex-col justify-center px-3.5 sm:px-5 py-4 border-r border-b border-border last:border-r-0 animate-pulse"
         >
           <div className="h-3 bg-muted rounded w-20 mb-2" />
           <div className="h-5 bg-muted rounded w-14" />

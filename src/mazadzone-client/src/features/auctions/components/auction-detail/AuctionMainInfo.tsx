@@ -70,7 +70,7 @@ export function AuctionMainInfo({
   return (
     <div className="flex flex-col gap-5">
       {/* Title */}
-      <h1 className="text-3xl md:text-4xl font-bold leading-tight text-foreground">
+      <h1 className="text-3xl md:text-4xl font-bold leading-tight text-foreground break-words">
         {auction.title}
       </h1>
 
@@ -82,6 +82,7 @@ export function AuctionMainInfo({
           variant="large"
           status={auction.status}
           label={isUpcoming ? "UPCOMING IN" : undefined}
+          auctionId={auction.id}
         />
       </div>
 

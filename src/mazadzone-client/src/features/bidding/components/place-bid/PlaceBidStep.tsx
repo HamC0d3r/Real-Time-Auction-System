@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
 import { Minus, Plus, MapPin, CreditCard, Home, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,7 @@ export interface PlaceBidStepProps {
   onCancel: () => void;
 }
 
-export function PlaceBidStep({
+export const PlaceBidStep = memo(function PlaceBidStep({
   auctionTitle,
   currentBid,
   minIncrement,
@@ -35,91 +35,96 @@ export function PlaceBidStep({
 }: PlaceBidStepProps) {
   const minBid = currentBid + minIncrement;
   const [isFocused, setIsFocused] = useState(false);
-  const [inputValue, setInputValue] = useState<string>("");
-  const [validationError, setValidationError] = useState<string | null>(null);
+  const [inputValue, setInputValue] = useState<string>(() =>
+    formatPriceOnBlur(String(bidAmount)),
+  );
+  const [validationError, setValidationError] = useState<string | null>(() => {
+    if (bidAmount < minBid) {
+      return `Bid amount must be at least ${minBid.toFixed(2)} JD (Current Bid + Min. Increment)`;
+    }
+    return null;
+  });
 
-  // Timers and state tracking refs to avoid stale closures in hold logic
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  
+
   const bidAmountRef = useRef(bidAmount);
   const minIncrementRef = useRef(minIncrement);
   const minBidRef = useRef(minBid);
   const isFocusedRef = useRef(isFocused);
 
-  useEffect(() => {
-    bidAmountRef.current = bidAmount;
-  }, [bidAmount]);
+  useEffect(() => { bidAmountRef.current = bidAmount; }, [bidAmount]);
+  useEffect(() => { minIncrementRef.current = minIncrement; }, [minIncrement]);
+  useEffect(() => { minBidRef.current = minBid; }, [minBid]);
+  useEffect(() => { isFocusedRef.current = isFocused; }, [isFocused]);
 
-  useEffect(() => {
-    minIncrementRef.current = minIncrement;
-  }, [minIncrement]);
+  const bidSchema = useMemo(
+    () =>
+      z.number().min(minBid, {
+        message: `Bid amount must be at least ${minBid.toFixed(2)} JD (Current Bid + Min. Increment)`,
+      }),
+    [minBid],
+  );
 
-  useEffect(() => {
-    minBidRef.current = minBid;
-  }, [minBid]);
+  const validateBidAmount = useCallback(
+    (amount: number) => {
+      const result = bidSchema.safeParse(amount);
+      if (!result.success) {
+        setValidationError(result.error.issues[0].message);
+        return false;
+      }
+      setValidationError(null);
+      return true;
+    },
+    [bidSchema],
+  );
 
-  useEffect(() => {
-    isFocusedRef.current = isFocused;
-  }, [isFocused]);
-
-  // Sync state if bidAmount prop changes from external buttons (plus/minus) or initialization
   useEffect(() => {
     if (!isFocused) {
       setInputValue(formatPriceOnBlur(String(bidAmount)));
     }
-    validateBidAmount(bidAmount);
   }, [bidAmount, isFocused]);
 
-  const validateBidAmount = (amount: number) => {
-    const bidSchema = z
-      .number()
-      .min(minBid, {
-        message: `Bid amount must be at least ${minBid.toFixed(2)} JD (Current Bid + Min. Increment)`,
-      });
-
-    const result = bidSchema.safeParse(amount);
-    if (!result.success) {
-      setValidationError(result.error.issues[0].message);
-      return false;
-    } else {
-      setValidationError(null);
-      return true;
-    }
-  };
-
-  const handleIncrement = () => {
+  const handleIncrement = useCallback(() => {
     const nextAmount = Math.round(bidAmountRef.current + minIncrementRef.current);
     onBidAmountChange(nextAmount);
-    if (isFocusedRef.current) {
-      setInputValue(nextAmount.toFixed(2));
-    } else {
-      setInputValue(formatPriceOnBlur(String(nextAmount)));
-    }
-  };
+    const formatted = isFocusedRef.current
+      ? nextAmount.toFixed(2)
+      : formatPriceOnBlur(String(nextAmount));
+    setInputValue(formatted);
+    validateBidAmount(nextAmount);
+  }, [onBidAmountChange, validateBidAmount]);
 
-  const handleDecrement = () => {
+  const handleDecrement = useCallback(() => {
     const nextAmount = Math.round(bidAmountRef.current - minIncrementRef.current);
     if (nextAmount >= minBidRef.current) {
       onBidAmountChange(nextAmount);
-      if (isFocusedRef.current) {
-        setInputValue(nextAmount.toFixed(2));
-      } else {
-        setInputValue(formatPriceOnBlur(String(nextAmount)));
-      }
+      const formatted = isFocusedRef.current
+        ? nextAmount.toFixed(2)
+        : formatPriceOnBlur(String(nextAmount));
+      setInputValue(formatted);
+      validateBidAmount(nextAmount);
     }
-  };
+  }, [onBidAmountChange, validateBidAmount]);
 
-  const startHold = (action: "increment" | "decrement") => {
+  const stopHold = useCallback(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }, []);
+
+  const startHold = useCallback((action: "increment" | "decrement") => {
     stopHold();
-    
-    // Fire initial action immediately
     if (action === "increment") {
       handleIncrement();
     } else {
       handleDecrement();
     }
-
     timerRef.current = setTimeout(() => {
       intervalRef.current = setInterval(() => {
         if (action === "increment") {
@@ -129,27 +134,14 @@ export function PlaceBidStep({
         }
       }, 75);
     }, 400);
-  };
-
-  const stopHold = () => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-  };
+  }, [handleIncrement, handleDecrement, stopHold]);
 
   useEffect(() => {
     return () => stopHold();
-  }, []);
+  }, [stopHold]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     let val = e.target.value.replace(/[^0-9.]/g, "");
-    
-    // Prevent multiple dots
     const parts = val.split(".");
     if (parts.length > 2) {
       val = parts[0] + "." + parts.slice(1).join("");
@@ -157,7 +149,7 @@ export function PlaceBidStep({
     if (parts[1] && parts[1].length > 2) {
       val = parts[0] + "." + parts[1].slice(0, 2);
     }
-    
+
     setInputValue(val);
 
     const parsed = Math.round(parseFloat(val));
@@ -167,14 +159,14 @@ export function PlaceBidStep({
     } else {
       setValidationError("Please enter a valid bid amount");
     }
-  };
+  }, [onBidAmountChange, validateBidAmount]);
 
-  const handleInputFocus = () => {
+  const handleInputFocus = useCallback(() => {
     setIsFocused(true);
     setInputValue(unformatPriceOnFocus(inputValue));
-  };
+  }, [inputValue]);
 
-  const handleInputBlur = () => {
+  const handleInputBlur = useCallback(() => {
     setIsFocused(false);
     const parsed = Math.round(parseFloat(inputValue));
     if (isNaN(parsed) || parsed < minBid) {
@@ -186,39 +178,28 @@ export function PlaceBidStep({
       onBidAmountChange(parsed);
       validateBidAmount(parsed);
     }
-  };
+  }, [inputValue, minBid, onBidAmountChange, validateBidAmount]);
 
   const isContinueDisabled = !selectedAddress || !selectedPayment || bidAmount < minBid || !!validationError;
 
   return (
     <div className="space-y-6 text-left">
-      {/* Header */}
       <div>
         <h3 className="text-2xl font-bold text-foreground">Place Bid</h3>
         <p className="text-sm text-muted-foreground mt-1 truncate">{auctionTitle}</p>
       </div>
 
-      {/* Pricing Stats Grid */}
       <div className="grid grid-cols-2 gap-4">
         <div className="bg-muted/15 border border-border/20 rounded-xl p-4">
-          <p className="text-xs font-semibold text-muted-foreground">
-            Current Bid
-          </p>
-          <p className="text-2xl font-bold text-foreground mt-1">
-            {formatCurrency(currentBid)}
-          </p>
+          <p className="text-xs font-semibold text-muted-foreground">Current Bid</p>
+          <p className="text-2xl font-bold text-foreground mt-1">{formatCurrency(currentBid)}</p>
         </div>
         <div className="bg-muted/15 border border-border/20 rounded-xl p-4">
-          <p className="text-xs font-semibold text-muted-foreground">
-            Min. Increment
-          </p>
-          <p className="text-2xl font-bold text-foreground mt-1">
-            {formatCurrency(minIncrement)}
-          </p>
+          <p className="text-xs font-semibold text-muted-foreground">Min. Increment</p>
+          <p className="text-2xl font-bold text-foreground mt-1">{formatCurrency(minIncrement)}</p>
         </div>
       </div>
 
-      {/* Bid Selector Box */}
       <div className="space-y-2">
         <label className="text-sm font-bold text-foreground block">Your Bid</label>
         <div className="flex items-center gap-3 w-full">
@@ -238,7 +219,7 @@ export function PlaceBidStep({
           >
             <Minus className="h-5 w-5 stroke-[2.5]" />
           </button>
-          
+
           <div className="relative flex-1">
             <input
               type="text"
@@ -277,11 +258,8 @@ export function PlaceBidStep({
         )}
       </div>
 
-      {/* Delivery Address Section */}
       <div className="space-y-2">
-        <label className="text-sm font-bold text-foreground block">
-          Delivery Address
-        </label>
+        <label className="text-sm font-bold text-foreground block">Delivery Address</label>
         {selectedAddress ? (
           <div className="flex items-start justify-between p-4 bg-card border border-border rounded-xl">
             <div className="flex items-start gap-3">
@@ -289,9 +267,7 @@ export function PlaceBidStep({
               <div className="space-y-0.5 text-xs md:text-sm text-left">
                 <p className="font-bold text-foreground">{selectedAddress.label}</p>
                 <p className="text-muted-foreground">{selectedAddress.city}</p>
-                <p className="text-muted-foreground">
-                  {selectedAddress.streetAddress}, {selectedAddress.building}
-                </p>
+                <p className="text-muted-foreground">{selectedAddress.streetAddress}, {selectedAddress.building}</p>
                 <p className="text-muted-foreground">Phone: {selectedAddress.phoneNumber}</p>
               </div>
             </div>
@@ -320,20 +296,15 @@ export function PlaceBidStep({
         )}
       </div>
 
-      {/* Payment Method Section */}
       <div className="space-y-2">
-        <label className="text-sm font-bold text-foreground block">
-          Payment Method
-        </label>
+        <label className="text-sm font-bold text-foreground block">Payment Method</label>
         {selectedPayment ? (
           <div className="flex items-start justify-between p-4 bg-card border border-border rounded-xl">
             <div className="flex items-start gap-3">
               <CreditCard className="h-5 w-5 text-primary shrink-0 mt-0.5" />
               <div className="space-y-0.5 text-xs md:text-sm text-left">
                 <div className="flex items-center gap-2">
-                  <p className="font-bold text-foreground">
-                    {selectedPayment.cardType} •••• {selectedPayment.lastFourDigits}
-                  </p>
+                  <p className="font-bold text-foreground">{selectedPayment.cardType === "UNKNOWN" ? "Card" : selectedPayment.cardType} •••• {selectedPayment.lastFourDigits}</p>
                   <span className="text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary px-1.5 py-0.5 rounded border border-primary/20">
                     Active
                   </span>
@@ -369,7 +340,6 @@ export function PlaceBidStep({
         )}
       </div>
 
-      {/* Actions */}
       <div className="pt-4 space-y-3">
         <Button
           type="button"
@@ -389,4 +359,4 @@ export function PlaceBidStep({
       </div>
     </div>
   );
-}
+});

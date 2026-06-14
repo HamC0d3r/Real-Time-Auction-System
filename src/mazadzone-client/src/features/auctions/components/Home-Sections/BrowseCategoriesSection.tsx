@@ -77,19 +77,19 @@ export function BrowseCategoriesSection() {
             >
               <div className="flex items-center gap-4 flex-1">
                 {/* Thumbnail Image Container */}
-                <div className="relative w-[96px] h-[96px] rounded-xl overflow-hidden bg-muted shrink-0 select-none">
+                <div className="relative w-[80px] h-[80px] sm:w-[96px] sm:h-[96px] rounded-xl overflow-hidden bg-muted shrink-0 select-none">
                   <Image
                     src={category.imageUrl}
                     alt={category.name}
                     fill
-                    sizes="96px"
+                    sizes="(max-width: 640px) 80px, 96px"
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 </div>
 
                 {/* Content */}
                 <div className="space-y-2">
-                  <h3 className="text-base md:text-lg font-bold text-[#1A1A1A] leading-snug group-hover:text-primary transition-colors duration-200">
+                  <h3 className="text-sm xs:text-base sm:text-lg font-bold text-[#1A1A1A] leading-snug group-hover:text-primary transition-colors duration-200">
                     {category.name}
                   </h3>
                   <span className="inline-block text-[#f97316] font-bold text-xs md:text-sm tracking-wide">

@@ -2,78 +2,34 @@
  * Auction-specific TypeScript types and enums.
  */
 import type { AuthUser } from "@/stores/auth.store";
+import {
+  AUCTION_STATUS,
+  AUCTION_CATEGORY,
+  AUCTION_SUBCATEGORY,
+  AUCTION_CONDITION,
+  AUCTION_SORT_BY,
+} from "@/types/domain.constants";
+import type {
+  AuctionStatus as AuctionStatusType,
+  AuctionCategory as AuctionCategoryType,
+  AuctionSubcategory as AuctionSubcategoryType,
+  AuctionCondition as AuctionConditionType,
+  AuctionSortBy as AuctionSortByType,
+} from "@/types/domain.constants";
 
-// --- Enums -------------------------------------------------------
+// --- Enums (shared domain constants) -----------------------------
 
-export const AuctionStatus = {
-  ACTIVE: "Active",
-  UPCOMING: "Upcoming",
-  ENDED: "Ended",
-} as const;
+export const AuctionStatus = AUCTION_STATUS;
+export const AuctionCategory = AUCTION_CATEGORY;
+export const AuctionSubcategory = AUCTION_SUBCATEGORY;
+export const AuctionCondition = AUCTION_CONDITION;
+export const AuctionSortBy = AUCTION_SORT_BY;
 
-export type AuctionStatus = (typeof AuctionStatus)[keyof typeof AuctionStatus];
-
-export const AuctionCategory = {
-  TECH_ELECTRONICS: "Tech and Electronics",
-  FASHION_STYLE: "Fashion and Style",
-  HOME_LIVING: "Home and Living",
-  COLLECTIBLES_ART: "Collectibles and Art",
-  HOBBIES_LEISURE: "Hobbies and Leisure",
-  MOTORS: "Motors",
-} as const;
-
-export type AuctionCategory =
-  (typeof AuctionCategory)[keyof typeof AuctionCategory];
-
-export const AuctionSubcategory = {
-  // Tech
-  LAPTOPS: "Laptops",
-  SMARTPHONES: "Smartphones",
-  CAMERAS: "Cameras",
-  // Fashion
-  WATCHES: "Watches",
-  SHOES: "Shoes",
-  ACCESSORIES: "Accessories",
-  // Motors
-  CARS: "Cars",
-  MOTORCYCLES: "Motorcycles",
-  // Home
-  FURNITURE: "Furniture",
-  DECOR: "Decor",
-  // Collectibles & Art
-  PAINTINGS: "Paintings",
-  ANTIQUES: "Antiques",
-  SCULPTURES: "Sculptures",
-  // Hobbies & Leisure
-  BOOKS: "Books",
-  MUSICAL_INSTRUMENTS: "Musical Instruments",
-  SPORTS_EQUIPMENT: "Sports Equipment",
-  // Others
-  OTHERS: "Others",
-} as const;
-
-export type AuctionSubcategory =
-  (typeof AuctionSubcategory)[keyof typeof AuctionSubcategory];
-
-export const AuctionCondition = {
-  NEW: "New",
-  LIKE_NEW: "Like New",
-  GOOD: "Good",
-  FAIR: "Fair",
-} as const;
-
-export type AuctionCondition =
-  (typeof AuctionCondition)[keyof typeof AuctionCondition];
-
-export const AuctionSortBy = {
-  CREATION_DATE: "CreationDate",
-  START_TIME: "StartTime",
-  END_TIME: "EndTime",
-  CURRENT_BID_AMOUNT: "CurrentBidAmount",
-} as const;
-
-export type AuctionSortBy =
-  (typeof AuctionSortBy)[keyof typeof AuctionSortBy];
+export type AuctionStatus = AuctionStatusType;
+export type AuctionCategory = AuctionCategoryType;
+export type AuctionSubcategory = AuctionSubcategoryType;
+export type AuctionCondition = AuctionConditionType;
+export type AuctionSortBy = AuctionSortByType;
 
 // --- Domain Models -----------------------------------------------
 
@@ -166,6 +122,7 @@ export interface AuctionCardProps {
   auction: AuctionSummary;
   priority?: boolean;
   className?: string;
+  actionSlot?: React.ReactNode;
 }
 
 // --- Input Types -------------------------------------------------

@@ -38,18 +38,16 @@ export function PublicActivitySection({ profile }: PublicActivitySectionProps) {
 
   // If user is Seller + Bidder, we display this secondary participation section
   return (
-    <div className="rounded-2xl border border-border bg-card p-6 shadow-xs mt-4">
-      <div className="flex flex-col gap-4">
-        <div>
-          <h2 className="text-base font-bold text-foreground">
-            Bidder Participation Summary
-          </h2>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            This user also actively participates in the marketplace as a bidder.
-          </p>
-        </div>
-        <PublicUserStats profile={profile} isCompact={true} />
+    <div className="flex flex-col gap-4 mt-6">
+      <div>
+        <h2 className="text-base font-bold text-foreground">
+          Bidder Participation Summary
+        </h2>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          This user also actively participates in the marketplace as a bidder.
+        </p>
       </div>
+      <PublicUserStats profile={profile} isCompact={true} />
     </div>
   );
 }

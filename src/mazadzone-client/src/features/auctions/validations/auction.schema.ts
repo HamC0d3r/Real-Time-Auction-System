@@ -16,7 +16,7 @@ export const createAuctionSchema = z
     title: z
       .string()
       .min(5, "Title must be at least 5 characters")
-      .max(100, "Title must be at most 100 characters"),
+      .max(45, "Title must be at most 45 characters"),
 
     description: z
       .string()

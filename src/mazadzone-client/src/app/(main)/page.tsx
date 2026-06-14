@@ -4,7 +4,7 @@ import {
   HomeHero,
   BrowseCategoriesSection,
   UpcomingAuctionsSection,
-} from "@/features/auctions";
+} from "@/features/auctions/components/Home-Sections";
 
 export default function Page() {
   return (

@@ -17,7 +17,7 @@ public class GoogleVisionIdentityExtractionService : IIdentityExtractionService
         TimeSpan.FromMilliseconds(250));
 
     private static readonly Regex EngNameRegex = new Regex(
-        @"Name:\s*([A-Za-z\s]+)", 
+        @"Name:\s*([A-Za-z\s\-\']+)", 
         RegexOptions.Compiled | RegexOptions.IgnoreCase, 
         TimeSpan.FromMilliseconds(250));
 

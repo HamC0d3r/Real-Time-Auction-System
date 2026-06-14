@@ -13,7 +13,11 @@ import { ROUTES } from "@/config/routes.config";
 import type { AuctionSummary, Seller } from "../../types/auction.types";
 
 const PlaceBidModal = dynamic(
-  () => import("@/features/bidding").then((module) => module.PlaceBidModal),
+  () =>
+    import("@/features/bidding/components/place-bid/PlaceBidModal").then(
+      (module) => module.PlaceBidModal,
+    ),
+  { ssr: false },
 );
 
 interface AuctionDetailContentProps {
@@ -101,14 +105,16 @@ export function AuctionDetailContent({
         subcategory={auction.subcategory}
       />
 
-      <PlaceBidModal
-        auctionId={auction.id}
-        auctionTitle={auction.title}
-        currentBid={auction.pricing.currentBid ?? auction.pricing.startingPrice}
-        minIncrement={auction.pricing.minimumIncrement ?? 10}
-        isOpen={isBidModalOpen}
-        onClose={() => setIsBidModalOpen(false)}
-      />
+      {isBidModalOpen && (
+        <PlaceBidModal
+          auctionId={auction.id}
+          auctionTitle={auction.title}
+          currentBid={auction.pricing.currentBid ?? auction.pricing.startingPrice}
+          minIncrement={auction.pricing.minimumIncrement ?? 10}
+          isOpen={isBidModalOpen}
+          onClose={() => setIsBidModalOpen(false)}
+        />
+      )}
     </>
   );
 }

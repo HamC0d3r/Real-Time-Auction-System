@@ -20,5 +20,12 @@ public class RegisterBidderValidator : AbstractValidator<RegisterBidderCommand>
         RuleFor(x => x.Address)
             .NotNull()
             .SetValidator(new AddressDtoValidator());
+
+        RuleFor(x => x.IdentityCardImageBytes)
+            .NotNull()
+            .Must(bytes => bytes.Length > 0)
+            .WithMessage("An image file of the identity card is required.")
+            .Must(bytes => bytes.Length <= 5 * 1024 * 1024)
+            .WithMessage("File size must not exceed 5MB.");
     }
 }

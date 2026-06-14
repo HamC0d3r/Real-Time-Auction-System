@@ -47,7 +47,7 @@ export function useCreateAdminUser() {
         "The new administrative user has been successfully registered."
       );
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       const detailMessage = error?.message || "Failed to create administrator. Please ensure details are correct.";
       appToast.error("Registration Failed", detailMessage);
     },

@@ -92,26 +92,41 @@ public class VerifyIdentityCommandHandler : ICommandHandler<VerifyIdentityComman
             return Result.Failure<Unit>(Error.Validation("Identity.InvalidNationalIdFormat", reason));
         }
 
-        // Verify name matches entered name case-insensitively
+        // Verify name matches entered name with lenient comparison
         var enteredFullName = user.FullName.GetDisplayName();
-        var cleanedEntered = Regex.Replace(enteredFullName ?? "", @"\s+", " ").Trim();
-        var cleanedExtractedEng = Regex.Replace(extractionResult.EnglishFullName ?? "", @"\s+", " ").Trim();
-        var cleanedExtractedAr = Regex.Replace(extractionResult.ArabicFullName ?? "", @"\s+", " ").Trim();
+
+        // Log extracted names for server-side debugging
+        _logger.LogInformation(
+            "OCR extraction result for identity verification - UserId: {UserId}, Profile name: '{ProfileName}', OCR English: '{EnglishName}', OCR Arabic: '{ArabicName}'",
+            request.UserId,
+            enteredFullName,
+            extractionResult.EnglishFullName,
+            extractionResult.ArabicFullName);
 
         bool nameMatches = false;
-        if (!string.IsNullOrEmpty(cleanedExtractedEng) && 
-            string.Equals(cleanedExtractedEng, cleanedEntered, StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrWhiteSpace(extractionResult.EnglishFullName))
         {
-            nameMatches = true;
+            var normalizedExtracted = NormalizeNameForComparison(extractionResult.EnglishFullName);
+            var normalizedEntered = NormalizeNameForComparison(enteredFullName ?? "");
+            nameMatches = string.Equals(normalizedExtracted, normalizedEntered, StringComparison.OrdinalIgnoreCase);
         }
-        else if (!string.IsNullOrEmpty(cleanedExtractedAr) && 
-                 string.Equals(cleanedExtractedAr, cleanedEntered, StringComparison.OrdinalIgnoreCase))
+
+        if (!nameMatches && !string.IsNullOrWhiteSpace(extractionResult.ArabicFullName))
         {
-            nameMatches = true;
+            var normalizedExtracted = NormalizeNameForComparison(extractionResult.ArabicFullName);
+            var normalizedEntered = NormalizeNameForComparison(enteredFullName ?? "");
+            nameMatches = string.Equals(normalizedExtracted, normalizedEntered, StringComparison.OrdinalIgnoreCase);
         }
 
         if (!nameMatches)
         {
+            _logger.LogWarning(
+                "Name mismatch during identity verification - UserId: {UserId}. Profile: '{ProfileName}', OCR English: '{EnglishName}', OCR Arabic: '{ArabicName}'",
+                request.UserId,
+                enteredFullName,
+                extractionResult.EnglishFullName,
+                extractionResult.ArabicFullName);
+
             var reason = $"The name on the identity card does not match your profile name: '{enteredFullName}'.";
             VerifyIdentityLogs.LogRejected(_logger, request.UserId, reason);
             
@@ -142,5 +157,16 @@ public class VerifyIdentityCommandHandler : ICommandHandler<VerifyIdentityComman
         VerifyIdentityLogs.LogSuccess(_logger, request.UserId);
 
         return Unit.Value;
+    }
+
+    /// <summary>
+    /// Strips all non-letter characters (hyphens, apostrophes, spaces, digits, punctuation)
+    /// so that OCR variations like "AL-MAHDAWI", "AL MAHDAWI", and "AL_MAHDAWI" all match.
+    /// Preserves Latin (A-Z, a-z) and Arabic script letters only.
+    /// </summary>
+    private static string NormalizeNameForComparison(string name)
+    {
+        if (string.IsNullOrEmpty(name)) return string.Empty;
+        return Regex.Replace(name, @"[^a-zA-Z\u0600-\u06FF]", "");
     }
 }

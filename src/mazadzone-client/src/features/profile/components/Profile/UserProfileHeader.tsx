@@ -1,8 +1,41 @@
-import { CheckCircle2, Star, Calendar, Shield, BadgeCheck, Mail, Phone } from "lucide-react";
+"use client";
+
+import { useState } from "react";
+import Image from "next/image";
+import { CheckCircle2, Star, Calendar, Shield, Mail, Phone } from "lucide-react";
 import type { PublicUserProfile } from "../../types/user-profile.types";
 import { cn } from "@/lib/utils";
 
 import { getProfileStatItems } from "../../constants/user-profile.constants";
+
+interface AvatarImageProps {
+  src?: string | null;
+  alt: string;
+  fallbackInitial: string;
+}
+
+function AvatarImage({ src, alt, fallbackInitial }: AvatarImageProps) {
+  const [error, setError] = useState(false);
+
+  if (error || !src) {
+    return (
+      <div className="flex h-full w-full items-center justify-center bg-primary/10 text-2xl font-bold text-primary">
+        {fallbackInitial}
+      </div>
+    );
+  }
+
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      fill
+      sizes="96px"
+      className="object-cover"
+      onError={() => setError(true)}
+    />
+  );
+}
 
 interface UserProfileHeaderProps {
   profile: PublicUserProfile;
@@ -44,18 +77,12 @@ export function UserProfileHeader({ profile }: UserProfileHeaderProps) {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
           {/* Avatar Container */}
           <div className="relative size-24 shrink-0 overflow-hidden rounded-full border border-border bg-muted ring-4 ring-primary/10 transition-transform duration-300 hover:scale-105">
-            {profile.avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={profile.avatarUrl}
-                alt={profile.fullName}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center bg-primary/10 text-2xl font-bold text-primary">
-                {profile.avatarInitial}
-              </div>
-            )}
+            <AvatarImage
+              key={profile.avatarUrl}
+              src={profile.avatarUrl}
+              alt={profile.fullName}
+              fallbackInitial={profile.avatarInitial}
+            />
           </div>
 
           {/* User Details */}
@@ -106,7 +133,7 @@ export function UserProfileHeader({ profile }: UserProfileHeaderProps) {
             <div className="flex flex-wrap items-center gap-y-1.5 gap-x-4 text-xs font-semibold text-muted-foreground mt-1">
               <div className="flex items-center gap-1.5">
                 <Mail className="size-3.5 text-muted-foreground/75" />
-                <span>{profile.email}</span>
+                <span className="break-all">{profile.email}</span>
               </div>
               {profile.phoneNumber && (
                 <div className="flex items-center gap-1.5">

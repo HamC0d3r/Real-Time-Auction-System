@@ -73,7 +73,7 @@ export async function fetchModerateAuctions(filters: UseModerateAuctionsFilters)
 /**
  * Cancels an auction listing as an administrator.
  */
-export async function cancelAuctionByAdminApi(auctionId: string, reason: string): Promise<void> {
+export async function cancelAuctionByAdminApi(auctionId: string, _reason: string): Promise<void> {
   // Respecting standard POST with no request body as defined in OpenAPI contract
   await api.post(`/auctions/${auctionId}/cancel-by-admin`);
 }

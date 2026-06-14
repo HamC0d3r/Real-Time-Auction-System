@@ -63,7 +63,7 @@ export const useGetMyBids = (
  */
 export const usePlaceBid = () => {
   const queryClient = useQueryClient();
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
 
   return useMutation<PlaceBidResponse, Error, PlaceBidRequest>({
     mutationFn: async (request: PlaceBidRequest) => {
@@ -128,6 +128,6 @@ export const usePlaceBid = () => {
   });
 };
 
-export const useGetSavedPaymentMethods = () => {
-  return useGetPaymentSavedMethods();
+export const useGetSavedPaymentMethods = (options?: { enabled?: boolean }) => {
+  return useGetPaymentSavedMethods(options);
 };

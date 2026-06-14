@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { ArrowRight } from "lucide-react";
 import { AuctionCard, AuctionCardSkeleton } from "../auction-card";
+import { AuctionActionSlot } from "../AuctionActionSlot";
 import { useGetSimilarAuctions } from "../../api";
 import type { AuctionCategory, AuctionSubcategory, AuctionSummary } from "../../types/auction.types";
 import { ROUTES } from "@/config/routes.config";
@@ -13,27 +15,58 @@ interface SimilarItemsProps {
   subcategory: AuctionSubcategory;
 }
 
-/**
- * Section displaying similar auctions based on category/subcategory.
- * Displays up to 4 items in a grid.
- */
 export function SimilarItems({ auctionId, category, subcategory }: SimilarItemsProps) {
+  const [isVisible, setIsVisible] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "200px" }
+    );
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, []);
+
   const { data: similarAuctions, isLoading } = useGetSimilarAuctions(
-    auctionId,
+    isVisible ? auctionId : "",
     category,
     subcategory
   );
 
-  // Link to view all auctions with the same filters
+  const actionSlots = useMemo(() => {
+    if (!similarAuctions) return new Map<string, React.ReactNode>();
+    const map = new Map<string, React.ReactNode>();
+    for (const auction of similarAuctions) {
+      map.set(auction.id, (
+        <AuctionActionSlot
+          auctionId={auction.id}
+          status={auction.status}
+          isOwner={auction.isOwner}
+        />
+      ));
+    }
+    return map;
+  }, [similarAuctions]);
+
   const viewAllHref = `${ROUTES.AUCTIONS.LIST}?category=${encodeURIComponent(category)}&subcategory=${encodeURIComponent(subcategory)}`;
+
+  if (!isVisible) {
+    return <div ref={containerRef} className="mt-16 h-20" />;
+  }
 
   if (!isLoading && (!similarAuctions || similarAuctions.length === 0)) {
     return null;
   }
 
   return (
-    <section className="mt-16 space-y-8">
-      {/* ── Header ─────────────────────────────────── */}
+    <section ref={containerRef} className="mt-16 space-y-8">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <h2 className="text-2xl font-bold tracking-tight text-foreground">
@@ -53,7 +86,6 @@ export function SimilarItems({ auctionId, category, subcategory }: SimilarItemsP
         </Link>
       </div>
 
-      {/* ── Grid ───────────────────────────────────── */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {isLoading
           ? Array.from({ length: 4 }).map((_, i) => (
@@ -64,6 +96,7 @@ export function SimilarItems({ auctionId, category, subcategory }: SimilarItemsP
                 key={auction.id}
                 auction={auction}
                 className="animate-in fade-in slide-in-from-bottom-3 duration-500"
+                actionSlot={actionSlots.get(auction.id)}
               />
             ))}
       </div>

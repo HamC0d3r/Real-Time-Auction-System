@@ -497,9 +497,9 @@ public class DatabaseSeeder : IDatabaseSeeder
         for (int i = 0; i < pendingCount; i++)
         {
             var entry = catalogue[idx++ % catalogue.Count];
-            // Start anywhere from +2h to +7 days, duration 1–5 days
-            var startOffset = TimeSpan.FromHours(2 + (i % 168));   // 2h → 170h
-            var duration    = TimeSpan.FromDays(1 + (i % 5));
+            // Start between now + 1h and now + 20h, duration 4h to 15h (guaranteed before June 16, 23:59:59)
+            var startOffset = TimeSpan.FromHours(1 + (i % 20));
+            var duration    = TimeSpan.FromHours(4 + (i % 12));
             var start = now.Add(startOffset);
             var end   = start.Add(duration);
 
@@ -527,9 +527,9 @@ public class DatabaseSeeder : IDatabaseSeeder
         {
             var entry = catalogue[idx++ % catalogue.Count];
 
-            // Started 1h–72h ago, ends 1h–120h from now
-            var startedAgo = TimeSpan.FromHours(1 + (i % 72));
-            var endsIn     = TimeSpan.FromHours(1 + (i % 120));
+            // Started 1h–24h ago (between June 13 and June 14), ends 1h–48h from now (between June 14 and June 16)
+            var startedAgo = TimeSpan.FromHours(1 + (i % 24));
+            var endsIn     = TimeSpan.FromHours(1 + (i % 48));
             var start = now - startedAgo;
             var end   = now + endsIn;
 
@@ -594,10 +594,11 @@ public class DatabaseSeeder : IDatabaseSeeder
             var cycle  = orderStatusCycle[i % orderStatusCycle.Length];
             var seller = sellers[i % sellers.Count];
 
-            // Ended 3–30 days ago
-            var daysAgo = 3 + (i % 28);
-            var start   = now.AddDays(-daysAgo - 2);
-            var end     = now.AddDays(-daysAgo);
+            // Ended 1h–10h ago (between June 13 and June 14), duration 10h–15h (guaranteed started on/after June 13)
+            var endedAgo = TimeSpan.FromHours(1 + (i % 10));
+            var duration = TimeSpan.FromHours(10 + (i % 6));
+            var end      = now - endedAgo;
+            var start    = end - duration;
 
             var auction = Auction.Create(
                 sellerId: seller.Id,
@@ -645,9 +646,11 @@ public class DatabaseSeeder : IDatabaseSeeder
         {
             var entry  = catalogue[idx++ % catalogue.Count];
             var seller = sellers[i % sellers.Count];
-            var daysAgo = 1 + (i % 60);
-            var start   = now.AddDays(-daysAgo - 1);
-            var end     = now.AddDays(-daysAgo);
+            // Ended 1h–10h ago, duration 10h–15h (guaranteed started on/after June 13)
+            var endedAgo = TimeSpan.FromHours(1 + (i % 10));
+            var duration = TimeSpan.FromHours(10 + (i % 6));
+            var end      = now - endedAgo;
+            var start    = end - duration;
 
             var auction = Auction.Create(
                 sellerId: seller.Id,
@@ -674,8 +677,9 @@ public class DatabaseSeeder : IDatabaseSeeder
         {
             var entry  = catalogue[idx++ % catalogue.Count];
             var seller = sellers[i % sellers.Count];
-            var start  = now.AddHours(24 + i * 12); // still pending (in future)
-            var end    = start.AddDays(3);
+            // still pending (in future), fits strictly within June 14 to June 16
+            var start  = now.AddHours(1 + (i % 20));
+            var end    = start.AddHours(4 + (i % 12));
 
             var auction = Auction.Create(
                 sellerId: seller.Id,
@@ -704,9 +708,9 @@ public class DatabaseSeeder : IDatabaseSeeder
         {
             var entry  = catalogue[idx++ % catalogue.Count];
             var seller = sellers[i % sellers.Count];
-            // Start in past so it could go Active before admin cancels
-            var start  = now.AddHours(-(2 + i));
-            var end    = now.AddDays(2 + i);
+            // Start in past (June 13/14), ends in future (June 14/15/16)
+            var start  = now.AddHours(-(1 + (i % 12)));
+            var end    = now.AddHours(12 + (i % 36));
 
             var auction = Auction.Create(
                 sellerId: seller.Id,

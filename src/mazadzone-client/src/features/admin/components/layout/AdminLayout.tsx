@@ -10,7 +10,6 @@ import {
   ShieldAlert,
   FolderOpen,
   LogOut,
-  ChevronDown,
   Menu,
   X,
   KeyRound,
@@ -59,7 +58,8 @@ function SidebarNavItem({ href, icon: Icon, label, isActive, onClick }: SidebarN
 export function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, logout } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   const navigationItems = [

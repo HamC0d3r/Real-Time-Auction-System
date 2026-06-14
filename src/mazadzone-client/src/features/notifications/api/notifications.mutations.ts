@@ -19,15 +19,7 @@ export const useMarkAllAsRead = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () => {
-      // Extract active unread notification IDs from Zustand store to perform parallel API reads
-      const unreadIds = useNotificationStore
-        .getState()
-        .notifications.filter((n) => !n.isRead)
-        .map((n) => n.id);
-
-      return notificationsApi.markAllAsRead(unreadIds);
-    },
+    mutationFn: (ids: string[]) => notificationsApi.markAllAsRead(ids),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: NOTIFICATION_KEYS.all });
     },
