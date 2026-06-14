@@ -1,0 +1,62 @@
+src/MazadZone.Infrastructure/DependencyInjection.cs
+  s_ef52595187eaef::t_57d03b4f0e1c80 37
+  h_3c745a955bab22 253,261
+src/MazadZone.Api/Endpoints/Bidders/Register.cs
+  s_ef52595187eaef::t_358426dc99e8f1 34,38-42,44-50,52-54,67
+src/MazadZone.Application/Features/Bidders/Commands/Register/RegisterBidderCommandHandler.cs
+  s_ef52595187eaef::t_53ae774a3dd302 58-87,96,98,102,105,109-112,119-122
+  s_ef52595187eaef::t_49e16e5c96322b 33
+  s_ef52595187eaef::t_d48226f907ba0c 148-151
+  s_ef52595187eaef::t_5ecfb9bc1ddc08 42
+  s_ef52595187eaef::t_588190aa37c2da 18
+  s_3468909e0f1ff0::t_ac59de029ae685 188-198
+  s_3468909e0f1ff0::t_646c81a49f5cc9 89-94,97,99-101,103-104,106-108,113-118
+src/MazadZone.Infrastructure/Services/GoogleVisionIdentityExtractionService.cs
+  s_3468909e0f1ff0::t_808ed0d50f5b2d 20
+src/MazadZone.Application/Features/Bidders/Commands/Register/RegisterBidderValidator.cs
+  s_ef52595187eaef::t_24e0fdb4cae780 23-29
+src/MazadZone.Api/appsettings.json
+  h_3c745a955bab22 92-96
+src/MazadZone.Application/Features/Users/Commands/VerifyIdentity/VerifyIdentityCommandHandler.cs
+  s_3468909e0f1ff0::t_c370263134dbc3 95,97-104,107,109-111,113-114,116-118,123-129
+  s_3468909e0f1ff0::t_a34a0e8f95db96 161-171
+src/MazadZone.Api/Program.cs
+  s_5b792e17aec527::t_71fe9bb5ea6788 296
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "73b64f559c227028eecaa0ad1251af729b9300e8",
+  "prompts": {},
+  "humans": {
+    "h_3c745a955bab22": {
+      "author": "khaled0x1 <120220612151@st.ahu.edu.jo>"
+    }
+  },
+  "sessions": {
+    "s_3468909e0f1ff0": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_143bc9fd2ffetfFJ0KOTw6SIo2",
+        "model": "deepseek-v4-flash-free"
+      },
+      "human_author": "khaled0x1 <120220612151@st.ahu.edu.jo>"
+    },
+    "s_5b792e17aec527": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_143a63673ffefjVLXq3ZvHP8Zg",
+        "model": "deepseek-v4-flash-free"
+      },
+      "human_author": "khaled0x1 <120220612151@st.ahu.edu.jo>"
+    },
+    "s_ef52595187eaef": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_145624b30ffe6YTmVqUIFK97Jw",
+        "model": "deepseek-v4-flash-free"
+      },
+      "human_author": "khaled0x1 <120220612151@st.ahu.edu.jo>"
+    }
+  }
+}
