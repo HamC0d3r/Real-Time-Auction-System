@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useRef } from "react";
-import { Gavel, Package, User, ChevronDown, LayoutDashboard, Plus } from "lucide-react";
+import { useState, useRef, useMemo } from "react";
+import { Gavel, Package, ChevronDown, LayoutDashboard, Plus } from "lucide-react";
 import { ROUTES } from "@/config/routes.config";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -15,11 +15,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { CATEGORIES } from "./header.constants";
 import type { AuthUser } from "@/stores/auth.store";
-import { NotificationPopover, useGetUnreadCount } from "@/features/notifications";
-import { useNotificationStore } from "@/features/notifications/store/notification.store";
-import { useAuthStore } from "@/stores/auth.store";
+import { NotificationPopover } from "@/features/notifications";
+import type { UserProfile } from "@/features/profile";
 import { GlobalHeaderSearch } from "./GlobalHeaderSearch";
-import { useGetProfile } from "@/features/profile";
 
 export interface DesktopHeaderProps {
   isAuthenticated: boolean;
@@ -28,6 +26,8 @@ export interface DesktopHeaderProps {
   logout: () => void;
   mounted: boolean;
   pathname: string;
+  unreadCount: number;
+  profile?: UserProfile;
 }
 
 export const DesktopHeader = ({
@@ -36,33 +36,17 @@ export const DesktopHeader = ({
   logout,
   mounted,
   pathname,
+  unreadCount,
+  profile,
 }: DesktopHeaderProps) => {
-  const userId = useAuthStore((state) => state.user?.id);
-
-  // Fetch the real, live profile details (real name and email) from the DB
-  const { data: profile } = useGetProfile();
-
-  // Fetch server count once on mount — used only to hydrate the Zustand store
-  const { data: serverUnreadCount } = useGetUnreadCount(userId || "", {
-    enabled: isAuthenticated,
-  });
-  const setUnreadCount = useNotificationStore((state) => state.setUnreadCount);
-  const unreadCount = useNotificationStore((state) => state.unreadCount);
-  const consumeOptimistic = useNotificationStore((state) => state._consumeOptimistic);
-
-  // Hydrate the Zustand badge from server data on initial load and after background refetches.
-  // If an optimistic update (from SignalR) is pending, skip the overwrite — the Zustand
-  // value is more recent than what the server returned.
-  useEffect(() => {
-    if (serverUnreadCount !== undefined) {
-      const wasOptimistic = consumeOptimistic();
-      if (!wasOptimistic) {
-        setUnreadCount(serverUnreadCount);
-      }
-    }
-  }, [serverUnreadCount, setUnreadCount, consumeOptimistic]);
-
-  const displayName = profile?.fullName || user?.fullName || "User";
+  const displayName = useMemo(() => {
+    const nameToUse = profile?.fullName || user?.fullName || "User";
+    if (!nameToUse) return "User";
+    const parts = nameToUse.trim().split(/\s+/);
+    if (parts.length === 0 || (parts.length === 1 && !parts[0])) return "User";
+    if (parts.length === 1) return parts[0];
+    return `${parts[0]} ${parts[parts.length - 1]}`;
+  }, [profile?.fullName, user?.fullName]);
   const displayEmail = profile?.email || user?.email || "";
 
   return (
@@ -131,7 +115,7 @@ export const DesktopHeader = ({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56 bg-white text-black border-none rounded-xl shadow-lg p-1">
                   <DropdownMenuItem asChild className="cursor-pointer focus:bg-primary/10 rounded-lg focus:outline-none transition-colors p-2.5">
-                    <Link href={ROUTES.PROFILE.PUBLIC(userId || "")} className="flex flex-col items-start w-full group">
+                    <Link href={ROUTES.PROFILE.PUBLIC(user?.id || "")} className="flex flex-col items-start w-full group">
                       <span className="text-sm font-bold leading-none text-gray-900 group-hover:text-primary group-focus:text-primary transition-colors">{displayName}</span>
                       <span className="text-xs mt-1.5 leading-none text-gray-500 truncate">{displayEmail}</span>
                     </Link>

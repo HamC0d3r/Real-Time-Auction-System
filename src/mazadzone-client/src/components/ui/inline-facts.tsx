@@ -20,10 +20,10 @@ export function InlineFacts({ facts, className }: InlineFactsProps) {
       )}
     >
       {facts.map((fact) => (
-        <div key={fact.label} className="flex flex-col items-center justify-center px-1.5">
+        <div key={fact.label} className="flex flex-col items-center justify-center px-1 xs:px-1.5">
           <span
             className={cn(
-              "text-[9px] md:text-[10px] font-extrabold uppercase tracking-wider select-none",
+              "text-[8px] xs:text-[9px] md:text-[10px] font-extrabold uppercase tracking-wider select-none",
               fact.muted
                 ? "text-muted-foreground/45"
                 : "text-muted-foreground",
@@ -33,7 +33,7 @@ export function InlineFacts({ facts, className }: InlineFactsProps) {
           </span>
           <span
             className={cn(
-              "text-base md:text-lg font-black mt-1.5 tracking-tight",
+              "text-xs xs:text-sm sm:text-base md:text-lg font-black mt-1.5 tracking-tight",
               fact.muted
                 ? "text-foreground/45"
                 : fact.label.toLowerCase().includes("bid") || fact.label.toLowerCase().includes("price")

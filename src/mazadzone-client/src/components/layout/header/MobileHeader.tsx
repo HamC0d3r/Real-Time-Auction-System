@@ -1,16 +1,16 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
-import { useEffect } from "react";
 import { Search, Gavel, Package, User, ChevronDown, LayoutDashboard, Menu, X } from "lucide-react";
 import { ROUTES } from "@/config/routes.config";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CATEGORIES } from "./header.constants";
-import { NotificationPopover, useGetUnreadCount } from "@/features/notifications";
-import { useNotificationStore } from "@/features/notifications/store/notification.store";
-import { useAuthStore } from "@/stores/auth.store";
+import { NotificationPopover } from "@/features/notifications";
+import type { AuthUser } from "@/stores/auth.store";
+import type { UserProfile } from "@/features/profile";
 
 export interface MobileHeaderProps {
   isSearchOpen: boolean;
@@ -24,6 +24,9 @@ export interface MobileHeaderProps {
   handleSellClick: () => void;
   logout: () => void;
   pathname: string;
+  unreadCount: number;
+  user: AuthUser | null;
+  profile?: UserProfile;
 }
 
 export const MobileHeader = ({
@@ -38,28 +41,20 @@ export const MobileHeader = ({
   handleSellClick,
   logout,
   pathname,
+  unreadCount,
+  user,
+  profile,
 }: MobileHeaderProps) => {
-  const userId = useAuthStore((state) => state.user?.id);
 
-  // Fetch server count once on mount — used only to hydrate the Zustand store
-  const { data: serverUnreadCount } = useGetUnreadCount(userId || "", {
-    enabled: isAuthenticated,
-  });
-  const setUnreadCount = useNotificationStore((state) => state.setUnreadCount);
-  const unreadCount = useNotificationStore((state) => state.unreadCount);
-  const consumeOptimistic = useNotificationStore((state) => state._consumeOptimistic);
-
-  // Hydrate the Zustand badge from server data on initial load and after background refetches.
-  // If an optimistic update (from SignalR) is pending, skip the overwrite — the Zustand
-  // value is more recent than what the server returned.
-  useEffect(() => {
-    if (serverUnreadCount !== undefined) {
-      const wasOptimistic = consumeOptimistic();
-      if (!wasOptimistic) {
-        setUnreadCount(serverUnreadCount);
-      }
-    }
-  }, [serverUnreadCount, setUnreadCount, consumeOptimistic]);
+  const displayName = useMemo(() => {
+    const nameToUse = profile?.fullName || user?.fullName || "User";
+    if (!nameToUse) return "User";
+    const parts = nameToUse.trim().split(/\s+/);
+    if (parts.length === 0 || (parts.length === 1 && !parts[0])) return "User";
+    if (parts.length === 1) return parts[0];
+    return `${parts[0]} ${parts[parts.length - 1]}`;
+  }, [profile?.fullName, user?.fullName]);
+  const displayEmail = profile?.email || user?.email || "";
 
   return (
     <>
@@ -123,6 +118,30 @@ export const MobileHeader = ({
           aria-hidden={!mounted}
         >
           <div className="px-4 py-6 space-y-8">
+            {/* User Profile Banner */}
+            {isAuthenticated && (
+              <Link
+                href={ROUTES.PROFILE.PUBLIC(user?.id || "")}
+                className="flex items-center gap-3 p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors w-full text-left"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <div className="size-10 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm select-none border border-white/10 shrink-0">
+                  {displayName
+                    ? displayName
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .toUpperCase()
+                        .slice(0, 2)
+                    : "U"}
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <span className="text-sm font-bold text-white truncate leading-none">{displayName}</span>
+                  <span className="text-[11px] text-gray-400 truncate mt-1.5 leading-none">{displayEmail}</span>
+                </div>
+              </Link>
+            )}
+
             {/* User Actions Section */}
             {isAuthenticated ? (
               <div className="grid grid-cols-2 gap-4">

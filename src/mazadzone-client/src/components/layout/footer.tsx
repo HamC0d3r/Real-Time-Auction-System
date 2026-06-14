@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { APP_CONFIG } from "@/config/app.config";
 import { ROUTES } from "@/config/routes.config";
 
 /**
@@ -13,7 +12,7 @@ export function Footer() {
 
   return (
     <footer className="bg-dark text-white border-t border-white/10">
-      <div className="mx-auto flex max-w-[1408px] flex-col items-center gap-4  py-10 sm:flex-row sm:justify-between">
+      <div className="mx-auto flex max-w-[1408px] flex-col items-center gap-4 py-10 px-4 md:px-0 sm:flex-row sm:justify-between">
         <div className="flex flex-col items-center sm:items-start gap-2">
           <Link href={ROUTES.HOME} className="text-xl font-bold tracking-tight">
             <span className="text-white">Mazad</span>

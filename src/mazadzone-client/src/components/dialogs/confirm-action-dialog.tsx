@@ -10,6 +10,7 @@
  * destructive styling.
  */
 
+import { memo } from "react";
 import { Loader2 } from "lucide-react";
 import {
   AlertDialog,
@@ -36,7 +37,7 @@ export interface ConfirmActionDialogProps {
   className?: string;
 }
 
-export function ConfirmActionDialog({
+export const ConfirmActionDialog = memo(function ConfirmActionDialog({
   open,
   onOpenChange,
   title,
@@ -100,4 +101,4 @@ export function ConfirmActionDialog({
       </AlertDialogContent>
     </AlertDialog>
   );
-}
+});

@@ -3,11 +3,38 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Search, Gavel, FolderOpen, Loader2, User } from "lucide-react";
 import { useRouter } from "next/navigation";
+import type { ApiResponse } from "@/types/api.types";
 import { ROUTES } from "@/config/routes.config";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api/client";
 import { formatCurrency } from "@/utils/currency.utils";
 import { cn } from "@/lib/utils";
+
+interface SearchUserResult {
+  id: string;
+  fullName: string;
+  email: string;
+  role: string;
+}
+
+interface SearchAuctionResult {
+  id: string;
+  itemTitle: string;
+  status: string;
+  currentBidAmount: number;
+}
+
+interface SearchCategoryResult {
+  id: string;
+  name: string;
+  description: string;
+}
+
+interface SearchResultsState {
+  users: SearchUserResult[];
+  auctions: SearchAuctionResult[];
+  categories: SearchCategoryResult[];
+}
 
 export interface GlobalHeaderSearchProps {
   containerClassName?: string;
@@ -30,11 +57,7 @@ export function GlobalHeaderSearch({
   const [query, setQuery] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const [isLoadingSearch, setIsLoadingSearch] = useState(false);
-  const [searchResults, setSearchResults] = useState<{
-    users: any[];
-    auctions: any[];
-    categories: any[];
-  }>({ users: [], auctions: [], categories: [] });
+  const [searchResults, setSearchResults] = useState<SearchResultsState>({ users: [], auctions: [], categories: [] });
 
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
@@ -54,32 +77,28 @@ export function GlobalHeaderSearch({
 
   // Debounced search query fetching
   useEffect(() => {
-    if (query.trim().length < 2) {
-      setSearchResults({ users: [], auctions: [], categories: [] });
-      return;
-    }
+    if (query.trim().length < 2) return;
 
     const timer = setTimeout(async () => {
       setIsLoadingSearch(true);
       try {
-        // Build parallel fetch array: skip users if not in admin view
-        const fetches: Promise<any>[] = [
-          api.get<any>("/auctions", { params: { SearchTerm: query, Page: 1, PageSize: 5 } }),
-          api.get<any[]>("/categories/search", { params: { SearchTerm: query } }),
+        const fetches: Promise<unknown>[] = [
+          api.get<{ items: SearchAuctionResult[] }>("/auctions", { params: { SearchTerm: query, Page: 1, PageSize: 5 } }),
+          api.get<SearchCategoryResult[]>("/categories/search", { params: { SearchTerm: query } }),
         ];
 
         if (isAdmin) {
           fetches.push(
-            api.get<any>("/users/users", { params: { SearchTerm: query, PageSize: 5 } })
+            api.get<{ items: SearchUserResult[] }>("/users/users", { params: { SearchTerm: query, PageSize: 5 } })
           );
         }
 
         const responses = await Promise.allSettled(fetches);
 
-        const auctions = responses[0].status === "fulfilled" ? responses[0].value.data?.items || [] : [];
-        const categories = responses[1].status === "fulfilled" ? responses[1].value.data || [] : [];
+        const auctions = responses[0].status === "fulfilled" ? (responses[0].value as ApiResponse<{ items: SearchAuctionResult[] }>).data?.items || [] : [];
+        const categories = responses[1].status === "fulfilled" ? (responses[1].value as ApiResponse<SearchCategoryResult[]>).data || [] : [];
         const users = isAdmin && responses[2] && responses[2].status === "fulfilled" 
-          ? responses[2].value.data?.items || [] 
+          ? (responses[2].value as ApiResponse<{ items: SearchUserResult[] }>).data?.items || [] 
           : [];
 
         setSearchResults({ users, auctions, categories });
@@ -112,27 +131,27 @@ export function GlobalHeaderSearch({
     }
   };
 
-  const handleResultClick = (type: "user" | "auction" | "category", item: any) => {
+  const handleResultClick = (type: "user" | "auction" | "category", item: SearchUserResult | SearchAuctionResult | SearchCategoryResult) => {
     setIsFocused(false);
     setQuery("");
 
     if (isAdmin) {
-      // Admin dashboard links
       if (type === "user") {
-        router.push(`/admin/users?search=${encodeURIComponent(item.fullName)}`);
+        const user = item as SearchUserResult;
+        router.push(`/admin/users?search=${encodeURIComponent(user.fullName)}`);
       } else if (type === "auction") {
-        router.push(`/admin/auctions?search=${encodeURIComponent(item.itemTitle)}`);
-      } else if (type === "category") {
+        const auction = item as SearchAuctionResult;
+        router.push(`/admin/auctions?search=${encodeURIComponent(auction.itemTitle)}`);
+      } else {
         router.push("/admin/categories");
       }
     } else {
-      // Public / client-facing links
       if (type === "user") {
-        router.push(ROUTES.PROFILE.PUBLIC(item.id));
+        router.push(ROUTES.PROFILE.PUBLIC((item as SearchUserResult).id));
       } else if (type === "auction") {
-        router.push(ROUTES.AUCTIONS.DETAIL(item.id));
-      } else if (type === "category") {
-        router.push(`${ROUTES.AUCTIONS.LIST}?category=${encodeURIComponent(item.name)}`);
+        router.push(ROUTES.AUCTIONS.DETAIL((item as SearchAuctionResult).id));
+      } else {
+        router.push(`${ROUTES.AUCTIONS.LIST}?category=${encodeURIComponent((item as SearchCategoryResult).name)}`);
       }
     }
   };
