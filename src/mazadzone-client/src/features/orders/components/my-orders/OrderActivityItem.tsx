@@ -49,7 +49,7 @@ export function OrderActivityItem({ activity, onPaymentComplete }: OrderActivity
           src={activity.auction.imageUrl}
           alt={activity.auction.title}
           href={detailHref}
-          className="w-28 h-28 md:w-32 md:h-32"
+          className="w-20 h-20 xs:w-28 xs:h-28 md:w-32 md:h-32"
         />
         <ActivityItemMeta
           title={activity.auction.title}
@@ -61,7 +61,7 @@ export function OrderActivityItem({ activity, onPaymentComplete }: OrderActivity
                 <span>
                   Final Bid: <span className="font-semibold text-primary">{formatCurrency(activity.finalBid)}</span>
                 </span>
-                <span className="text-gray-300 font-light">|</span>
+                <span className="hidden sm:inline text-gray-300 font-light">|</span>
                 <span>
                   Date: <span className="font-medium text-gray-700">{format(new Date(activity.date), "MMM dd, yyyy")}</span>
                 </span>

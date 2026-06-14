@@ -55,33 +55,43 @@ function createEnv() {
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
   }) as z.infer<typeof envSchema>;
 
-  // Dynamically replace localhost/127.0.0.1 with the actual hostname of the client browser
-  // to support accessing the site from other devices (e.g. mobile) on the local network.
+  // Cache for computed URLs to avoid repeated window.location reads
+  let cachedApiBaseUrl: string | null = null;
+  let cachedSignalrHubUrl: string | null = null;
+  let cachedAppUrl: string | null = null;
+  let dynamicHostname: string | null = null;
+  let dynamicOrigin: string | null = null;
+
+  if (typeof window !== "undefined") {
+    const hostname = window.location.hostname;
+    if (hostname && hostname !== "localhost" && hostname !== "127.0.0.1") {
+      dynamicHostname = hostname;
+    }
+    const origin = window.location.origin;
+    if (origin && !origin.includes("localhost") && !origin.includes("127.0.0.1")) {
+      dynamicOrigin = origin;
+    }
+  }
+
   const getDynamicUrl = (url: string) => {
-    if (typeof window !== "undefined") {
-      const hostname = window.location.hostname;
-      if (hostname && hostname !== "localhost" && hostname !== "127.0.0.1") {
-        return url.replace(/localhost|127\.0\.0\.1/g, hostname);
-      }
+    if (dynamicHostname) {
+      return url.replace(/localhost|127\.0\.0\.1/g, dynamicHostname);
     }
     return url;
   };
 
   return {
     get NEXT_PUBLIC_API_BASE_URL() {
-      return getDynamicUrl(rawEnv.NEXT_PUBLIC_API_BASE_URL);
+      if (!cachedApiBaseUrl) cachedApiBaseUrl = getDynamicUrl(rawEnv.NEXT_PUBLIC_API_BASE_URL);
+      return cachedApiBaseUrl;
     },
     get NEXT_PUBLIC_SIGNALR_HUB_URL() {
-      return getDynamicUrl(rawEnv.NEXT_PUBLIC_SIGNALR_HUB_URL);
+      if (!cachedSignalrHubUrl) cachedSignalrHubUrl = getDynamicUrl(rawEnv.NEXT_PUBLIC_SIGNALR_HUB_URL);
+      return cachedSignalrHubUrl;
     },
     get NEXT_PUBLIC_APP_URL() {
-      if (typeof window !== "undefined") {
-        const origin = window.location.origin;
-        if (origin && !origin.includes("localhost") && !origin.includes("127.0.0.1")) {
-          return origin;
-        }
-      }
-      return rawEnv.NEXT_PUBLIC_APP_URL;
+      if (!cachedAppUrl) cachedAppUrl = dynamicOrigin || rawEnv.NEXT_PUBLIC_APP_URL || rawEnv.NEXT_PUBLIC_API_BASE_URL;
+      return cachedAppUrl;
     },
   };
 }

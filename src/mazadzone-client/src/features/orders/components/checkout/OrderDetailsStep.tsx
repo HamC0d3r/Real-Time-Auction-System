@@ -128,7 +128,7 @@ export function OrderDetailsStep({
               <div className="space-y-0.5 text-xs md:text-sm text-left">
                 <div className="flex items-center gap-2">
                   <p className="font-bold text-foreground">
-                    {selectedPayment.cardType} •••• {selectedPayment.lastFourDigits}
+                    {selectedPayment.cardType === "UNKNOWN" ? "Card" : selectedPayment.cardType} •••• {selectedPayment.lastFourDigits}
                   </p>
                   <span className="text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary px-1.5 py-0.5 rounded border border-primary/20">
                     Active
