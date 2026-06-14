@@ -1,14 +1,17 @@
 "use client";
 
 import { useEffect } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import { createNotificationsHubClient } from "@/lib/signalr";
 import { useNotificationStore } from "../store/notification.store";
 import { useAppToast } from "@/lib/toast/app-toast";
 import { useAuthStore } from "@/stores/auth.store";
+import { getAccessToken } from "@/lib/auth/token";
 import { APP_CONFIG } from "@/config/app.config";
 import type { Notification, NotificationType } from "../types/notification.types";
 import { triggerWinDialogFromNotification } from "../store/win-dialog.store";
+import { triggerShippingDialogFromNotification } from "../store/shipping-dialog.store";
+import { triggerDeliveredDialogFromNotification } from "../store/delivered-dialog.store";
+import { getOrderDetails } from "@/features/orders/api/order.api";
 
 /**
  * Maps a domain NotificationType to a semantic FeedbackType for toast coloring.
@@ -47,15 +50,33 @@ function getFeedbackType(type: NotificationType): "success" | "error" | "warning
  * local Zustand notification store (which renders inside the header bell),
  * and triggers a toast message.
  *
- * Optimistic updates are guarded via `_markOptimistic()` so that stale
- * server refetches (triggered by the delayed invalidation) cannot overwrite
- * the freshly-set Zustand values.
- *
  * @param userId - The authenticated user's ID. Pass empty string / undefined
  *   when not authenticated to skip the connection.
  */
+const ID_REGEX = /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/;
+
+const hasAny = (title: string, message: string, ...keywords: string[]) =>
+  keywords.some((kw) => title.includes(kw) || message.includes(kw));
+
+const TYPE_MATCHERS: { match: (title: string, message: string) => boolean; type: NotificationType }[] = [
+  { match: (t, m) => hasAny(t, m, 'shipped', 'on the way', 'sent', 'transit'), type: 'order_shipped' },
+  { match: (t, m) => hasAny(t, m, 'received', 'delivered'), type: 'order_received' },
+  { match: (t, m) => hasAny(t, m, 'bid placed', 'new bid'), type: 'outbid' },
+  { match: (t, m) => hasAny(t, m, 'outbid'), type: 'outbid' },
+  { match: (t, m) => hasAny(t, m, 'won', 'win'), type: 'auction_won' },
+  { match: (t, m) => hasAny(t, m, 'ending') || t.includes('end'), type: 'auction_ending' },
+  { match: (t, m) => hasAny(t, m, 'payment failed', 'failed payment'), type: 'payment_failed' },
+  { match: (t, m) => hasAny(t, m, 'payment', 'authorized'), type: 'payment_authorized' },
+  { match: (t, m) => t.includes('dispute') && hasAny(t, m, 'opened'), type: 'dispute_opened' },
+  { match: (t, m) => t.includes('dispute') && hasAny(t, m, 'resolved'), type: 'dispute_resolved' },
+  { match: (t, m) => hasAny(t, m, 'feedback'), type: 'feedback_received' },
+  { match: (t, m) => hasAny(t, m, 'verified'), type: 'account_verified' },
+  { match: (t, m) => hasAny(t, m, 'approved', 'become seller'), type: 'seller_approved' },
+  { match: (t, m) => hasAny(t, m, 'message'), type: 'new_message' },
+  { match: (t, m) => hasAny(t, m, 'cancel'), type: 'auction_cancelled' },
+];
+
 export function useRealtimeNotifications(userId: string | undefined): void {
-  const queryClient = useQueryClient();
   const addNotification = useNotificationStore((state) => state.addNotification);
   const incrementUnreadCount = useNotificationStore((state) => state.incrementUnreadCount);
   const markOptimistic = useNotificationStore((state) => state._markOptimistic);
@@ -68,7 +89,6 @@ export function useRealtimeNotifications(userId: string | undefined): void {
     let hub: ReturnType<typeof createNotificationsHubClient> | null = null;
     let unsubscribeFn: (() => void) | undefined;
     let retryTimeoutId: NodeJS.Timeout | undefined;
-    let delayedInvalidationId: NodeJS.Timeout | undefined;
     let isMounted = true;
     let currentRetry = 0;
     const maxRetries = 3;
@@ -89,14 +109,11 @@ export function useRealtimeNotifications(userId: string | undefined): void {
       cleanupHub();
 
       if (!APP_CONFIG.enableRealtime) {
-        console.log('[SignalR Notifications] Realtime disabled by feature flag.');
         return;
       }
 
       // Create a fresh hub for this attempt
-      hub = createNotificationsHubClient(() => useAuthStore.getState().accessToken ?? '');
-      const token = useAuthStore.getState().accessToken;
-      console.log(`[SignalR Notifications] Attempting connection for userId=${userId}, hasToken=${!!token}`);
+      hub = createNotificationsHubClient(() => useAuthStore.getState().accessToken || getAccessToken() || '');
 
       try {
         await hub.start();
@@ -105,60 +122,26 @@ export function useRealtimeNotifications(userId: string | undefined): void {
           return;
         }
 
-        console.log('[SignalR Notifications] Connected successfully. Listening for ReceiveNotification events...');
-
         // Subscribe to live events
-        unsubscribeFn = hub.onNotificationReceived((event: any) => {
-          console.log('[SignalR Notifications] Live notification received:', event);
-
-          const titleText = event.title || 'Notification';
-          const messageText = event.message || event.Message || '';
+        unsubscribeFn = hub.onNotificationReceived(async (event) => {
+          const evt = event as unknown as Record<string, unknown>;
+          const titleText = (evt.title as string) || 'Notification';
+          const messageText = (evt.message as string) || (evt.Message as string) || '';
 
           // Determine notification type
           let type: NotificationType = 'general';
           const titleLower = titleText.toLowerCase();
           const messageLower = messageText.toLowerCase();
-          if (
-            titleLower.includes('bid placed') ||
-            titleLower.includes('new bid') ||
-            messageLower.includes('bid placed') ||
-            messageLower.includes('new bid')
-          ) {
-            type = 'outbid';
-          } else if (titleLower.includes('outbid') || messageLower.includes('outbid')) {
-            type = 'outbid';
-          } else if (titleLower.includes('won') || titleLower.includes('win') || messageLower.includes('won') || messageLower.includes('win')) {
-            type = 'auction_won';
-          } else if (titleLower.includes('ending') || titleLower.includes('end') || messageLower.includes('ending')) {
-            type = 'auction_ending';
-          } else if (titleLower.includes('shipped') || messageLower.includes('shipped')) {
-            type = 'order_shipped';
-          } else if (titleLower.includes('received') || titleLower.includes('delivered') || messageLower.includes('received') || messageLower.includes('delivered')) {
-            type = 'order_received';
-          } else if (titleLower.includes('payment failed') || titleLower.includes('failed payment') || messageLower.includes('payment failed')) {
-            type = 'payment_failed';
-          } else if (titleLower.includes('payment') || titleLower.includes('authorized') || messageLower.includes('payment')) {
-            type = 'payment_authorized';
-          } else if (titleLower.includes('dispute') && (titleLower.includes('opened') || messageLower.includes('opened'))) {
-            type = 'dispute_opened';
-          } else if (titleLower.includes('dispute') && (titleLower.includes('resolved') || messageLower.includes('resolved'))) {
-            type = 'dispute_resolved';
-          } else if (titleLower.includes('feedback') || messageLower.includes('feedback')) {
-            type = 'feedback_received';
-          } else if (titleLower.includes('verified') || messageLower.includes('verified')) {
-            type = 'account_verified';
-          } else if (titleLower.includes('approved') || titleLower.includes('become seller') || messageLower.includes('approved')) {
-            type = 'seller_approved';
-          } else if (titleLower.includes('message') || messageLower.includes('message')) {
-            type = 'new_message';
-          } else if (titleLower.includes('cancel') || messageLower.includes('cancel')) {
-            type = 'auction_cancelled';
+          for (const matcher of TYPE_MATCHERS) {
+            if (matcher.match(titleLower, messageLower)) {
+              type = matcher.type;
+              break;
+            }
           }
 
           // Extract possible UUID for link
           let link = '';
-          const idRegex = /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/;
-          const match = messageText.match(idRegex) || titleText.match(idRegex);
+          const match = messageText.match(ID_REGEX) || titleText.match(ID_REGEX);
           if (match) {
             const uuid = match[0];
             if (type.startsWith('auction_') || type === 'outbid') {
@@ -167,6 +150,26 @@ export function useRealtimeNotifications(userId: string | undefined): void {
               link = `/orders/${uuid}`;
             }
           }
+
+          // ── Ownership guard ────────────────────────────────────────────
+          // Only the buyer/winner (bidderId) should receive order_shipped
+          // and order_received notifications. Skip if the current user is
+          // the seller or an unrelated user.
+          if (type === 'order_shipped' || type === 'order_received') {
+            const orderId = match?.[0];
+            if (orderId) {
+              try {
+                const currentUserId = useAuthStore.getState().user?.id;
+                const order = await getOrderDetails(orderId);
+                if (order.bidderId !== currentUserId) {
+                  return;
+                }
+              } catch {
+                return;
+              }
+            }
+          }
+          // ───────────────────────────────────────────────────────────────
 
           const notification: Notification = {
             id: event.id || Math.random().toString(),
@@ -187,31 +190,23 @@ export function useRealtimeNotifications(userId: string | undefined): void {
           // Show toast
           const feedbackType = getFeedbackType(type);
           appToast.show(feedbackType, titleText, messageText);
-          // Show win dialog if applicable
+          // Show win or shipping dialog if applicable
           if (type === 'auction_won') {
             triggerWinDialogFromNotification(notification);
+          } else if (type === 'order_shipped') {
+            triggerShippingDialogFromNotification(notification);
+          } else if (type === 'order_received') {
+            triggerDeliveredDialogFromNotification(notification);
           }
-          // Delayed refetch to sync with DB
-          if (delayedInvalidationId) {
-            clearTimeout(delayedInvalidationId);
-          }
-          delayedInvalidationId = setTimeout(() => {
-            if (isMounted) {
-              void queryClient.invalidateQueries({ queryKey: ['notifications'] });
-            }
-          }, 3000);
         });
       } catch (err) {
         if (!isMounted) return;
         if (currentRetry < maxRetries) {
-          const nextDelay = Math.pow(2, currentRetry) * 2000 + 5000; // exponential backoff
-          console.warn(`[SignalR Notifications] Connection failed. Retrying in ${nextDelay / 1000}s... (${currentRetry + 1}/${maxRetries})`);
+          const nextDelay = Math.pow(2, currentRetry) * 2000 + 5000;
           retryTimeoutId = setTimeout(() => {
             currentRetry++;
             startHub();
           }, nextDelay);
-        } else {
-          console.warn('[SignalR Notifications] Max initial connection attempts reached. Real-time notifications disabled.');
         }
       }
     };
@@ -221,9 +216,8 @@ export function useRealtimeNotifications(userId: string | undefined): void {
     return () => {
       isMounted = false;
       if (retryTimeoutId) clearTimeout(retryTimeoutId);
-      if (delayedInvalidationId) clearTimeout(delayedInvalidationId);
       cleanupHub();
     };
-  }, [userId, addNotification, incrementUnreadCount, markOptimistic, appToast, queryClient]);
+  }, [userId, addNotification, incrementUnreadCount, markOptimistic, appToast]);
 }
 

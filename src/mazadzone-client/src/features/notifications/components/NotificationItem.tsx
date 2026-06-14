@@ -18,6 +18,7 @@ import {
   UserCheck,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { parseUtcDate } from "@/utils/date.utils";
 import type { NotificationType } from "../types/notification.types";
 
 interface NotificationItemProps {
@@ -121,7 +122,7 @@ export function NotificationItem({ notification, onClick }: NotificationItemProp
         </p>
 
         <span className="text-[11px] text-muted-foreground/70 font-medium">
-          {formatDistanceToNow(new Date(notification.createdAt), {
+          {formatDistanceToNow(parseUtcDate(notification.createdAt), {
             addSuffix: true,
           })}
         </span>

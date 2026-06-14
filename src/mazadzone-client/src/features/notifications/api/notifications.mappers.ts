@@ -5,6 +5,7 @@
 
 import type { Notification, NotificationType } from "../types/notification.types";
 import type { NotificationDto } from "./notifications.contracts";
+import { parseUtcDate } from "@/utils/date.utils";
 
 /**
  * Maps a backend NotificationDto to a presentation Notification ViewModel.
@@ -17,6 +18,24 @@ export function mapNotificationDtoToViewModel(dto: NotificationDto): Notificatio
   const messageLower = dto.message.toLowerCase();
 
   if (
+    titleLower.includes("shipped") ||
+    messageLower.includes("shipped") ||
+    titleLower.includes("on the way") ||
+    messageLower.includes("on the way") ||
+    titleLower.includes("sent") ||
+    messageLower.includes("sent") ||
+    titleLower.includes("transit") ||
+    messageLower.includes("transit")
+  ) {
+    type = "order_shipped";
+  } else if (
+    titleLower.includes("received") ||
+    titleLower.includes("delivered") ||
+    messageLower.includes("received") ||
+    messageLower.includes("delivered")
+  ) {
+    type = "order_received";
+  } else if (
     titleLower.includes("bid placed") ||
     titleLower.includes("new bid") ||
     messageLower.includes("bid placed") ||
@@ -29,10 +48,6 @@ export function mapNotificationDtoToViewModel(dto: NotificationDto): Notificatio
     type = "auction_won";
   } else if (titleLower.includes("ending") || titleLower.includes("end") || messageLower.includes("ending")) {
     type = "auction_ending";
-  } else if (titleLower.includes("shipped") || messageLower.includes("shipped")) {
-    type = "order_shipped";
-  } else if (titleLower.includes("received") || titleLower.includes("delivered") || messageLower.includes("received") || messageLower.includes("delivered")) {
-    type = "order_received";
   } else if (titleLower.includes("payment failed") || titleLower.includes("failed payment") || messageLower.includes("payment failed")) {
     type = "payment_failed";
   } else if (titleLower.includes("payment") || titleLower.includes("authorized") || messageLower.includes("payment")) {
@@ -69,7 +84,7 @@ export function mapNotificationDtoToViewModel(dto: NotificationDto): Notificatio
   let resolvedId: string | undefined = undefined;
   if (dto.id) {
     if (typeof dto.id === "object") {
-      resolvedId = dto.id.value || (dto.id as any).Value;
+      resolvedId = dto.id.value || (dto.id as Record<string, unknown>)["Value"] as string;
     } else if (typeof dto.id === "string") {
       resolvedId = dto.id;
     }
@@ -80,7 +95,7 @@ export function mapNotificationDtoToViewModel(dto: NotificationDto): Notificatio
     title: dto.title,
     message: dto.message,
     type,
-    createdAt: dto.createdOnUtc,
+    createdAt: parseUtcDate(dto.createdOnUtc).toISOString(),
     isRead: dto.isRead,
     link: link || undefined,
   };

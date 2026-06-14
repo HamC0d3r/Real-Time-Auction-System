@@ -4,6 +4,9 @@ import { useState, useEffect } from "react";
 import { useAuthStore } from "@/stores/auth.store";
 import { useNotificationStore } from "../store/notification.store";
 import { triggerWinDialogFromNotification } from "../store/win-dialog.store";
+import { triggerShippingDialogFromNotification } from "../store/shipping-dialog.store";
+import { triggerDeliveredDialogFromNotification } from "../store/delivered-dialog.store";
+import type { Notification } from "../types/notification.types";
 import { useGetNotifications, useMarkAsRead, useMarkAllAsRead } from "../api";
 import { NotificationItem } from "./NotificationItem";
 import { EmptyNotifications } from "./EmptyNotifications";
@@ -51,11 +54,14 @@ export function NotificationsPage() {
   const markAllAsRead = useMarkAllAsRead();
 
   const handleMarkAllAsRead = () => {
-    markAllAsRead.mutate();
+    const unreadIds = notifications.filter((n) => !n.isRead).map((n) => n.id);
+    if (unreadIds.length === 0) return;
+
+    markAllAsRead.mutate(unreadIds);
     localMarkAllAsRead();
   };
 
-  const handleNotificationClick = (notification: any) => {
+  const handleNotificationClick = (notification: Notification) => {
     if (!notification.isRead) {
       markAsRead.mutate(notification.id);
       localMarkAsRead(notification.id);
@@ -63,6 +69,10 @@ export function NotificationsPage() {
 
     if (notification.type === "auction_won") {
       triggerWinDialogFromNotification(notification);
+    } else if (notification.type === "order_shipped") {
+      triggerShippingDialogFromNotification(notification);
+    } else if (notification.type === "order_received") {
+      triggerDeliveredDialogFromNotification(notification);
     }
   };
 

@@ -136,13 +136,30 @@ export const useNotificationStore = create<NotificationStore>()((set, get) => ({
     const { _optimisticPending, notifications: existing } = get();
 
     if (_optimisticPending > 0) {
-      // Merge: keep existing store items, append any server items not already present
-      const existingIds = new Set(existing.map((n) => n.id));
-      const newFromServer = serverItems.filter((n) => !existingIds.has(n.id));
-      if (newFromServer.length > 0) {
-        set({ notifications: [...existing, ...newFromServer] });
+      // Merge: replace temporary random-ID items with server items if they match title and message,
+      // otherwise append new server items.
+      const updated = [...existing];
+      
+      for (const serverItem of serverItems) {
+        const matchIndex = updated.findIndex(
+          (n) =>
+            n.id === serverItem.id ||
+            (n.id.startsWith("0.") &&
+              n.title === serverItem.title &&
+              n.message === serverItem.message)
+        );
+
+        if (matchIndex !== -1) {
+          updated[matchIndex] = serverItem;
+        } else {
+          updated.push(serverItem);
+        }
       }
-      // Don't touch unreadCount — optimistic value is authoritative
+
+      // Sort by date descending
+      updated.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      
+      set({ notifications: updated });
     } else {
       // Replace the notification list.
       // Do NOT fire toasts here — live toasts are handled exclusively by the
