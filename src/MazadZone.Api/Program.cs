@@ -293,6 +293,7 @@ try
 
     app.MapHub<AuctionsHub>("/hubs/auctions");
     app.MapHub<NotificationsHub>("/hubs/notifications");
+    app.MapHub<OrdersHub>("/hubs/orders");
 
 
     app.UseHangfireDashboard("/hangfire", new DashboardOptions

@@ -247,7 +247,9 @@ public partial class AuctionQueries(
 
         if (parameters.CategoryId.HasValue)
         {
-            query = query.Where(a => a.Item.CategoryId == CategoryId.From(parameters.CategoryId.Value));
+            var categoryId = CategoryId.From(parameters.CategoryId.Value);
+            query = query.Where(a => a.Item.CategoryId == categoryId ||
+                                     _context.Categories.Any(c => c.Id == a.Item.CategoryId && c.ParentCategoryId == categoryId));
         }
 
         var tab = parameters.Tab?.Trim().ToLowerInvariant() ?? "all";
@@ -351,13 +353,15 @@ public partial class AuctionQueries(
                 .ToList();
 
             query = query.Where(a => EF.Functions.Like(a.Item.Title, $"%{parameters.SearchTerm}%") ||
+                                     EF.Functions.Like(a.Item.Description, $"%{parameters.SearchTerm}%") ||
                                      filteredCategoryIds.Contains(a.Item.CategoryId));
         }
 
         if (parameters.CategoryId.HasValue)
         {
-
-            query = query.Where(a => a.Item.CategoryId == parameters.CategoryId);
+            var categoryId = parameters.CategoryId.Value;
+            query = query.Where(a => a.Item.CategoryId == categoryId ||
+                                     _context.Categories.Any(c => c.Id == a.Item.CategoryId && c.ParentCategoryId == categoryId));
         }
 
 

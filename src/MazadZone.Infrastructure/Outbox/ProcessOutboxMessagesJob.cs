@@ -138,6 +138,7 @@ public sealed class ProcessOutboxMessagesJob : BackgroundService
         {
             _logger.LogError(ex, "Failed to process outbox message {MessageId}", message.Id);
             message.Error = ex.Message;
+            message.ProcessedOnUtc = DateTime.UtcNow; // Mark as processed to prevent queue deadlock
         }
     }
 

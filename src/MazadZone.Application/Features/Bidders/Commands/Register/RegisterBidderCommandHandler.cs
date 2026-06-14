@@ -15,7 +15,7 @@ public class RegisterBidderCommandHandler : ICommandHandler<RegisterBidderComman
     private readonly IBidderRepository _bidderRepository;
     private readonly IPasswordService _passwordService;
     private readonly ITokenProvider _tokenProvider;
-    // private readonly IIdentityExtractionService _identityExtractionService;
+    private readonly IIdentityExtractionService _identityExtractionService;
     private readonly ILogger<RegisterBidderCommandHandler> _logger;
 
     private static readonly System.Text.RegularExpressions.Regex StandardizedIdRegex = 
@@ -30,7 +30,7 @@ public class RegisterBidderCommandHandler : ICommandHandler<RegisterBidderComman
         ITokenProvider tokenProvider,
         IUserRepository userRepository,
         IBidderRepository bidderRepository,
-        // IIdentityExtractionService identityExtractionService,
+        IIdentityExtractionService identityExtractionService,
         ILogger<RegisterBidderCommandHandler> logger
     )
     {
@@ -39,7 +39,7 @@ public class RegisterBidderCommandHandler : ICommandHandler<RegisterBidderComman
         _bidderRepository = bidderRepository;
         _passwordService = passwordService;
         _tokenProvider = tokenProvider;
-        // _identityExtractionService = identityExtractionService;
+        _identityExtractionService = identityExtractionService;
         _logger = logger;
     }
 
@@ -55,59 +55,71 @@ public class RegisterBidderCommandHandler : ICommandHandler<RegisterBidderComman
             return EmailErrors.AlreadyInUse;
         }
 
-        // // Perform Google Cloud Vision identity extraction & verification
-        // if (request.IdentityCardImageBytes == null || request.IdentityCardImageBytes.Length == 0)
-        // {
-        //     return Result.Failure<RegisterBidderDto>(Error.Validation("Identity.ImageRequired", "An image file of the identity card is required."));
-        // }
+        // Perform Google Cloud Vision identity extraction & verification
+        if (request.IdentityCardImageBytes == null || request.IdentityCardImageBytes.Length == 0)
+        {
+            return Result.Failure<RegisterBidderDto>(Error.Validation("Identity.ImageRequired", "An image file of the identity card is required."));
+        }
 
-        // var extractionResult = await _identityExtractionService.ExtractDataAsync(request.IdentityCardImageBytes);
-        // if (!extractionResult.Success || string.IsNullOrWhiteSpace(extractionResult.NationalId))
-        // {
-        //     var extractionReason = extractionResult.ErrorMessage ?? "Failed to extract text from ID card image.";
-        //     return Result.Failure<RegisterBidderDto>(Error.Validation("Identity.ExtractionFailed", extractionReason));
-        // }
+        var extractionResult = await _identityExtractionService.ExtractDataAsync(request.IdentityCardImageBytes);
+        if (!extractionResult.Success || string.IsNullOrWhiteSpace(extractionResult.NationalId))
+        {
+            var extractionReason = extractionResult.ErrorMessage ?? "Failed to extract text from ID card image.";
+            return Result.Failure<RegisterBidderDto>(Error.Validation("Identity.ExtractionFailed", extractionReason));
+        }
 
-        // if (!StandardizedIdRegex.IsMatch(extractionResult.NationalId))
-        // {
-        //     return Result.Failure<RegisterBidderDto>(Error.Validation(
-        //         "Identity.InvalidNationalIdFormat", 
-        //         $"Extracted National ID '{extractionResult.NationalId}' is invalid. Must be a numeric value of 10 to 15 digits."));
-        // }
+        if (!StandardizedIdRegex.IsMatch(extractionResult.NationalId))
+        {
+            return Result.Failure<RegisterBidderDto>(Error.Validation(
+                "Identity.InvalidNationalIdFormat", 
+                $"Extracted National ID '{extractionResult.NationalId}' is invalid. Must be a numeric value of 10 to 15 digits."));
+        }
 
-        // if (extractionResult.NationalId != request.NationalId)
-        // {
-        //     return Result.Failure<RegisterBidderDto>(Error.Validation(
-        //         "Identity.NationalIdMismatch", 
-        //         "The national ID extracted from the card does not match the provided national ID."));
-        // }
+        if (extractionResult.NationalId != request.NationalId)
+        {
+            return Result.Failure<RegisterBidderDto>(Error.Validation(
+                "Identity.NationalIdMismatch", 
+                "The national ID extracted from the card does not match the provided national ID."));
+        }
 
-        // var enteredFullName = string.Join(" ", new[] { request.FirstName, request.SecondName, request.ThirdName, request.LastName }
-        //     .Where(p => !string.IsNullOrWhiteSpace(p)))
-        //     .Trim();
+        var enteredFullName = string.Join(" ", new[] { request.FirstName, request.SecondName, request.ThirdName, request.LastName }
+            .Where(p => !string.IsNullOrWhiteSpace(p)))
+            .Trim();
 
-        // var cleanedEntered = System.Text.RegularExpressions.Regex.Replace(enteredFullName, @"\s+", " ").Trim();
-        // var cleanedExtractedEng = System.Text.RegularExpressions.Regex.Replace(extractionResult.EnglishFullName ?? "", @"\s+", " ").Trim();
-        // var cleanedExtractedAr = System.Text.RegularExpressions.Regex.Replace(extractionResult.ArabicFullName ?? "", @"\s+", " ").Trim();
+        // Log extracted names for server-side debugging
+        _logger.LogInformation(
+            "OCR extraction result for registration - Entered: '{EnteredName}', OCR English: '{EnglishName}', OCR Arabic: '{ArabicName}'",
+            enteredFullName,
+            extractionResult.EnglishFullName,
+            extractionResult.ArabicFullName);
 
-        // bool nameMatches = false;
-        // if (!string.IsNullOrEmpty(cleanedExtractedEng) && 
-        //     string.Equals(cleanedExtractedEng, cleanedEntered, StringComparison.OrdinalIgnoreCase))
-        // {
-        //     nameMatches = true;
-        // }
-        // else if (!string.IsNullOrEmpty(cleanedExtractedAr) && 
-        //          string.Equals(cleanedExtractedAr, cleanedEntered, StringComparison.OrdinalIgnoreCase))
-        // {
-        //     nameMatches = true;
-        // }
+        bool nameMatches = false;
+        if (!string.IsNullOrWhiteSpace(extractionResult.EnglishFullName))
+        {
+            var normalizedExtracted = NormalizeNameForComparison(extractionResult.EnglishFullName);
+            var normalizedEntered = NormalizeNameForComparison(enteredFullName);
+            nameMatches = string.Equals(normalizedExtracted, normalizedEntered, StringComparison.OrdinalIgnoreCase);
+        }
 
-        // if (!nameMatches)
-        // {
-        //     return Result.Failure<RegisterBidderDto>(Error.Validation(
-        //         "Identity.NameMismatch", 
-        //         $"The name on the identity card does not match the entered name: '{enteredFullName}'."));
-        // }
+        if (!nameMatches && !string.IsNullOrWhiteSpace(extractionResult.ArabicFullName))
+        {
+            var normalizedExtracted = NormalizeNameForComparison(extractionResult.ArabicFullName);
+            var normalizedEntered = NormalizeNameForComparison(enteredFullName);
+            nameMatches = string.Equals(normalizedExtracted, normalizedEntered, StringComparison.OrdinalIgnoreCase);
+        }
+
+        if (!nameMatches)
+        {
+            _logger.LogWarning(
+                "Name mismatch during registration. Entered: '{EnteredName}', OCR English: '{EnglishName}', OCR Arabic: '{ArabicName}'",
+                enteredFullName,
+                extractionResult.EnglishFullName,
+                extractionResult.ArabicFullName);
+
+            return Result.Failure<RegisterBidderDto>(Error.Validation(
+                "Identity.NameMismatch", 
+                $"The name on the identity card does not match the entered name: '{enteredFullName}'."));
+        }
 
         if(await _bidderRepository.IsNationalIdInUseAsync(request.NationalId, ct))
         {
@@ -133,10 +145,10 @@ public class RegisterBidderCommandHandler : ICommandHandler<RegisterBidderComman
         var newBidder = bidderResult.Value;
         
         // Approve verification on the Bidder entity using strictly the extracted name (preferring English first)
-        // var extractedFullName = !string.IsNullOrWhiteSpace(extractionResult.EnglishFullName) ? extractionResult.EnglishFullName :
-        //                         !string.IsNullOrWhiteSpace(extractionResult.ArabicFullName) ? extractionResult.ArabicFullName : 
-        //                         "Unknown (OCR Failed to read name)";
-        // newBidder.ApproveVerification(extractionResult.NationalId, extractedFullName);
+        var extractedFullName = !string.IsNullOrWhiteSpace(extractionResult.EnglishFullName) ? extractionResult.EnglishFullName :
+                                !string.IsNullOrWhiteSpace(extractionResult.ArabicFullName) ? extractionResult.ArabicFullName : 
+                                "Unknown (OCR Failed to read name)";
+        newBidder.ApproveVerification(extractionResult.NationalId, extractedFullName);
 
         var accessToken = _tokenProvider.GenerateAccessToken(newUser);
         var refreshTokenRaw = _tokenProvider.GenerateRefreshToken();
@@ -171,6 +183,17 @@ public class RegisterBidderCommandHandler : ICommandHandler<RegisterBidderComman
             roles:  UserRole.Bidder 
             );
 
+    }
+
+    /// <summary>
+    /// Strips all non-letter characters (hyphens, apostrophes, spaces, digits, punctuation)
+    /// so that OCR variations like "AL-MAHDAWI", "AL MAHDAWI", and "AL_MAHDAWI" all match.
+    /// Preserves Latin (A-Z, a-z) and Arabic script letters only.
+    /// </summary>
+    private static string NormalizeNameForComparison(string name)
+    {
+        if (string.IsNullOrEmpty(name)) return string.Empty;
+        return System.Text.RegularExpressions.Regex.Replace(name, @"[^a-zA-Z\u0600-\u06FF]", "");
     }
 
     private BidderProfileDto CreateBidderProfile(User user, Bidder bidder)

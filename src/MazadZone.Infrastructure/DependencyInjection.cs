@@ -34,6 +34,7 @@ public static class DependencyInjection
             .AddCachingServices(configuration)
             .AddBackgroundServices()
             .AddGeminiServices(configuration)
+            .AddGoogleVisionServices(configuration)
             .AddQuartzJobs();
 
         services.Configure<GmailOptions>(configuration.GetSection(GmailOptions.GmailOptionsKey));
@@ -177,9 +178,19 @@ public static class DependencyInjection
             .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
             .UseSimpleAssemblyNameTypeSerializer()
             .UseRecommendedSerializerSettings()
-            .UseSqlServerStorage(connectionString));
+            .UseSqlServerStorage(connectionString, new Hangfire.SqlServer.SqlServerStorageOptions
+            {
+                CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+                SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+                QueuePollInterval = TimeSpan.Zero,
+                UseRecommendedIsolationLevel = true,
+                DisableGlobalLocks = true
+            }));
 
-        services.AddHangfireServer();
+        services.AddHangfireServer(options =>
+        {
+            options.SchedulePollingInterval = TimeSpan.FromSeconds(1);
+        });
 
         services.AddScoped<IOrderJobScheduler, HangfireOrderJobScheduler>();
         services.AddScoped<IAuctionJobScheduler, HangfireAuctionJobScheduler>();
@@ -208,14 +219,14 @@ public static class DependencyInjection
         return services;
     }
 
-    private static IServiceCollection AddGoogleVisionServices(this IServiceCollection services)
+    private static IServiceCollection AddGoogleVisionServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddSingleton<Google.Cloud.Vision.V1.ImageAnnotatorClient>(sp =>
         {
             var builder = new Google.Cloud.Vision.V1.ImageAnnotatorClientBuilder();
 
-            var credentialsPath = @"../../../Downloads/mazadzonevestion-63efa229c4ad.json";
-            if (System.IO.File.Exists(credentialsPath))
+            var credentialsPath = configuration["Google:Vision:CredentialsPath"];
+            if (!string.IsNullOrEmpty(credentialsPath) && System.IO.File.Exists(credentialsPath))
             {
                 using var stream = new System.IO.FileStream(credentialsPath, System.IO.FileMode.Open, System.IO.FileAccess.Read);
                 builder.GoogleCredential = Google.Apis.Auth.OAuth2.CredentialFactory.FromStream<Google.Apis.Auth.OAuth2.ServiceAccountCredential>(stream).ToGoogleCredential();
@@ -239,7 +250,7 @@ public static class DependencyInjection
                       .ForJob(shipmentJobKey)
                       .WithIdentity($"{nameof(AutoShipmentJob)}-trigger")
                       // Run every 2 minutes
-                      .WithCronSchedule("0 0/2 * * * ?"));
+                      .WithCronSchedule("0 0/1 * * * ?"));
 
             var deliveryJobKey = new JobKey(nameof(AutoDeliveryJob));
             config.AddJob<AutoDeliveryJob>(deliveryJobKey)
@@ -247,7 +258,7 @@ public static class DependencyInjection
                       .ForJob(deliveryJobKey)
                       .WithIdentity($"{nameof(AutoDeliveryJob)}-trigger")
                       // Run every 2 minutes
-                      .WithCronSchedule("0 0/2 * * * ?"));
+                      .WithCronSchedule("0 0/1 * * * ?"));
         });
 
         // Start Quartz as a background hosted service

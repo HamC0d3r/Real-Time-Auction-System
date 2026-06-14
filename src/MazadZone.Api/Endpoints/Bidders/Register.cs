@@ -31,32 +31,27 @@ public static class Register
         [FromForm] string street,
         [FromForm] string building,
         [FromForm] string landmark,
-        IFormFile? file,
+        IFormFile file,
         [FromServices] ISender sender,
         CancellationToken ct)
     {
-        // if (file is null || file.Length == 0)
-        // {
-        //     return Results.BadRequest("An image file of the identity card is required.");
-        // }
+        // Enforce 5MB upload size limit to prevent Buffer Overflow or DoS attacks
+        if (file.Length > 5 * 1024 * 1024)
+        {
+            return Results.BadRequest("File size must not exceed 5MB.");
+        }
 
-        // // Enforce 5MB upload size limit to prevent Buffer Overflow or DoS attacks
-        // if (file.Length > 5 * 1024 * 1024)
-        // {
-        //     return Results.BadRequest("File size must not exceed 5MB.");
-        // }
+        // Validate allowed image formats (allowlist)
+        var allowedExtensions = new[] { ".png", ".jpg", ".jpeg" };
+        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+        if (!allowedExtensions.Contains(extension))
+        {
+            return Results.BadRequest("Only JPG, JPEG, and PNG images are permitted.");
+        }
 
-        // // Validate allowed image formats (allowlist)
-        // var allowedExtensions = new[] { ".png", ".jpg", ".jpeg" };
-        // var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
-        // if (!allowedExtensions.Contains(extension))
-        // {
-        //     return Results.BadRequest("Only JPG, JPEG, and PNG images are permitted.");
-        // }
-
-        // using var memoryStream = new MemoryStream();
-        // await file.CopyToAsync(memoryStream, ct);
-        // var imageBytes = memoryStream.ToArray();
+        using var memoryStream = new MemoryStream();
+        await file.CopyToAsync(memoryStream, ct);
+        var imageBytes = memoryStream.ToArray();
 
         var address = new AddressDto(city, street, building, landmark);
         var command = new RegisterBidderCommand(
@@ -69,7 +64,7 @@ public static class Register
             thirdName,
             lastName,
             address,
-            null!);
+            imageBytes);
 
         var result = await sender.Send(command, ct);
 
