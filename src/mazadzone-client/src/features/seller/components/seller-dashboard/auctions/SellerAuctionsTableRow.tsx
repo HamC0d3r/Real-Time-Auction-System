@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import Image from "next/image";
 import { format } from "date-fns";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -95,7 +97,7 @@ export function SellerAuctionsTableRow({
   const timeLeftInfo = getTimeLeft(auction.endDateUtc, auction.status);
 
   // Fallback thumbnail if null
-  const thumbnail = auction.thumbnailUrl || "/assets/images/placeholder.jpg";
+  const [imgSrc, setImgSrc] = useState(auction.thumbnailUrl || "/assets/images/placeholder.jpg");
 
   return (
     <TableRow className="hover:bg-accent/20 dark:hover:bg-accent/5 transition-colors h-[64px] border-0">
@@ -104,14 +106,14 @@ export function SellerAuctionsTableRow({
       <TableCell className="px-6 py-3 min-w-[200px]">
         <div className="flex items-center gap-3.5 text-left">
           <div className="h-10 w-14 shrink-0 rounded-lg overflow-hidden relative border border-border/80">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={thumbnail}
+            <Image
+              src={imgSrc}
               alt={auction.title}
-              className="object-cover w-full h-full"
-              onError={(e) => {
-                // simple fallback logic if asset missing
-                (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=120&auto=format&fit=crop&q=60";
+              fill
+              sizes="56px"
+              className="object-cover"
+              onError={() => {
+                setImgSrc("https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=120&auto=format&fit=crop&q=60");
               }}
             />
           </div>
