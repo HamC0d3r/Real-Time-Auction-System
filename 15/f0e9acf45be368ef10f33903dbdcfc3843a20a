@@ -1,0 +1,12 @@
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "15f0e9acf45be368ef10f33903dbdcfc3843a20a",
+  "prompts": {},
+  "humans": {
+    "h_3c745a955bab22": {
+      "author": "khaled0x1 <120220612151@st.ahu.edu.jo>"
+    }
+  }
+}
