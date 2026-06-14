@@ -1,13 +1,31 @@
 "use client";
 
 import Link from "next/link";
+import { useMemo } from "react";
 import { MoveRight } from "lucide-react";
 import { AuctionCard, AuctionCardSkeleton } from "../auction-card";
-import { useGetEndingSoonAuctions } from "../../api";
+import { AuctionActionSlot } from "../AuctionActionSlot";
+import { useGetHomeAuctions } from "../../api";
 import { ROUTES } from "@/config/routes.config";
 
 export function EndingSoonSection() {
-  const { data: auctions, isLoading, isError } = useGetEndingSoonAuctions(4);
+  const { data, isLoading, isError } = useGetHomeAuctions(4);
+  const auctions = data?.endingSoon;
+
+  const actionSlots = useMemo(() => {
+    if (!auctions) return new Map<string, React.ReactNode>();
+    const map = new Map<string, React.ReactNode>();
+    for (const auction of auctions) {
+      map.set(auction.id, (
+        <AuctionActionSlot
+          auctionId={auction.id}
+          status={auction.status}
+          isOwner={auction.isOwner}
+        />
+      ));
+    }
+    return map;
+  }, [auctions]);
 
   if (isError) return null;
 
@@ -40,6 +58,7 @@ export function EndingSoonSection() {
             <AuctionCard
               key={auction.id}
               auction={auction}
+              actionSlot={actionSlots.get(auction.id)}
             />
           ))}
       </div>
