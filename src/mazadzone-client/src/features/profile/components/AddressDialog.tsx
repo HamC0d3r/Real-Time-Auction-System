@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { memo, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { X, Loader2 } from "lucide-react";
@@ -26,7 +26,7 @@ interface AddressDialogProps {
   isPending: boolean;
 }
 
-export function AddressDialog({
+export const AddressDialog = memo(function AddressDialog({
   isOpen,
   onClose,
   addressToEdit,
@@ -85,7 +85,7 @@ export function AddressDialog({
   const fields = getAddressFields(isPending);
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent className="max-w-md bg-card border-border p-6 shadow-lg rounded-xl gap-0">
         <DialogHeader className="border-b border-border pb-4 mb-5">
           <DialogTitle className="text-xl font-bold text-foreground">
@@ -161,4 +161,4 @@ export function AddressDialog({
       </DialogContent>
     </Dialog>
   );
-}
+});

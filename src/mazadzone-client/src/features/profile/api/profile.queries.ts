@@ -20,10 +20,11 @@ export const profileKeys = {
 /**
  * Hook to fetch the user profile data.
  */
-export function useGetProfile() {
+export function useGetProfile(options?: { enabled?: boolean }) {
   return useQuery<UserProfile>({
     queryKey: profileKeys.info(),
     queryFn: fetchUserProfile,
+    ...options,
   });
 }
 
@@ -55,10 +56,11 @@ export function useUpdateProfile() {
 /**
  * Hook to retrieve all addresses.
  */
-export function useGetAddresses() {
+export function useGetAddresses(options?: { enabled?: boolean }) {
   return useQuery<Address[]>({
     queryKey: profileKeys.addresses(),
     queryFn: () => fetchAddresses(),
+    ...options,
   });
 }
 

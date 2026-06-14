@@ -24,6 +24,7 @@ export interface AddressSelectStepProps {
   onCancel: () => void;
   title?: string;
   subtitle?: string;
+  queryEnabled?: boolean;
 }
 
 export function AddressSelectStep({
@@ -32,11 +33,14 @@ export function AddressSelectStep({
   onCancel,
   title = "Choose Shipping Address",
   subtitle = "Select where you want your item to be shipped.",
+  queryEnabled = true,
 }: AddressSelectStepProps) {
-  const { data: profileAddresses = [], isLoading, isError } = useGetAddresses();
+  const { data: profileAddresses = [], isLoading, isError } = useGetAddresses({
+    enabled: queryEnabled,
+  });
   const [localSelectedId, setLocalSelectedId] = useState<string>(selectedAddressId || "");
 
-  const { data: profile } = useGetProfile();
+  const { data: profile } = useGetProfile({ enabled: queryEnabled });
 
   const mapAddress = (addr: Address) => ({
     id: addr.id,

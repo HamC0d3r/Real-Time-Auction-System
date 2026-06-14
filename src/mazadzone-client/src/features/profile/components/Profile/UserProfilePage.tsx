@@ -1,5 +1,8 @@
 "use client";
 
+// Force hot-reload trigger for reviews and bidder participation summary updates
+
+
 import { useState } from "react";
 import { PageWrapper } from "@/components/layout/page-wrapper";
 import { Button } from "@/components/ui/button";
