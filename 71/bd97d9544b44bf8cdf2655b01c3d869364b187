@@ -1,0 +1,39 @@
+src/MazadZone.Application/Features/Orders/Commands/Deliver/BroadcastOrderStatusOnDeliveredHandler.cs
+  s_5b792e17aec527::t_d155c4473ea29c 1-33
+src/MazadZone.Application/Features/Orders/DTOs/OrderCreatedUpdateDto.cs
+  s_5b792e17aec527::t_398daed55d4e21 1-6
+src/MazadZone.Application/Features/Orders/Commands/Confirm/BroadcastOrderStatusOnConfirmedHandler.cs
+  s_5b792e17aec527::t_7f33b4bf22ecd9 1-33
+src/MazadZone.Application/Features/Orders/DTOs/OrderStatusUpdateDto.cs
+  s_5b792e17aec527::t_c8528e8dc5ede9 1-4
+  s_5b792e17aec527::t_eef4071f65ca8d 5-6
+src/MazadZone.Application/Services/IOrderStreamService.cs
+  s_5b792e17aec527::t_df20d9ed5d2fca 7
+  s_5b792e17aec527::t_af0206309ff8d4 1-6,8-10
+src/MazadZone.Application/Features/Orders/Commands/Create/BroadcastOrderCreatedHandler.cs
+  s_5b792e17aec527::t_2c7c35e6517306 1-34
+src/MazadZone.Application/Features/Orders/Constants/BroadcastOrderUpdateTypes.cs
+  s_5b792e17aec527::t_c3737df73f0dd2 1-7
+src/MazadZone.Application/Features/Orders/Commands/Ship/BroadcastOrderStatusOnShippedHandler.cs
+  s_5b792e17aec527::t_7fac5f48441132 1-33
+src/MazadZone.Infrastructure/RealTime/Hubs/OrdersHub.cs
+  s_5b792e17aec527::t_9ba261b8416cb0 1-8
+src/MazadZone.Application/Features/Orders/Commands/Cancel/BroadcastOrderStatusOnCancelledHandler.cs
+  s_5b792e17aec527::t_1aee0039b06487 1-33
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "71bd97d9544b44bf8cdf2655b01c3d869364b187",
+  "prompts": {},
+  "sessions": {
+    "s_5b792e17aec527": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_143a63673ffefjVLXq3ZvHP8Zg",
+        "model": "deepseek-v4-flash-free"
+      },
+      "human_author": "khaled0x1 <120220612151@st.ahu.edu.jo>"
+    }
+  }
+}
