@@ -134,8 +134,8 @@ export function ReviewConfirmStep({
       )}
 
       {/* Warning Hold Banner */}
-      <div className="flex items-start gap-3 bg-warning/10 border border-warning/20 rounded-xl p-4 text-xs md:text-sm text-warning-foreground mt-4">
-        <AlertTriangle className="h-5 w-5 text-warning shrink-0 mt-0.5" />
+      <div className="flex items-start gap-3 bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4 text-xs md:text-sm text-yellow-600 dark:text-yellow-500 mt-4">
+        <AlertTriangle className="h-5 w-5 text-yellow-500 shrink-0 mt-0.5" />
         <div className="space-y-0.5">
           <p className="font-bold">Important Notice</p>
           <p className="leading-relaxed">

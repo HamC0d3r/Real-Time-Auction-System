@@ -9,6 +9,7 @@ import {
   mapBackendStatusToAuctionStatus,
   mapBackendConditionToAuctionCondition,
 } from "@/utils/status.utils";
+import { normalizeImageUrl } from "../utils/image.utils";
 import type {
   AuctionFilters,
   AuctionSummary,
@@ -61,7 +62,7 @@ export function mapAuctionsListDtoToSummary(
   return {
     id: dto.id,
     title: dto.itemTitle,
-    imageUrl: dto.imageUrl,
+    imageUrl: normalizeImageUrl(dto.imageUrl),
     category: "Tech and Electronics",
     subcategory: "Others",
     condition: mapBackendConditionToAuctionCondition(dto.itemStatus),
@@ -80,7 +81,7 @@ export function mapAuctionsListDtoToSummary(
     },
     isFavorite: false,
     isOwner: false,
-    images: dto.imageUrl ? [dto.imageUrl] : [],
+    images: dto.imageUrl ? [normalizeImageUrl(dto.imageUrl)] : [],
     bidHistory: [],
   };
 }
@@ -92,7 +93,7 @@ export function mapAuctionDtoToSummary(dto: AuctionDto): AuctionSummary {
   return {
     id: dto.id,
     title: dto.itemTitle,
-    imageUrl: dto.imageUrls?.[0] ?? "",
+    imageUrl: normalizeImageUrl(dto.imageUrls?.[0] ?? ""),
     category: "Tech and Electronics",
     subcategory: "Others",
     condition: mapBackendConditionToAuctionCondition(dto.status),
@@ -112,7 +113,7 @@ export function mapAuctionDtoToSummary(dto: AuctionDto): AuctionSummary {
     },
     isFavorite: false,
     isOwner: false,
-    images: dto.imageUrls ?? [],
+    images: (dto.imageUrls ?? []).map(normalizeImageUrl),
     bidHistory: (dto.bids ?? []).map((b, idx) => ({
       id: `${dto.id}-bid-${idx}`,
       bidderName: `Bidder ${b.bidderId.substring(0, 4)}`,

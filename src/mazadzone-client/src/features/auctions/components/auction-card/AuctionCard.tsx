@@ -50,7 +50,7 @@ const AuctionCardComponent = ({
           aria-label={`View details for ${title}`}
         >
           <Image
-            src={imageUrl}
+            src={imageUrl || fallbackImageUrl}
             alt={title}
             fill
             sizes="(min-width: 1280px) 311px, (min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
@@ -64,7 +64,7 @@ const AuctionCardComponent = ({
         </Link>
       </div>
 
-      <Link href={auctionDetailsHref} className="mt-3 block">
+      <Link href={auctionDetailsHref} className="mt-3 block h-[50px]">
         <h3
           className="line-clamp-2 text-xl font-bold leading-tight text-foreground hover:text-primary"
           title={title}
@@ -73,72 +73,76 @@ const AuctionCardComponent = ({
         </h3>
       </Link>
 
-      <div >
-        <div className="flex justify-end mb-1">
-          <Badge
-            variant="default"
-            className="h-5 text-[9px] px-1.5 font-bold uppercase tracking-wider select-none"
-          >
-            {condition}
-          </Badge>
-        </div>
+      <div className="flex flex-col flex-grow justify-between">
         <div>
-          <CountdownTimer
-            startDate={timing.startDate}
-            endDate={timing.endDate}
-            status={status}
-            label={isUpcoming ? "UPCOMING IN" : undefined}
-            auctionId={id}
-          />
+          <div className="flex justify-end mb-1">
+            <Badge
+              variant="default"
+              className="h-5 text-[9px] px-1.5 font-bold uppercase tracking-wider select-none"
+            >
+              {condition}
+            </Badge>
+          </div>
+          <div>
+            <CountdownTimer
+              startDate={timing.startDate}
+              endDate={timing.endDate}
+              status={status}
+              label={isUpcoming ? "UPCOMING IN" : undefined}
+              auctionId={id}
+            />
+          </div>
         </div>
 
+        <div>
+          <div className="my-2.5 h-px w-full bg-border" aria-hidden="true" />
 
-        <div className="my-2.5 h-px w-full bg-border" aria-hidden="true" />
-
-        <div className="flex items-start justify-between">
-          <div className="flex flex-col">
-            <div className="flex items-center gap-1">
-              <CircleDollarSign
-                className="size-3.5 text-muted-foreground"
-                aria-hidden="true"
-              />
-              <span className="text-xs font-semibold text-muted-foreground">
-                {isUpcoming ? "Starting Price:" : pricing.bidCount > 0 ? "Current Bid:" : "Start Price:"}
-              </span>
-            </div>
-
-            <span className={cn(
-              isUpcoming ? "text-lg font-bold text-foreground/90" : "text-xl font-extrabold text-primary",
-              isEnded && "text-muted-foreground"
-            )}>
-              {formatCurrency(isUpcoming ? pricing.startingPrice : displayPrice)}
-            </span>
-          </div>
-
-          {!isUpcoming && (
-            <div className="flex flex-col items-end gap-0.5">
+          <div className="flex items-start justify-between">
+            <div className="flex flex-col">
               <div className="flex items-center gap-1">
-                <Users
+                <CircleDollarSign
                   className="size-3.5 text-muted-foreground"
                   aria-hidden="true"
                 />
-                <span className="text-xs font-bold text-foreground">
-                  {pricing.bidCount} {pricing.bidCount === 1 ? "BID" : "BIDS"}
+                <span className="text-xs font-semibold text-muted-foreground">
+                  {isUpcoming ? "Starting Price:" : pricing.bidCount > 0 ? "Current Bid:" : "Start Price:"}
                 </span>
               </div>
 
-              <Link
-                href={auctionDetailsHref}
-                className="text-xs font-medium text-primary transition-colors hover:text-primary/80 hover:underline"
-              >
-                View Bidders &rsaquo;
-              </Link>
+              <span className={cn(
+                isUpcoming ? "text-lg font-bold text-foreground/90" : "text-xl font-extrabold text-primary",
+                isEnded && "text-muted-foreground"
+              )}>
+                {formatCurrency(isUpcoming ? pricing.startingPrice : displayPrice)}
+              </span>
             </div>
-          )}
+
+            {!isUpcoming && (
+              <div className="flex flex-col items-end gap-0.5">
+                <div className="flex items-center gap-1">
+                  <Users
+                    className="size-3.5 text-muted-foreground"
+                    aria-hidden="true"
+                  />
+                  <span className="text-xs font-bold text-foreground">
+                    {pricing.bidCount} {pricing.bidCount === 1 ? "BID" : "BIDS"}
+                  </span>
+                </div>
+
+                <Link
+                  href={auctionDetailsHref}
+                  className="text-xs font-medium text-primary transition-colors hover:text-primary/80 hover:underline"
+                >
+                  View Bidders &rsaquo;
+                </Link>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-3">
+            {actionSlot}
+          </div>
         </div>
-
-
-        {actionSlot}
       </div>
     </article >
   );

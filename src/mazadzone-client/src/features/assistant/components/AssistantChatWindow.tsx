@@ -24,7 +24,6 @@ export function AssistantChatWindow({ onClose, onMinimize }: AssistantChatWindow
 
   const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE]);
   const [inputValue, setInputValue] = useState("");
-  const [isArabic, setIsArabic] = useState(false);
 
   const { data: auctionsData } = useGetAuctions({
     status: "Active",
@@ -101,8 +100,6 @@ export function AssistantChatWindow({ onClose, onMinimize }: AssistantChatWindow
   return (
     <div className="flex h-[580px] max-h-[calc(100vh-6rem)] w-full max-w-[420px] flex-col overflow-hidden rounded-[16px] border border-border bg-background shadow-2xl animate-in fade-in-50 slide-in-from-bottom-5 duration-300">
       <ChatHeader
-        isArabic={isArabic}
-        setIsArabic={setIsArabic}
         onMinimize={onMinimize}
         onClose={onClose}
       />
@@ -111,7 +108,6 @@ export function AssistantChatWindow({ onClose, onMinimize }: AssistantChatWindow
         messages={messages}
         isPending={sendChatMutation.isPending}
         isAuthenticated={isAuthenticated}
-        onChipClick={handleSendMessage}
         onClose={onClose}
         getMatchedAuctionsForMessage={(msgText) => {
           const regex = /(?:^|\n)\s*(?:[\*\-]\s+|\d+\.\s+)?\*\*(.*?)\*\*/g;

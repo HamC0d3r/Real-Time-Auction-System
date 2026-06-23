@@ -19,9 +19,14 @@ export async function GET(
     );
 
     // Prevent directory traversal attacks
-    const uploadsBaseDir = path.join(process.cwd(), "public", "uploads");
-    const relativePath = path.relative(uploadsBaseDir, filePath);
-    if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
+    const resolvedBaseDir = path.resolve(process.cwd(), "public", "uploads");
+    const resolvedFilePath = path.resolve(filePath);
+
+    // Normalize both paths to lowercase for case-insensitive comparison (handles Windows drive letters)
+    const normalizedBase = resolvedBaseDir.toLowerCase();
+    const normalizedFile = resolvedFilePath.toLowerCase();
+
+    if (!normalizedFile.startsWith(normalizedBase)) {
       return new NextResponse("Forbidden", { status: 403 });
     }
 

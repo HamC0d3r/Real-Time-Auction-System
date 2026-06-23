@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ChevronRight } from "lucide-react";
-import { getAuctionImageFallback } from "@/features/auctions";
+import { getAuctionImageFallback, normalizeImageUrl } from "@/features/auctions";
 
 interface ReviewAuctionCardProps {
   auction: {
@@ -21,7 +21,7 @@ export function ReviewAuctionCard({ auction }: ReviewAuctionCardProps) {
       {/* Product Image */}
       <div className="relative w-full h-28 shrink-0 overflow-hidden rounded-xl border border-neutral-200/50 bg-white shadow-2xs">
         <Image
-          src={auction.imageUrl}
+          src={normalizeImageUrl(auction.imageUrl) || fallbackImg}
           alt={auction.title}
           fill
           sizes="(min-width: 768px) 200px, 100vw"

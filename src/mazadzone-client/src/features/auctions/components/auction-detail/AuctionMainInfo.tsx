@@ -92,10 +92,10 @@ export function AuctionMainInfo({
       {/* Primary Action */}
       <Button
         onClick={onPlaceBid}
-        disabled={(isUpcoming || isEnded) && !auction.isOwner}
+        disabled={((isUpcoming || isEnded) && !auction.isOwner) || auction.isOwner}
         className={cn(
-          "h-12 w-full cursor-pointer rounded-[10px] bg-primary text-base font-bold tracking-wide text-primary-foreground transition-all hover:bg-primary/90 active:scale-[0.98] disabled:opacity-50",
-          isEnded && !auction.isOwner && "bg-muted text-muted-foreground hover:bg-muted cursor-not-allowed opacity-100"
+          "h-12 w-full cursor-pointer rounded-[10px] bg-primary text-base font-bold tracking-wide text-primary-foreground transition-all hover:bg-primary/90 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed",
+          isEnded && !auction.isOwner && "bg-muted text-muted-foreground hover:bg-muted opacity-100"
         )}
       >
         {getButtonContent()}

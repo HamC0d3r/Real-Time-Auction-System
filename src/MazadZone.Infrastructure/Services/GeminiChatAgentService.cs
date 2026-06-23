@@ -17,6 +17,12 @@ public sealed class GeminiChatAgentService : IChatAgentService
     private readonly GeminiOptions _options;
     private readonly ILogger<GeminiChatAgentService> _logger;
     private readonly Client? _client;
+    private static readonly string[] InvalidApiKeyPlaceholders = new[]
+    {
+        "API_KEY",
+        "null",
+        "none"
+    };
 
     /// <summary>
     /// The system instruction that constrains the LLM to only answer about MazadZone auctions.
@@ -30,6 +36,7 @@ public sealed class GeminiChatAgentService : IChatAgentService
         2. If the user asks about ANY topic outside of MazadZone, auctions, or bidding, you must politely refuse and state: '[-] Sorry, I can only help you with the auctions available on the platform.' (Sorry, I can only assist you with available auctions on the platform).
         3. Do not invent, guess, or assume any auction data. If an auction isn't in the context, say it is currently unavailable.
         4. Use [+] to expression on possetive response (success) and [-] to negative (falure) and [?] to ask bidder questions 
+        5. When recommending or listing auctions, write ONLY the auction titles in bold (e.g., **MacBook Air M2 13-inch**). Do NOT include other details like Category, Starting Price, Current Bid, End Time, or Time Left in the message text. The frontend will display these details automatically.
         """;
 
     private const string FallbackMessage = "The sales agent is currently busy. Please try again later.";
@@ -41,17 +48,18 @@ public sealed class GeminiChatAgentService : IChatAgentService
         _options = options.Value;
         _logger = logger;
 
-        if (string.IsNullOrWhiteSpace(_options.ApiKey))
+        var apiKey = _options.ApiKey?.Trim();
+        if (string.IsNullOrWhiteSpace(apiKey) || InvalidApiKeyPlaceholders.Contains(apiKey, StringComparer.OrdinalIgnoreCase))
         {
             // TODO(security): In production, use a managed secret store (e.g., Azure Key Vault, GCP Secret Manager).
             _logger.LogWarning(
-                "Gemini API key is not configured. " +
+                "Gemini API key is not configured or is set to an invalid placeholder value. " +
                 "Set it via 'Gemini:ApiKey' in appsettings.json, environment variable 'Gemini__ApiKey', or .NET User Secrets.");
             _client = null;
         }
         else
         {
-            _client = new Client(apiKey: _options.ApiKey);
+            _client = new Client(apiKey: apiKey);
         }
     }
 

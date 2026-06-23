@@ -19,9 +19,9 @@ export function ChatInput({ inputValue, setInputValue, onSubmit, disabled }: Cha
   };
 
   return (
-    <div className="border-t border-border bg-white p-3">
+    <div className="border-t border-border bg-white dark:bg-card p-3">
       <form onSubmit={handleSubmit} className="flex items-center gap-2">
-        <div className="flex flex-1 items-center gap-2 rounded-[24px] border border-input bg-white px-4 py-1.5 transition-colors focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
+        <div className="flex flex-1 items-center gap-2 rounded-[24px] border border-input bg-white dark:bg-muted/30 px-4 py-1.5 transition-colors focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
           <input
             type="text"
             value={inputValue}

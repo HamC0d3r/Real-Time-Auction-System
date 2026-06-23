@@ -2,38 +2,27 @@
 
 import React from "react";
 import { Minus, X } from "lucide-react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import chatIcon from "@/assets/Images/ChatIcon.webp";
 
 interface ChatHeaderProps {
-  isArabic: boolean;
-  setIsArabic: (val: boolean) => void;
   onMinimize?: () => void;
   onClose: () => void;
 }
 
-const LANGUAGES = [
-  { key: "ar", label: "عربي", isActive: (isArabic: boolean) => isArabic },
-  { key: "en", label: "EN", isActive: (isArabic: boolean) => !isArabic },
-] as const;
-
-export function ChatHeader({ isArabic, setIsArabic, onMinimize, onClose }: ChatHeaderProps) {
+export function ChatHeader({ onMinimize, onClose }: ChatHeaderProps) {
   return (
     <header className="flex h-[76px] items-center justify-between bg-dark px-4 py-3 text-dark-foreground">
       <div className="flex items-center gap-3">
-        <div className="flex size-11 items-center justify-center rounded-full bg-primary shadow-inner">
-          <svg
-            className="size-6 text-white"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"
-            />
-          </svg>
+        <div className="flex size-11 items-center justify-center rounded-full overflow-hidden bg-primary shadow-inner">
+          <Image
+            src={chatIcon}
+            alt="Mazad Assistant"
+            width={44}
+            height={44}
+            className="size-full object-cover"
+          />
         </div>
         <div>
           <h2 className="text-base font-bold tracking-tight text-white leading-tight">
@@ -55,26 +44,6 @@ export function ChatHeader({ isArabic, setIsArabic, onMinimize, onClose }: ChatH
       </div>
 
       <div className="flex items-center gap-2">
-        <div className="flex items-center gap-1 text-xs">
-          {LANGUAGES.map((lang, i) => (
-            <React.Fragment key={lang.key}>
-              {i > 0 && <span className="text-muted-foreground/40">|</span>}
-              <button
-                onClick={() => setIsArabic(lang.key === "ar")}
-                className={`cursor-pointer transition-colors ${
-                  lang.isActive(isArabic)
-                    ? "text-primary font-bold"
-                    : "text-muted-foreground hover:text-white"
-                }`}
-              >
-                {lang.label}
-              </button>
-            </React.Fragment>
-          ))}
-        </div>
-
-        <span className="ml-1 text-muted-foreground/30">|</span>
-
         {onMinimize && (
           <Button
             variant="ghost"

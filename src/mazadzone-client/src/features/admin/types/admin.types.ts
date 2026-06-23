@@ -10,7 +10,6 @@ export interface AdminMetrics {
   endingWithin24h: MetricTrend;
   completedOrders: MetricTrend;
   openDisputes: MetricTrend;
-  platformRevenue: MetricTrend;
 }
 
 export interface BiddingTrendDataPoint {

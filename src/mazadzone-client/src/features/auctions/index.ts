@@ -79,7 +79,7 @@ export {
   isAuctionEditable,
   getAuctionStatusLabel,
 } from "./utils/auction.utils";
-export { getAuctionImageFallback } from "./utils/image.utils";
+export { getAuctionImageFallback, normalizeImageUrl } from "./utils/image.utils";
 
 // Validations
 export { createAuctionSchema } from "./validations/auction.schema";

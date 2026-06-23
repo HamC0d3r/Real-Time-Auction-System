@@ -18,6 +18,7 @@ import type { AuthUser } from "@/stores/auth.store";
 import { NotificationPopover } from "@/features/notifications";
 import type { UserProfile } from "@/features/profile";
 import { GlobalHeaderSearch } from "./GlobalHeaderSearch";
+import { ModeToggle } from "@/components/layout/mode-toggle";
 
 export interface DesktopHeaderProps {
   isAuthenticated: boolean;
@@ -63,11 +64,7 @@ export const DesktopHeader = ({
 
       {/* Right Nav (Desktop) */}
       <div className="hidden md:flex items-center gap-6">
-        <div className="flex items-center text-lg font-medium text-primary-foreground">
-          <span className="cursor-pointer hover:text-white transition-colors">AR</span>
-          <span className="mx-2 text-gray-500">|</span>
-          <span className="cursor-pointer text-primary">EN</span>
-        </div>
+        <ModeToggle />
 
         <div
           className={cn(
@@ -154,12 +151,14 @@ export const DesktopBottomRow = ({
   handleCategoryClick,
   handleSellClick,
   router, // We might need router for the dashboard button
+  show = true,
 }: {
   mounted: boolean;
   isSeller: boolean;
   handleCategoryClick: (category: string) => void;
   handleSellClick: () => void;
   router: { push: (path: string) => void };
+  show?: boolean;
 }) => {
   const [activeHoverCategory, setActiveHoverCategory] = useState<string | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -192,7 +191,12 @@ export const DesktopBottomRow = ({
   };
 
   return (
-    <div className="hidden md:flex mx-auto h-14 max-w-[1408px] items-center justify-between pt-4 px-4 md:px-0 relative">
+    <div className={cn(
+      "hidden md:flex mx-auto max-w-[1408px] items-center justify-between px-4 md:px-0 relative transition-[height,opacity,transform,padding] duration-300 ease-in-out origin-top overflow-hidden",
+      show
+        ? "h-14 opacity-100 transform translate-y-0 pt-4"
+        : "h-0 opacity-0 transform -translate-y-2 pt-0 pointer-events-none"
+    )}>
       <nav className="flex items-center gap-6 whitespace-nowrap overflow-x-auto no-scrollbar pt-1.5 h-full">
         {CATEGORIES.map((category) => {
           const isCategoryHovered = activeHoverCategory === category;

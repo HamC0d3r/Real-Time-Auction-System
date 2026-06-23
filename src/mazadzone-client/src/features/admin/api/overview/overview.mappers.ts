@@ -42,11 +42,6 @@ export function mapSummaryStats(summary: SummaryStatsResponse): AdminMetrics {
       changePercent: summary.openDisputes.percentageChange,
       isPositive: summary.openDisputes.percentageChange >= 0,
     },
-    platformRevenue: {
-      value: summary.platformRevenue.value,
-      changePercent: summary.platformRevenue.percentageChange,
-      isPositive: summary.platformRevenue.percentageChange >= 0,
-    },
   };
 }
 

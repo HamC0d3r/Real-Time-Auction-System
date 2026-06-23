@@ -2,7 +2,6 @@
 
 import React, { useEffect, useRef } from "react";
 import { CheckCheck } from "lucide-react";
-import { QuickChips } from "./QuickChips";
 import { GuestFallback } from "./GuestFallback";
 import { MatchedAuctionsCarousel } from "./MatchedAuctionsCarousel";
 import type { CarouselAuctionItem } from "./MatchedAuctionsCarousel";
@@ -19,7 +18,6 @@ interface ChatMessagesProps {
   messages: Message[];
   isPending: boolean;
   isAuthenticated: boolean;
-  onChipClick: (label: string) => void;
   onClose: () => void;
   getMatchedAuctionsForMessage: (text: string) => CarouselAuctionItem[];
   displayAuctions: CarouselAuctionItem[];
@@ -60,19 +58,39 @@ function cleanMessageText(text: string, matchedItems: CarouselAuctionItem[]): st
       trimmed.includes("**Current Bid:**") ||
       trimmed.includes("**End Time:**") ||
       trimmed.includes("**Starting Price:**") ||
+      trimmed.includes("**Starting Bid:**") ||
       trimmed.includes("**Time Left:**") ||
+      trimmed.includes("**Category:**") ||
       trimmed.includes("**Current Bid**") ||
       trimmed.includes("**End Time**") ||
       trimmed.includes("**Starting Price**") ||
+      trimmed.includes("**Starting Bid**") ||
       trimmed.includes("**Time Left**") ||
+      trimmed.includes("**Category**") ||
+      trimmed.includes("Current Bid:") ||
+      trimmed.includes("End Time:") ||
+      trimmed.includes("Starting Price:") ||
+      trimmed.includes("Starting Bid:") ||
+      trimmed.includes("Time Left:") ||
+      trimmed.includes("Category:") ||
       trimmed.includes("**العرض الحالي:**") ||
       trimmed.includes("**تاريخ الانتهاء:**") ||
       trimmed.includes("**سعر البدء:**") ||
+      trimmed.includes("**سعر البداية:**") ||
       trimmed.includes("**الوقت المتبقي:**") ||
+      trimmed.includes("**الفئة:**") ||
       trimmed.includes("**العرض الحالي**") ||
       trimmed.includes("**تاريخ الانتهاء**") ||
       trimmed.includes("**سعر البدء**") ||
-      trimmed.includes("**الوقت المتبقي**");
+      trimmed.includes("**سعر البداية**") ||
+      trimmed.includes("**الوقت المتبقي**") ||
+      trimmed.includes("**الفئة**") ||
+      trimmed.includes("العرض الحالي:") ||
+      trimmed.includes("تاريخ الانتهاء:") ||
+      trimmed.includes("سعر البدء:") ||
+      trimmed.includes("سعر البداية:") ||
+      trimmed.includes("الوقت المتبقي:") ||
+      trimmed.includes("الفئة:");
 
     if (isPropertyLine) {
       if (skippingMatchedAuction) {
@@ -118,7 +136,6 @@ export function ChatMessages({
   messages,
   isPending,
   isAuthenticated,
-  onChipClick,
   onClose,
   getMatchedAuctionsForMessage,
   displayAuctions,
@@ -135,7 +152,7 @@ export function ChatMessages({
   return (
     <div
       ref={scrollRef}
-      className="flex-1 overflow-y-auto bg-[#FBF9F6] p-4 space-y-4"
+      className="flex-1 overflow-y-auto bg-[#FBF9F6] dark:bg-muted/15 p-4 space-y-4"
       style={{ scrollBehavior: "smooth" }}
     >
       {messages.map((msg) => {
@@ -151,7 +168,7 @@ export function ChatMessages({
                 className={`relative max-w-[85%] rounded-[12px] p-3 shadow-xs ${
                   isUser
                     ? "bg-primary text-primary-foreground rounded-tr-none"
-                    : "bg-[#FFF9F2] text-foreground border border-[#F4EBE0] rounded-tl-none"
+                    : "bg-[#FFF9F2] dark:bg-accent/20 text-foreground border border-[#F4EBE0] dark:border-accent/30 rounded-tl-none"
                 }`}
               >
                 {textToDisplay && (
@@ -189,7 +206,7 @@ export function ChatMessages({
       {/* AI Answer Processing Loader */}
       {isPending && (
         <div className="flex w-full justify-start animate-pulse">
-          <div className="rounded-[12px] bg-[#FFF9F2] p-3 text-sm text-muted-foreground border border-[#F4EBE0] rounded-tl-none flex items-center gap-1.5">
+          <div className="rounded-[12px] bg-[#FFF9F2] dark:bg-accent/20 p-3 text-sm text-muted-foreground border border-[#F4EBE0] dark:border-accent/30 rounded-tl-none flex items-center gap-1.5">
             <span className="size-1.5 rounded-full bg-primary/70 animate-bounce [animation-delay:-0.3s]"></span>
             <span className="size-1.5 rounded-full bg-primary/70 animate-bounce [animation-delay:-0.15s]"></span>
             <span className="size-1.5 rounded-full bg-primary/70 animate-bounce"></span>
@@ -197,11 +214,7 @@ export function ChatMessages({
         </div>
       )}
 
-      {/* Quick suggestions chips */}
-      <QuickChips
-        onChipClick={onChipClick}
-        visible={isAuthenticated && messages.length === 1}
-      />
+
 
       {/* Guest fallback lock panel */}
       {!isAuthenticated && <GuestFallback onClose={onClose} />}
