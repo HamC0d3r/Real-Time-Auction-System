@@ -10,6 +10,7 @@ import { BidHistory } from "./BidHistory";
 import { ItemDetailsTab } from "./ItemDetailsTab";
 import { SimilarItems } from "./SimilarItems";
 import { ROUTES } from "@/config/routes.config";
+import { useAuthStore } from "@/stores/auth.store";
 import type { AuctionSummary, Seller } from "../../types/auction.types";
 
 const PlaceBidModal = dynamic(
@@ -32,6 +33,7 @@ export function AuctionDetailContent({
   auction,
 }: AuctionDetailContentProps) {
   const router = useRouter();
+  const { isAuthenticated } = useAuthStore();
   const [isBidModalOpen, setIsBidModalOpen] = useState(false);
 
   // ---------------------------------------------------------------------------
@@ -58,6 +60,11 @@ export function AuctionDetailContent({
   // ---------------------------------------------------------------------------
 
   const handlePlaceBid = () => {
+    if (!isAuthenticated) {
+      router.push(ROUTES.AUTH.LOGIN);
+      return;
+    }
+
     if (auction.isOwner) {
       router.push(`${ROUTES.AUCTIONS.DETAIL(auction.id)}/edit`);
       return;

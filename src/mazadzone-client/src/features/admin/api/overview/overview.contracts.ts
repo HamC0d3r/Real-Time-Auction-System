@@ -9,7 +9,6 @@ export interface SummaryStatsResponse {
   endingWithin24h: MetricDetail;
   completedOrders: MetricDetail;
   openDisputes: MetricDetail;
-  platformRevenue: MetricDetail;
 }
 
 export interface UserGrowthPoint {

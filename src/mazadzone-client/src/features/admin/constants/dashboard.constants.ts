@@ -47,12 +47,4 @@ export const METRIC_CARD_DEFINITIONS: MetricCardDefinition[] = [
     iconClassName: "text-red-500",
     iconBgClassName: "bg-red-50 dark:bg-red-950/20",
   },
-  {
-    title: "Platform Revenue",
-    metricKey: "platformRevenue",
-    icon: DollarSign,
-    iconClassName: "text-emerald-600",
-    iconBgClassName: "bg-emerald-50 dark:bg-emerald-950/20",
-    isCurrency: true,
-  },
 ];

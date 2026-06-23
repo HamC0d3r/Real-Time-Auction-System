@@ -58,11 +58,11 @@ const CATEGORIES_DATA: CategoryItem[] = [
 
 export function BrowseCategoriesSection() {
   return (
-    <section className="w-full bg-[#EAE8E4] py-6 my-0">
+    <section className="w-full bg-[#EAE8E4] dark:bg-muted/40 py-6 my-0">
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-0">
         {/* Section Header */}
         <div className="flex items-center justify-between mb-8">
-          <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight text-[#1A1A1A]">
+          <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight text-[#1A1A1A] dark:text-foreground">
             Browse Categories
           </h2>
         </div>
@@ -73,7 +73,7 @@ export function BrowseCategoriesSection() {
             <Link
               key={category.id}
               href={`${ROUTES.AUCTIONS.LIST}?category=${encodeURIComponent(category.filterValue)}`}
-              className="group flex items-center justify-between p-4 bg-white rounded-2xl border border-white hover:border-[#1A1A1A]/10 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer"
+              className="group flex items-center justify-between p-4 bg-white dark:bg-card rounded-2xl border border-white dark:border-border/55 hover:border-[#1A1A1A]/10 dark:hover:border-primary/50 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer"
             >
               <div className="flex items-center gap-4 flex-1">
                 {/* Thumbnail Image Container */}
@@ -89,7 +89,7 @@ export function BrowseCategoriesSection() {
 
                 {/* Content */}
                 <div className="space-y-2">
-                  <h3 className="text-sm xs:text-base sm:text-lg font-bold text-[#1A1A1A] leading-snug group-hover:text-primary transition-colors duration-200">
+                  <h3 className="text-sm xs:text-base sm:text-lg font-bold text-[#1A1A1A] dark:text-foreground leading-snug group-hover:text-primary transition-colors duration-200">
                     {category.name}
                   </h3>
                   <span className="inline-block text-[#f97316] font-bold text-xs md:text-sm tracking-wide">
@@ -99,7 +99,7 @@ export function BrowseCategoriesSection() {
               </div>
 
               {/* Action Circle Button */}
-              <div className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center text-slate-400 group-hover:border-[#1A1A1A] group-hover:bg-[#1A1A1A] group-hover:text-white transition-all duration-300 shrink-0 ml-2">
+              <div className="w-10 h-10 rounded-full border border-slate-200 dark:border-border/80 flex items-center justify-center text-slate-400 dark:text-muted-foreground group-hover:border-[#1A1A1A] dark:group-hover:border-primary group-hover:bg-[#1A1A1A] dark:group-hover:bg-primary group-hover:text-white transition-all duration-300 shrink-0 ml-2">
                 <ChevronRight className="size-5" />
               </div>
             </Link>

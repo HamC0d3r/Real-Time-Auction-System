@@ -31,10 +31,7 @@ public class GetDashboardStatsQueryHandler : IQueryHandler<GetDashboardStatsQuer
             LiveAuctions: new StatMetricDto(current.LiveAuctions, CalculatePercentage(current.LiveAuctions, previous.LiveAuctions)),
             EndingWithin24h: new StatMetricDto(current.EndingWithin24h, CalculatePercentage(current.EndingWithin24h, previous.EndingWithin24h)),
             CompletedOrders: new StatMetricDto(current.CompletedOrders, CalculatePercentage(current.CompletedOrders, previous.CompletedOrders)),
-            OpenDisputes: new StatMetricDto(current.OpenDisputes, CalculatePercentage(current.OpenDisputes, previous.OpenDisputes)),
-            
-            // Hardcoded revenue as requested for now
-            PlatformRevenue: new StatMetricDto(48720, 22.4m) 
+            OpenDisputes: new StatMetricDto(current.OpenDisputes, CalculatePercentage(current.OpenDisputes, previous.OpenDisputes))
         );
     }
 

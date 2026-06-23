@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
-import { MessageSquare, X } from "lucide-react";
+import { X } from "lucide-react";
 import dynamic from "next/dynamic";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import chatIcon from "@/assets/Images/ChatIcon.webp";
 
 const AssistantChatWindow = dynamic(
   () => import("./AssistantChatWindow").then((m) => m.AssistantChatWindow),
@@ -27,7 +29,7 @@ export function AssistantPopover() {
       <Button
         onClick={() => setIsOpen(!isOpen)}
         size="icon"
-        className="size-14 rounded-full shadow-lg hover:scale-105 hover:shadow-xl active:scale-95 active:shadow-md"
+        className="size-14 rounded-full overflow-hidden shadow-lg hover:scale-105 hover:shadow-xl active:scale-95 active:shadow-md"
         aria-label="Toggle auction guide agent"
         aria-expanded={isOpen}
       >
@@ -35,7 +37,13 @@ export function AssistantPopover() {
           <X className="size-6 animate-in spin-in-90 duration-200" />
         ) : (
           <>
-            <MessageSquare className="size-6 animate-in zoom-in duration-200" />
+            <Image
+              src={chatIcon}
+              alt="Chat Assistant"
+              width={56}
+              height={56}
+              className="size-full object-cover animate-in zoom-in duration-200"
+            />
             <span className="absolute -right-0.5 -top-0.5 flex size-3.5">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex size-3.5 rounded-full bg-emerald-500 border-2 border-white"></span>

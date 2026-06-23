@@ -183,7 +183,7 @@ export function AuctionDetailsForm() {
         {/* Subcategory Selector - Always rendered to the right of category */}
         <div className="space-y-2">
           <Label htmlFor="subcategory" className="text-base font-bold text-foreground flex items-center gap-1">
-            Subcategory <span className="text-red-500">*</span>
+            Subcategory
           </Label>
           <Controller
             control={control}

@@ -80,7 +80,8 @@ public class SellerDashboardQueries : ResilientRepository, ISellerDashboardQueri
             "price" => "LastBidAmount",
             "bids" => "BidsCount",
             "date" => "a.EndTime",
-            _ => "a.EndTime"
+            "creationdate" => "a.CreatedOnUtc",
+            _ => "a.CreatedOnUtc"
         };
         string dir = filter?.SortDirection?.ToUpper() == "ASC" ? "ASC" : "DESC";
 

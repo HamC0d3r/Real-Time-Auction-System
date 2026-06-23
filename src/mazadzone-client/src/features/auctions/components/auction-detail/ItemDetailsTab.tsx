@@ -28,11 +28,13 @@ export function ItemDetailsTab({
       {/* Content */}
       <div className="space-y-6">
         {/* Category Breadcrumbs */}
-        <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-[0.15em] px-1">
-          <span>{category}</span>
-          <ChevronRight className="size-3 text-muted-foreground/40" />
-          <span className="text-primary">{subcategory}</span>
-        </div>
+        {category && subcategory && !(category === "Tech and Electronics" && subcategory === "Others") && (
+          <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-[0.15em] px-1">
+            <span>{category}</span>
+            <ChevronRight className="size-3 text-muted-foreground/40" />
+            <span className="text-primary">{subcategory}</span>
+          </div>
+        )}
 
         {/* Description — clean section, no card wrapper */}
         <div className="space-y-3">

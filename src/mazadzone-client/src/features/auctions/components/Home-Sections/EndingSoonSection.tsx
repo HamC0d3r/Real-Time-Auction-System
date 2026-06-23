@@ -42,7 +42,7 @@ export function EndingSoonSection() {
           </span>
         </div>
         <Link
-          href={`${ROUTES.AUCTIONS.LIST}?sortBy=EndTime&sortDirection=asc`}
+          href={`${ROUTES.AUCTIONS.LIST}?sortBy=EndTime&sortDirection=asc&status=Active`}
           className="flex items-center gap-2 text-primary font-semibold hover:gap-3 transition-all text-sm md:text-base"
         >
           View All <MoveRight className="size-5" />

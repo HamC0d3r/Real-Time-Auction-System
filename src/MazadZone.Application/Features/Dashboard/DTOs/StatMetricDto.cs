@@ -10,6 +10,5 @@ public record DashboardStatsDto(
     StatMetricDto LiveAuctions,
     StatMetricDto EndingWithin24h,
     StatMetricDto CompletedOrders,
-    StatMetricDto OpenDisputes,
-    StatMetricDto PlatformRevenue
+    StatMetricDto OpenDisputes
 );

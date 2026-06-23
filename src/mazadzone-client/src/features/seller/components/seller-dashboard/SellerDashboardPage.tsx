@@ -59,7 +59,7 @@ export function SellerDashboardPage() {
 
   // ─── URL-derived auction filters ──────────────────────────────────────────
   const activeStatus = searchParams.get("status") || "All";
-  const sortBy = searchParams.get("sortBy") || "EndTime";
+  const sortBy = searchParams.get("sortBy") || "CreationDate";
   const tablePage = parseInt(searchParams.get("page") || "1", 10);
 
   // ─── Map UI sort values to backend column names ───────────────────────────

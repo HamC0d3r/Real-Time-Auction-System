@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/utils/currency.utils";
 import { ROUTES } from "@/config/routes.config";
 import type { SellerAuctionSummaryDto } from "@/features/seller";
+import { getAuctionImageFallback, normalizeImageUrl } from "@/features/auctions";
 
 interface SellerAuctionsTableRowProps {
   auction: SellerAuctionSummaryDto;
@@ -97,7 +98,8 @@ export function SellerAuctionsTableRow({
   const timeLeftInfo = getTimeLeft(auction.endDateUtc, auction.status);
 
   // Fallback thumbnail if null
-  const [imgSrc, setImgSrc] = useState(auction.thumbnailUrl || "/assets/images/placeholder.jpg");
+  const fallbackImg = getAuctionImageFallback(auction.title, 160, 120);
+  const [imgSrc, setImgSrc] = useState(normalizeImageUrl(auction.thumbnailUrl) || fallbackImg);
 
   return (
     <TableRow className="hover:bg-accent/20 dark:hover:bg-accent/5 transition-colors h-[64px] border-0">
@@ -113,7 +115,7 @@ export function SellerAuctionsTableRow({
               sizes="56px"
               className="object-cover"
               onError={() => {
-                setImgSrc("https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=120&auto=format&fit=crop&q=60");
+                setImgSrc(fallbackImg);
               }}
             />
           </div>
