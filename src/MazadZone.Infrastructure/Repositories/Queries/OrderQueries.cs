@@ -75,11 +75,11 @@ public class OrderQueries : ResilientRepository, IOrderQueries
         // 2. We use conditional aggregation (COUNT(CASE WHEN...)) to pivot rows into columns.
         const string sql = @"o
             SELECT  
-                ISNULL(SUM(o.TotalAmount),0) AS TotalSales,
-                ISNULL(SUM(CASE WHEN o.Status IN (@DeliveredStatus) THEN o.TotalAmount END), 0) AS TotalRevenue,
+                COALESCE(SUM(o.TotalAmount),0) AS TotalSales,
+                COALESCE(SUM(CASE WHEN o.Status IN (@DeliveredStatus) THEN o.TotalAmount END), 0) AS TotalRevenue,
                 COUNT(CASE WHEN o.Status = @PendingStatus THEN 1 END) AS PendingOrders,
                 COUNT(CASE WHEN o.DisputeId IS NOT NULL AND d.Status != @ResolvedDisputeStatus THEN 1 END) AS ActiveDisputes,
-                ISNULL(AVG(CASE WHEN f.Rating IS NOT NULL THEN f.Rating END), 0) AS AverageRating
+                COALESCE(AVG(CASE WHEN f.Rating IS NOT NULL THEN f.Rating END), 0) AS AverageRating
             FROM Orders o
             INNER JOIN Bids b ON o.WinningBidId = b.Id
             INNER JOIN Auctions a ON b.AuctionId = a.Id

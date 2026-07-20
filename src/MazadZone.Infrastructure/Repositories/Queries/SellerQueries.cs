@@ -74,7 +74,7 @@ public sealed class SellerQueries : ResilientRepository, ISellerQueries
             f.CreatedAtUtc AS CreatedAt,
             a.Id AS AuctionId,
             it.Title AS AuctionTitle,
-            (SELECT TOP(1) img.ImageUrl FROM ItemImages img WHERE img.ItemId = it.Id AND img.isMain = 1) AS AuctionImageUrl,
+            (SELECT img.ImageUrl FROM ItemImages img WHERE img.ItemId = it.Id AND img.isMain = true LIMIT 1) AS AuctionImageUrl,
             u.Id AS AuthorId
         FROM Orders o
         JOIN Feedbacks f ON o.Id = f.OrderId

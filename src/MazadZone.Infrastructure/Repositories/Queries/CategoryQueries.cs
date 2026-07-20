@@ -22,7 +22,7 @@ public sealed class CategoryQueries : ResilientRepository, ICategoryQueries
             Description,
             ParentCategoryId as ParentId 
         FROM Categories 
-        WHERE ParentCategoryId IS NULL AND IsDeleted = 0;";
+        WHERE ParentCategoryId IS NULL AND IsDeleted = false;";
 
         return await ExecuteResilientAsync(async connection =>
         {
@@ -44,7 +44,7 @@ public sealed class CategoryQueries : ResilientRepository, ICategoryQueries
             Description,
             ParentCategoryId as ParentId 
         FROM Categories 
-        WHERE ParentCategoryId = @ParentId AND IsDeleted = 0;";
+        WHERE ParentCategoryId = @ParentId AND IsDeleted = false;";
 
         return await ExecuteResilientAsync(async connection =>
         {
@@ -62,7 +62,7 @@ public sealed class CategoryQueries : ResilientRepository, ICategoryQueries
             Description,
             ParentCategoryId as ParentId 
         FROM Categories 
-        WHERE id = @CategoryId AND IsDeleted = 0;";
+        WHERE id = @CategoryId AND IsDeleted = false;";
 
         return await ExecuteResilientAsync(connection =>
                 connection.QueryFirstOrDefaultAsync<CategoryResponse>(sql, new { CategoryId = id.Value })
@@ -82,7 +82,7 @@ public sealed class CategoryQueries : ResilientRepository, ICategoryQueries
                 ParentCategoryId, 
                 1 AS Level
             FROM Categories
-            WHERE Id = @CategoryId AND IsDeleted = 0
+            WHERE Id = @CategoryId AND IsDeleted = false
 
             UNION ALL
 
@@ -94,7 +94,7 @@ public sealed class CategoryQueries : ResilientRepository, ICategoryQueries
                 cp.Level + 1
             FROM Categories c
             INNER JOIN cat_path cp ON c.Id = cp.ParentCategoryId
-            WHERE c.[IsDeleted] = 0
+            WHERE c.IsDeleted = false
         )
         -- 3. Final Selection: Order from the top root parent down to the child
         SELECT Id, Name, Level 
@@ -118,8 +118,8 @@ public sealed class CategoryQueries : ResilientRepository, ICategoryQueries
             Name,
             Description,
             ParentCategoryId AS  ParentId 
-        FROM categories 
-        WHERE IsDeleted = 0";
+        FROM ""Categories"" 
+        WHERE IsDeleted = false";
 
         return await ExecuteResilientAsync(async connection =>
     {
@@ -182,7 +182,7 @@ public sealed class CategoryQueries : ResilientRepository, ICategoryQueries
             FROM Categories c
             LEFT JOIN Items i ON c.Id = i.CategoryId
             LEFT JOIN Auctions a ON i.AuctionId = a.Id AND a.Status = @ActiveStatus
-            WHERE c.IsDeleted = 0
+            WHERE c.IsDeleted = false
             GROUP BY c.Id, c.Name
         ),
         RankedCategories AS (
@@ -261,7 +261,7 @@ public sealed class CategoryQueries : ResilientRepository, ICategoryQueries
                 Description,
                 ParentCategoryId as ParentId 
             FROM Categories 
-            WHERE Name LIKE @SearchTerm AND IsDeleted = 0";
+            WHERE Name LIKE @SearchTerm AND IsDeleted = false";
 
         return await ExecuteResilientAsync(async connection =>
         {
@@ -286,7 +286,7 @@ public sealed class CategoryQueries : ResilientRepository, ICategoryQueries
             FROM Categories c
             LEFT JOIN Items i ON c.Id = i.CategoryId
             LEFT JOIN Auctions a ON i.AuctionId = a.Id AND a.Status = @ActiveStatus
-            WHERE c.IsDeleted = 0 AND c.ParentCategoryId IS NULL
+            WHERE c.IsDeleted = false AND c.ParentCategoryId IS NULL
             GROUP BY c.Id, c.Name
         ),
         RankedCategories AS (

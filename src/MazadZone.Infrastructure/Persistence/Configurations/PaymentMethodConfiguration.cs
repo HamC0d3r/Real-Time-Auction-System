@@ -56,10 +56,6 @@ public sealed class PaymentMethodConfiguration : IEntityTypeConfiguration<Paymen
         builder.HasIndex(pm => pm.UserId)
             .HasDatabaseName("IX_PaymentMethods_UserId");
 
-        builder.HasOne<User>()
-            .WithMany()
-            .HasForeignKey(pm => pm.UserId)
-            .OnDelete(DeleteBehavior.Cascade)
-            .IsRequired();
+        // Relationship configured in UserConfiguration: User.PaymentMethods (HasMany -> WithOne)
     }
 }

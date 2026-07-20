@@ -95,9 +95,9 @@ public class SellerDashboardQueries : ResilientRepository, ISellerDashboardQueri
                       "  ELSE 'Unknown' " +
                       "END AS Status, " +
                       "(SELECT COUNT(1) FROM Bids b WHERE b.AuctionId = a.Id) AS BidsCount, " +
-                      "ISNULL((SELECT TOP(1) b.Amount FROM Bids b WHERE b.AuctionId = a.Id ORDER BY b.PlacedAtUtc DESC), a.StartBidAmount) AS LastBidAmount, " +
+                      "COALESCE((SELECT b.Amount FROM Bids b WHERE b.AuctionId = a.Id ORDER BY b.PlacedAtUtc DESC LIMIT 1), a.StartBidAmount) AS LastBidAmount, " +
                       "a.EndTime AS EndDateUtc, " +
-                      "(SELECT TOP(1) img.ImageUrl FROM ItemImages img WHERE img.ItemId = it.Id AND img.isMain = 1) AS ThumbnailUrl " +
+                      "(SELECT img.ImageUrl FROM ItemImages img WHERE img.ItemId = it.Id AND img.isMain = true LIMIT 1) AS ThumbnailUrl " +
                       "FROM Auctions a " +
                       "INNER JOIN Items it ON it.AuctionId = a.Id " +
                       "LEFT JOIN Categories c ON c.Id = it.CategoryId " +
@@ -233,9 +233,9 @@ public class SellerDashboardQueries : ResilientRepository, ISellerDashboardQueri
 
         var sql = $@"
             SELECT 
-                ISNULL(SUM(p.GrossAmount), 0) AS TotalGrossRevenue,
-                ISNULL(SUM(p.PlatformFee), 0) AS TotalPlatformFees,
-                ISNULL(SUM(p.NetAmount), 0) AS TotalNetProfit,
+                COALESCE(SUM(p.GrossAmount), 0) AS TotalGrossRevenue,
+                COALESCE(SUM(p.PlatformFee), 0) AS TotalPlatformFees,
+                COALESCE(SUM(p.NetAmount), 0) AS TotalNetProfit,
                 COUNT(o.Id) AS CompletedOrdersCount
             FROM Payments p
             INNER JOIN Orders o ON p.OrderId = o.Id

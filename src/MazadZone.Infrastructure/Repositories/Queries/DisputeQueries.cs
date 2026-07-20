@@ -39,7 +39,7 @@ public class DisputeQueries : ResilientRepository, IDisputeQueries
             i.Title AS AuctionTitle, 
             a.EndTime, 
             o.TotalAmount AS FinalPrice,
-            (SELECT TOP 1 ImageUrl From ItemImages WHERE ItemId = i.Id AND IsMain = 1) AS MainImageUrl,
+            (SELECT ImageUrl From ItemImages WHERE ItemId = i.Id AND IsMain = true LIMIT 1) AS MainImageUrl,
             
             -- Bidder Info Aliases
             bidder.Id AS BidderId, 

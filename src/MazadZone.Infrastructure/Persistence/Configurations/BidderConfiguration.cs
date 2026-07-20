@@ -39,7 +39,7 @@ internal sealed class BidderConfiguration : IEntityTypeConfiguration<Bidder>
 
         builder.Property<HashSet<AuctionId>>("_unpaidAuctions")
                .HasColumnName("UnpaidAuctions")
-               .HasColumnType("nvarchar(max)")
+               .HasColumnType("text")
                .HasConversion(new AuctionIdSetConverter())
                .Metadata.SetValueComparer(new AuctionIdSetComparer());
 

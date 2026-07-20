@@ -28,7 +28,7 @@ public class SigningKeyConfiguration : IEntityTypeConfiguration<SigningKey>
 
         builder.Property(sk => sk.CreatedAt)
                .IsRequired()
-               .HasDefaultValueSql("GETUTCDATE()"); // optional default
+               .HasDefaultValueSql("CURRENT_TIMESTAMP"); // optional default
 
         builder.Property(sk => sk.ExpiresAt)
                .IsRequired();

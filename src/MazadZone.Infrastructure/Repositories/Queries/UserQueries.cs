@@ -24,14 +24,15 @@ public class UserQueries : ResilientRepository, IUserQueries
     public async Task<Result<Address>> GetAddressByIdAsync(Guid userId, CancellationToken cancellationToken)
     {
         const string sql = @"
-            SELECT TOP 1
+            SELECT
                 City,
                 Street,
                 Building,
                 Landmark
-            FROM BidderAddresses
+            FROM ""BidderAddresses""
             WHERE BidderId = @UserId
-            ORDER BY IsDefault DESC;
+            ORDER BY IsDefault DESC
+            LIMIT 1;
         ";
 
         var addressDto = await ExecuteResilientAsync(connection =>
@@ -49,7 +50,7 @@ public class UserQueries : ResilientRepository, IUserQueries
     {
         var sql = @"
             SELECT Email
-            FROM Users
+            FROM ""Users""
             WHERE Id = @userId
         ";
 

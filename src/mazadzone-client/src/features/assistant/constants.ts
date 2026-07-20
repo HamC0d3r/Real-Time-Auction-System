@@ -51,3 +51,17 @@ export const WELCOME_MESSAGE = {
   timestamp: "10:32 AM",
 };
 
+export interface QuickChipItem {
+  label: string;
+  text: string;
+}
+
+export const QUICK_CHIPS: QuickChipItem[] = [
+  { label: "Browse auctions", text: "Browse auctions" },
+  { label: "Show me electronics ending soon", text: "Show me electronics ending soon" },
+  { label: "How bidding works", text: "How bidding works" },
+  { label: "Become a seller", text: "Become a seller" },
+  { label: "My bids", text: "My bids" },
+];
+
+

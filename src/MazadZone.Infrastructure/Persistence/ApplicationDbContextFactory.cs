@@ -17,7 +17,7 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
         var builder = new DbContextOptionsBuilder<AppDbContext>();
         var connectionString = configuration.GetConnectionString("MazadZoneDb");
 
-        builder.UseSqlServer(connectionString);
+        builder.UseNpgsql(connectionString);
 
         return new AppDbContext(builder.Options);
 

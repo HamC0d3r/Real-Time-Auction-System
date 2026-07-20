@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly;
 using Hangfire;
+using Hangfire.PostgreSql;
 using MazadZone.Application.Common.Interfaces;
 using MazadZone.Application.Services;
 using MazadZone.Domain.Shared.Interfaces;
@@ -64,14 +65,13 @@ public static class DependencyInjection
             var interceptor = sp.GetRequiredService<InsertOutboxMessagesInterceptor>();
             var auditableInterceptor = sp.GetRequiredService<UpdateAuditableEntitiesInterceptor>();
 
-            options.UseSqlServer(connectionString, sqlOptions =>
+            options.UseNpgsql(connectionString, npgsqlOptions =>
             {
-                sqlOptions.EnableRetryOnFailure(
+                npgsqlOptions.EnableRetryOnFailure(
                     maxRetryCount: resilienceOptions.RetryCount,
                     maxRetryDelay: TimeSpan.FromSeconds(resilienceOptions.MaxDelaySeconds),
-                    errorNumbersToAdd: null
+                    errorCodesToAdd: null
                 );
-
             })
                    .AddInterceptors(interceptor, auditableInterceptor);
         });
@@ -178,14 +178,7 @@ public static class DependencyInjection
             .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
             .UseSimpleAssemblyNameTypeSerializer()
             .UseRecommendedSerializerSettings()
-            .UseSqlServerStorage(connectionString, new Hangfire.SqlServer.SqlServerStorageOptions
-            {
-                CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
-                SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
-                QueuePollInterval = TimeSpan.Zero,
-                UseRecommendedIsolationLevel = true,
-                DisableGlobalLocks = true
-            }));
+            .UsePostgreSqlStorage(options => options.UseNpgsqlConnection(connectionString)));
 
         services.AddHangfireServer(options =>
         {

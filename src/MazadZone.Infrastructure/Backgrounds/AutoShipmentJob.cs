@@ -33,9 +33,10 @@ public class AutoShipmentJob : IJob
         // 1. Fetch a batch of Confirmed orders using high-performance Dapper
         const int batchSize = 50;
         const string sql = @"
-            SELECT TOP (@BatchSize) Id 
-            FROM Orders 
-            WHERE Status = @Status;";
+            SELECT ""Id"" 
+            FROM ""Orders"" 
+            WHERE Status = @Status
+            LIMIT @BatchSize;";
 
         using var connection = sqlConnectionFactory.CreateConnection();
         var orderIds = await connection.QueryAsync<Guid>(sql, new 

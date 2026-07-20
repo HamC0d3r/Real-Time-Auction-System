@@ -35,7 +35,7 @@ public class HashedRefreshTokenConfiguration : IEntityTypeConfiguration<HashedRe
 
         builder.Property(rt => rt.CreatedAt)
             .IsRequired()
-            .HasDefaultValueSql("GETUTCDATE()"); 
+            .HasDefaultValueSql("CURRENT_TIMESTAMP"); 
 
         builder.Property(rt => rt.RevokedAt)
             .IsRequired(false);
