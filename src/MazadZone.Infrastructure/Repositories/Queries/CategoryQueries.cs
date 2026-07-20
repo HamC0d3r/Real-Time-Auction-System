@@ -21,7 +21,7 @@ public sealed class CategoryQueries : ResilientRepository, ICategoryQueries
             Name,
             Description,
             ParentCategoryId as ParentId 
-        FROM Categories 
+        FROM ""Categories"" 
         WHERE ParentCategoryId IS NULL AND IsDeleted = false;";
 
         return await ExecuteResilientAsync(async connection =>
@@ -43,7 +43,7 @@ public sealed class CategoryQueries : ResilientRepository, ICategoryQueries
             Name,
             Description,
             ParentCategoryId as ParentId 
-        FROM Categories 
+        FROM ""Categories"" 
         WHERE ParentCategoryId = @ParentId AND IsDeleted = false;";
 
         return await ExecuteResilientAsync(async connection =>
@@ -61,7 +61,7 @@ public sealed class CategoryQueries : ResilientRepository, ICategoryQueries
             Name,
             Description,
             ParentCategoryId as ParentId 
-        FROM Categories 
+        FROM ""Categories"" 
         WHERE id = @CategoryId AND IsDeleted = false;";
 
         return await ExecuteResilientAsync(connection =>
@@ -81,7 +81,7 @@ public sealed class CategoryQueries : ResilientRepository, ICategoryQueries
                 Name, 
                 ParentCategoryId, 
                 1 AS Level
-            FROM Categories
+            FROM ""Categories""
             WHERE Id = @CategoryId AND IsDeleted = false
 
             UNION ALL
@@ -92,7 +92,7 @@ public sealed class CategoryQueries : ResilientRepository, ICategoryQueries
                 c.Name, 
                 c.ParentCategoryId, 
                 cp.Level + 1
-            FROM Categories c
+            FROM ""Categories"" c
             INNER JOIN cat_path cp ON c.Id = cp.ParentCategoryId
             WHERE c.IsDeleted = false
         )
@@ -179,9 +179,9 @@ public sealed class CategoryQueries : ResilientRepository, ICategoryQueries
                 c.Id, 
                 c.Name, 
                 COUNT(a.Id) as ActiveAuctionsCount
-            FROM Categories c
-            LEFT JOIN Items i ON c.Id = i.CategoryId
-            LEFT JOIN Auctions a ON i.AuctionId = a.Id AND a.Status = @ActiveStatus
+            FROM ""Categories"" c
+            LEFT JOIN ""Items"" i ON c.Id = i.CategoryId
+            LEFT JOIN ""Auctions"" a ON i.AuctionId = a.Id AND a.Status = @ActiveStatus
             WHERE c.IsDeleted = false
             GROUP BY c.Id, c.Name
         ),
@@ -260,8 +260,8 @@ public sealed class CategoryQueries : ResilientRepository, ICategoryQueries
                 Name, 
                 Description,
                 ParentCategoryId as ParentId 
-            FROM Categories 
-            WHERE Name LIKE @SearchTerm AND IsDeleted = false";
+            FROM ""Categories"" 
+            WHERE Name ILIKE @SearchTerm AND IsDeleted = false";
 
         return await ExecuteResilientAsync(async connection =>
         {
@@ -283,9 +283,9 @@ public sealed class CategoryQueries : ResilientRepository, ICategoryQueries
                 c.Id, 
                 c.Name, 
                 COUNT(a.Id) as ActiveAuctionsCount
-            FROM Categories c
-            LEFT JOIN Items i ON c.Id = i.CategoryId
-            LEFT JOIN Auctions a ON i.AuctionId = a.Id AND a.Status = @ActiveStatus
+            FROM ""Categories"" c
+            LEFT JOIN ""Items"" i ON c.Id = i.CategoryId
+            LEFT JOIN ""Auctions"" a ON i.AuctionId = a.Id AND a.Status = @ActiveStatus
             WHERE c.IsDeleted = false AND c.ParentCategoryId IS NULL
             GROUP BY c.Id, c.Name
         ),
