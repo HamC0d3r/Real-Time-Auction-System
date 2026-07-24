@@ -1,5 +1,8 @@
 import type { AuctionStatus, AuctionCondition } from "@/types/domain.constants";
 
+/**
+ * Normalizes raw backend status strings into stable frontend AuctionStatus enums.
+ */
 export function mapBackendStatusToAuctionStatus(status?: string): AuctionStatus {
   if (!status) return "Active";
   const normalized = status.toLowerCase();

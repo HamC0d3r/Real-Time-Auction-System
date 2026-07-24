@@ -258,8 +258,8 @@ public class DisputeQueries : ResilientRepository, IDisputeQueries
         WITH BreakdownData AS (
             SELECT 
                 dt.""Name"" AS ""DisputeTypeName"",
-                SUM(CASE WHEN d.""Id"" IS NOT NULL AND d.""CreatedAtUtc"" >= @CurrStart AND d.""CreatedAtUtc"" < @CurrEnd THEN 1 ELSE 0 END) AS ""CurrentCases"",
-                SUM(CASE WHEN d.""Id"" IS NOT NULL AND d.""CreatedAtUtc"" >= @PrevStart AND d.""CreatedAtUtc"" < @PrevEnd THEN 1 ELSE 0 END) AS ""PreviousCases""
+                COALESCE(SUM(CASE WHEN d.""Id"" IS NOT NULL AND d.""CreatedAtUtc"" >= @CurrStart AND d.""CreatedAtUtc"" < @CurrEnd THEN 1 ELSE 0 END), 0)::INT AS ""CurrentCases"",
+                COALESCE(SUM(CASE WHEN d.""Id"" IS NOT NULL AND d.""CreatedAtUtc"" >= @PrevStart AND d.""CreatedAtUtc"" < @PrevEnd THEN 1 ELSE 0 END), 0)::INT AS ""PreviousCases""
             FROM ""DisputeTypes"" dt
             LEFT JOIN ""Disputes"" d ON dt.""Id"" = d.""DisputeTypeId"" AND d.""Status"" = @OpenStatus
             GROUP BY dt.""Name""
@@ -270,28 +270,28 @@ public class DisputeQueries : ResilientRepository, IDisputeQueries
         ),
         RankedData AS (
             SELECT 
-                DisputeTypeName,
-                CurrentCases,
-                PreviousCases,
-                ROW_NUMBER() OVER(ORDER BY CurrentCases DESC, DisputeTypeName ASC) AS ""Rnk""
-            FROM ""BreakdownData""
+                ""DisputeTypeName"",
+                ""CurrentCases"",
+                ""PreviousCases"",
+                ROW_NUMBER() OVER(ORDER BY ""CurrentCases"" DESC, ""DisputeTypeName"" ASC) AS ""Rnk""
+            FROM BreakdownData
         )
         
         SELECT 
-            DisputeTypeName,
-            CurrentCases,
-            PreviousCases,
-            IsOtherBucket
+            ""DisputeTypeName"",
+            ""CurrentCases"",
+            ""PreviousCases"",
+            ""IsOtherBucket""
         FROM (
             -- Always select the Top N
             SELECT 
-                DisputeTypeName,
-                CurrentCases,
-                PreviousCases,
+                ""DisputeTypeName"",
+                ""CurrentCases"",
+                ""PreviousCases"",
                 false AS ""IsOtherBucket"",
-                Rnk AS ""SortOrder""
-            FROM ""RankedData""
-            WHERE Rnk <= @Limit
+                ""Rnk"" AS ""SortOrder""
+            FROM RankedData
+            WHERE ""Rnk"" <= @Limit
     ";
 
     if (includeOther)
@@ -302,19 +302,19 @@ public class DisputeQueries : ResilientRepository, IDisputeQueries
             -- Aggregate everything else into 'Other'
             SELECT 
                 'Other' AS ""DisputeTypeName"",
-                SUM(CurrentCases) AS ""CurrentCases"",
-                SUM(PreviousCases) AS ""PreviousCases"",
+                COALESCE(SUM(""CurrentCases""), 0)::INT AS ""CurrentCases"",
+                COALESCE(SUM(""PreviousCases""), 0)::INT AS ""PreviousCases"",
                 true AS ""IsOtherBucket"",
                 @Limit + 1 AS ""SortOrder""
-            FROM ""RankedData""
-            WHERE Rnk > @Limit
+            FROM RankedData
+            WHERE ""Rnk"" > @Limit
             HAVING COUNT(*) > 0 
         ";
     }
 
     sql += @"
         ) FinalResult
-        ORDER BY SortOrder ASC;
+        ORDER BY ""SortOrder"" ASC;
     ";
 
     return await ExecuteResilientAsync(async (connection, ct) =>

@@ -41,4 +41,5 @@ export const ADMIN_NAV: NavItem[] = [
   { label: "Users", href: ROUTES.ADMIN.USERS, roles: ["admin"] },
   { label: "Auctions", href: ROUTES.ADMIN.AUCTIONS, roles: ["admin"] },
   { label: "Disputes", href: ROUTES.ADMIN.DISPUTES, roles: ["admin"] },
+  { label: "Seed Data", href: ROUTES.ADMIN.SEED_DATA, roles: ["admin"] },
 ];

@@ -164,7 +164,7 @@ public sealed class CategoryQueries : ResilientRepository, ICategoryQueries
             SELECT 
                 c.""Id"", 
                 c.""Name"", 
-                COUNT(a.""Id"") as ActiveAuctionsCount
+                COUNT(a.""Id"")::INT as ""ActiveAuctionsCount""
             FROM ""Categories"" c
             LEFT JOIN ""Items"" i ON c.""Id"" = i.""CategoryId""
             LEFT JOIN ""Auctions"" a ON i.""AuctionId"" = a.""Id"" AND a.""Status"" = @ActiveStatus
@@ -175,21 +175,21 @@ public sealed class CategoryQueries : ResilientRepository, ICategoryQueries
             SELECT 
                 ""Id"", 
                 ""Name"", 
-                ActiveAuctionsCount,
-                ROW_NUMBER() OVER(ORDER BY ActiveAuctionsCount DESC, ""Name"" ASC) as Rnk
+                ""ActiveAuctionsCount"",
+                ROW_NUMBER() OVER(ORDER BY ""ActiveAuctionsCount"" DESC, ""Name"" ASC) as Rnk
             FROM CategoryCounts
         )
         
         SELECT 
             ""Id"", 
             ""Name"", 
-            ActiveAuctionsCount 
+            ""ActiveAuctionsCount"" 
         FROM (
             -- Always select the Top N
             SELECT 
                 ""Id"", 
                 ""Name"", 
-                ActiveAuctionsCount,
+                ""ActiveAuctionsCount"",
                 Rnk AS SortOrder
             FROM RankedCategories
             WHERE Rnk <= @Limit
@@ -204,7 +204,7 @@ public sealed class CategoryQueries : ResilientRepository, ICategoryQueries
             SELECT 
                 NULL AS ""Id"", 
                 'Other' AS ""Name"", 
-                SUM(ActiveAuctionsCount) AS ActiveAuctionsCount,
+                COALESCE(SUM(""ActiveAuctionsCount""), 0)::INT AS ""ActiveAuctionsCount"",
                 @Limit + 1 AS SortOrder 
             FROM RankedCategories
             WHERE Rnk > @Limit
@@ -266,7 +266,7 @@ public sealed class CategoryQueries : ResilientRepository, ICategoryQueries
             SELECT 
                 c.""Id"", 
                 c.""Name"", 
-                COUNT(a.""Id"") as ActiveAuctionsCount
+                COUNT(a.""Id"")::INT as ""ActiveAuctionsCount""
             FROM ""Categories"" c
             LEFT JOIN ""Items"" i ON c.""Id"" = i.""CategoryId""
             LEFT JOIN ""Auctions"" a ON i.""AuctionId"" = a.""Id"" AND a.""Status"" = @ActiveStatus
@@ -277,21 +277,21 @@ public sealed class CategoryQueries : ResilientRepository, ICategoryQueries
             SELECT 
                 ""Id"", 
                 ""Name"", 
-                ActiveAuctionsCount,
-                ROW_NUMBER() OVER(ORDER BY ActiveAuctionsCount DESC, ""Name"" ASC) as Rnk
+                ""ActiveAuctionsCount"",
+                ROW_NUMBER() OVER(ORDER BY ""ActiveAuctionsCount"" DESC, ""Name"" ASC) as Rnk
             FROM RootCategoryCounts
         )
         
         SELECT 
             ""Id"", 
             ""Name"", 
-            ActiveAuctionsCount 
+            ""ActiveAuctionsCount"" 
         FROM (
             -- Always select the Top N
             SELECT 
                 ""Id"", 
                 ""Name"", 
-                ActiveAuctionsCount,
+                ""ActiveAuctionsCount"",
                 Rnk AS SortOrder
             FROM RankedCategories
             WHERE Rnk <= @Limit
@@ -306,7 +306,7 @@ public sealed class CategoryQueries : ResilientRepository, ICategoryQueries
             SELECT 
                 NULL AS ""Id"", 
                 'Other' AS ""Name"", 
-                SUM(ActiveAuctionsCount) AS ActiveAuctionsCount,
+                COALESCE(SUM(""ActiveAuctionsCount""), 0)::INT AS ""ActiveAuctionsCount"",
                 @Limit + 1 AS SortOrder 
             FROM RankedCategories
             WHERE Rnk > @Limit

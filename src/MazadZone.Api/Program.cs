@@ -23,6 +23,7 @@ using MazadZone.Api.Endpoints.Disputes;
 using MazadZone.Api.Endpoints.DisputeTypes;
 using MazadZone.Api.Endpoints.Dashboard;
 using MazadZone.Api.Endpoints.Emails;
+using MazadZone.Api.Endpoints.Admin;
 using MazadZone.Api.Configuration;
 #endregion
 
@@ -289,6 +290,7 @@ try
     app.MapDisputeTypeEndpoints();
     app.MapAuthenticationEndpoints();
     app.MapChatAgentEndpoints();
+    app.MapAdminSeedEndpoints();
 
 
     app.MapHub<AuctionsHub>("/hubs/auctions");

@@ -18,3 +18,5 @@ export * from "./metric-strip";
 export * from "./status-pill-bar";
 export * from "./section-panel";
 export * from "./inline-facts";
+export * from "./card";
+

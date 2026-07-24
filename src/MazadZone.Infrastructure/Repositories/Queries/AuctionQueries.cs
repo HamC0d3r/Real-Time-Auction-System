@@ -83,63 +83,91 @@ public partial class AuctionQueries(
 
         if (auction == null) return null;
 
-        var sellerId = UserId.Load(auction.SellerId.Value);
+        var sellerId = auction.SellerId;
 
-        var sellerUserInfo = await _context.Users.AsNoTracking()
-            .Where(s => s.Id == sellerId)
-            .Select(s => new
-            {
-                FullName = s.FullName.FirstName + " " + s.FullName.LastName,
-                Email = s.Email.Value
-            })
-            .FirstOrDefaultAsync(ct);
+        var sellerUserInfo = sellerId != null
+            ? await _context.Users.AsNoTracking()
+                .Where(s => s.Id == sellerId)
+                .Select(s => new
+                {
+                    s.FullName.FirstName,
+                    s.FullName.LastName,
+                    Email = s.Email.Value
+                })
+                .FirstOrDefaultAsync(ct)
+            : null;
 
-        var sellerName = sellerUserInfo?.FullName ?? "Unknown Seller";
+        var sellerName = sellerUserInfo != null
+            ? $"{sellerUserInfo.FirstName} {sellerUserInfo.LastName}".Trim()
+            : "Unknown Seller";
+
         var sellerEmail = sellerUserInfo?.Email ?? "No Email";
 
-        var sellerRatingAndReviewCount = await _context.Sellers.AsNoTracking()
-            .Where(s => s.Id == auction.SellerId)
-            .Select(s => new { s.Rating, s.ReviewsCount }).FirstOrDefaultAsync();
+        var sellerRatingAndReviewCount = sellerId != null
+            ? await _context.Sellers.AsNoTracking()
+                .Where(s => s.Id == sellerId)
+                .Select(s => new { s.Rating, s.ReviewsCount })
+                .FirstOrDefaultAsync(ct)
+            : null;
 
         var rating = sellerRatingAndReviewCount?.Rating ?? 0;
         var reviews = sellerRatingAndReviewCount?.ReviewsCount ?? 0;
 
-        var bids = auction.Bids.OrderByDescending(b => b.Amount)
-            .Select(b => new BidDto(
-                b.BidderId.Value,
-                _context.Users.Where(u => u.Id == b.BidderId).Select(u => u.FullName.FirstName + " " + u.FullName.LastName).FirstOrDefault(),
-                b.Amount.Amount,
-                (int)b.Status,
-                b.PlacedAtUtc
-            ))
-            .ToList() ?? new List<BidDto>();
+        var bidderUserIds = auction.Bids?.Select(b => b.BidderId).Where(id => id != null).Distinct().ToList() ?? new List<UserId>();
 
-        //Item info
-        var ItemTitle = auction.Item.Title;
-        var ItemDescription = auction.Item.Description;
+        var bidderNamesLookup = bidderUserIds.Any()
+            ? await _context.Users.AsNoTracking()
+                .Where(u => bidderUserIds.Contains(u.Id))
+                .Select(u => new
+                {
+                    u.Id,
+                    Name = u.FullName.FirstName + " " + u.FullName.LastName
+                })
+                .ToDictionaryAsync(u => u.Id, u => u.Name, ct)
+            : new Dictionary<UserId, string>();
 
-        var itemImages = auction.Item?.Images?
-                .Select(img => img.Path)
-                .ToList() ?? new List<string>();
+        var bids = auction.Bids != null
+            ? auction.Bids.OrderByDescending(b => b.Amount.Amount)
+                .Select(b => new BidDto(
+                    b.BidderId.Value,
+                    bidderNamesLookup.TryGetValue(b.BidderId, out var name) && !string.IsNullOrWhiteSpace(name) ? name : "Anonymous",
+                    b.Amount.Amount,
+                    (int)b.Status,
+                    b.PlacedAtUtc
+                ))
+                .ToList()
+            : new List<BidDto>();
+
+        // Item info
+        var itemTitle = auction.Item?.Title ?? "Untitled Auction";
+        var itemDescription = auction.Item?.Description ?? string.Empty;
+
+        var itemImages = auction.Item?.Images != null
+            ? auction.Item.Images.Select(img => img.Path).ToList()
+            : new List<string>();
+
+        var startBid = auction.StartBidAmount.Amount;
+        var minBid = auction.MinBidAmount.Amount;
+        var currentBid = auction.CurrentHighestBidAmount.Amount;
 
         return new AuctionDto(
-                auction.Id.Value,
-                auction.Item?.Title ?? string.Empty,
-                auction.Item?.Description ?? string.Empty,
-                itemImages,
-                sellerId.Value,
-                sellerName,
-                sellerEmail,
-                rating,
-                reviews,
-                auction.StartBidAmount.Amount,
-                auction.MinBidAmount.Amount,
-                auction.CurrentHighestBidAmount.Amount,
-                auction.StartTime,
-                auction.EndTime,
-                auction.Status.ToString(),
-                bids
-            );
+            auction.Id.Value,
+            itemTitle,
+            itemDescription,
+            itemImages,
+            sellerId.Value,
+            sellerName,
+            sellerEmail,
+            rating,
+            reviews,
+            startBid,
+            minBid,
+            currentBid,
+            auction.StartTime,
+            auction.EndTime,
+            auction.Status.ToString(),
+            bids
+        );
     }
 
     public async Task<IReadOnlyList<AuctionsListDto>?> GetSimilarAuctionsAsync(Guid auctionId, int limit, CancellationToken ct)
@@ -356,10 +384,21 @@ public partial class AuctionQueries(
 
 
         if (!string.IsNullOrEmpty(parameters.Status) &&
-        Enum.TryParse<AuctionStatus>(parameters.Status, true, out var status))
+            Enum.TryParse<AuctionStatus>(parameters.Status, true, out var status))
         {
-            query = query.Where(a => a.Status == status);
-
+            var now = DateTime.UtcNow;
+            if (status == AuctionStatus.Active)
+            {
+                query = query.Where(a => a.Status == AuctionStatus.Active && a.EndTime > now);
+            }
+            else if (status == AuctionStatus.Ended)
+            {
+                query = query.Where(a => a.Status == AuctionStatus.Ended || a.Status == AuctionStatus.Cancelled || a.EndTime <= now);
+            }
+            else
+            {
+                query = query.Where(a => a.Status == status);
+            }
         }
 
         if (parameters.CurrentBidAmount != null)

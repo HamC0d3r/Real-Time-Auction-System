@@ -289,18 +289,18 @@ public class UserQueries : ResilientRepository, IUserQueries
         // CreatedOnUtc <= @CurrEnd ensures our "Total" counts don't accidentally include data beyond the requested end date
         var sql = @"
         SELECT 
-            COUNT(1) AS ""TotalUsers"",
-            SUM(CASE WHEN (""Roles"" & 2) = 2 THEN 1 ELSE 0 END) AS ""TotalSellers"",
-            SUM(CASE WHEN ""Status"" = 1 THEN 1 ELSE 0 END) AS ""ActiveAccounts"",
-            SUM(CASE WHEN ""Status"" = 2 THEN 1 ELSE 0 END) AS ""SuspendedAccounts"",
-            SUM(CASE WHEN ""Status"" = 3 THEN 1 ELSE 0 END) AS ""BannedAccounts"",
+            COUNT(1)::INT AS ""TotalUsers"",
+            COALESCE(SUM(CASE WHEN (""Roles"" & 2) = 2 THEN 1 ELSE 0 END), 0)::INT AS ""TotalSellers"",
+            COALESCE(SUM(CASE WHEN ""Status"" = 1 THEN 1 ELSE 0 END), 0)::INT AS ""ActiveAccounts"",
+            COALESCE(SUM(CASE WHEN ""Status"" = 2 THEN 1 ELSE 0 END), 0)::INT AS ""SuspendedAccounts"",
+            COALESCE(SUM(CASE WHEN ""Status"" = 3 THEN 1 ELSE 0 END), 0)::INT AS ""BannedAccounts"",
             
             -- Metrics for the dynamic period Trust Score calculation
-            SUM(CASE WHEN ""CreatedOnUtc"" >= @CurrStart AND ""CreatedOnUtc"" < @CurrEnd AND ""Status"" != 3 THEN 1 ELSE 0 END) AS ""CurrentPeriodGoodAccounts"",
-            SUM(CASE WHEN ""CreatedOnUtc"" >= @CurrStart AND ""CreatedOnUtc"" < @CurrEnd THEN 1 ELSE 0 END) AS ""CurrentPeriodTotalAccounts"",
+            COALESCE(SUM(CASE WHEN ""CreatedOnUtc"" >= @CurrStart AND ""CreatedOnUtc"" < @CurrEnd AND ""Status"" != 3 THEN 1 ELSE 0 END), 0)::INT AS ""CurrentPeriodGoodAccounts"",
+            COALESCE(SUM(CASE WHEN ""CreatedOnUtc"" >= @CurrStart AND ""CreatedOnUtc"" < @CurrEnd THEN 1 ELSE 0 END), 0)::INT AS ""CurrentPeriodTotalAccounts"",
             
-            SUM(CASE WHEN ""CreatedOnUtc"" >= @PrevStart AND ""CreatedOnUtc"" < @PrevEnd AND ""Status"" != 3 THEN 1 ELSE 0 END) AS ""PreviousPeriodGoodAccounts"",
-            SUM(CASE WHEN ""CreatedOnUtc"" >= @PrevStart AND ""CreatedOnUtc"" < @PrevEnd THEN 1 ELSE 0 END) AS ""PreviousPeriodTotalAccounts""
+            COALESCE(SUM(CASE WHEN ""CreatedOnUtc"" >= @PrevStart AND ""CreatedOnUtc"" < @PrevEnd AND ""Status"" != 3 THEN 1 ELSE 0 END), 0)::INT AS ""PreviousPeriodGoodAccounts"",
+            COALESCE(SUM(CASE WHEN ""CreatedOnUtc"" >= @PrevStart AND ""CreatedOnUtc"" < @PrevEnd THEN 1 ELSE 0 END), 0)::INT AS ""PreviousPeriodTotalAccounts""
         FROM ""Users""
         WHERE (""Roles"" & 4) = 0 
         AND ""CreatedOnUtc"" <= @CurrEnd;
@@ -330,23 +330,23 @@ public class UserQueries : ResilientRepository, IUserQueries
         var sql = @"
         -- 1. Get the Overall Totals for Percentage Calculation
         SELECT 
-            SUM(CASE WHEN ""CreatedOnUtc"" >= @CurrStart AND ""CreatedOnUtc"" < @CurrEnd THEN 1 ELSE 0 END) AS ""CurrTotalUsers"",
-            SUM(CASE WHEN ""CreatedOnUtc"" >= @CurrStart AND ""CreatedOnUtc"" < @CurrEnd AND (""Roles"" & @SellerRole) = @SellerRole THEN 1 ELSE 0 END) AS ""CurrTotalSellers"",
+            COALESCE(SUM(CASE WHEN ""CreatedOnUtc"" >= @CurrStart AND ""CreatedOnUtc"" < @CurrEnd THEN 1 ELSE 0 END), 0)::INT AS ""CurrTotalUsers"",
+            COALESCE(SUM(CASE WHEN ""CreatedOnUtc"" >= @CurrStart AND ""CreatedOnUtc"" < @CurrEnd AND (""Roles"" & @SellerRole) = @SellerRole THEN 1 ELSE 0 END), 0)::INT AS ""CurrTotalSellers"",
             
-            SUM(CASE WHEN ""CreatedOnUtc"" >= @PrevStart AND ""CreatedOnUtc"" < @PrevEnd THEN 1 ELSE 0 END) AS ""PrevTotalUsers"",
-            SUM(CASE WHEN ""CreatedOnUtc"" >= @PrevStart AND ""CreatedOnUtc"" < @PrevEnd AND (""Roles"" & @SellerRole) = @SellerRole THEN 1 ELSE 0 END) AS ""PrevTotalSellers""
+            COALESCE(SUM(CASE WHEN ""CreatedOnUtc"" >= @PrevStart AND ""CreatedOnUtc"" < @PrevEnd THEN 1 ELSE 0 END), 0)::INT AS ""PrevTotalUsers"",
+            COALESCE(SUM(CASE WHEN ""CreatedOnUtc"" >= @PrevStart AND ""CreatedOnUtc"" < @PrevEnd AND (""Roles"" & @SellerRole) = @SellerRole THEN 1 ELSE 0 END), 0)::INT AS ""PrevTotalSellers""
         FROM ""Users""
         WHERE (""Roles"" & @AdminRole) = 0; -- Exclude Admins
 
         -- 2. Get the Daily Grouped Data for the requested period
         SELECT 
-            CAST(""CreatedOnUtc"" AS date) AS ""DatePoint"",
-            COUNT(1) AS ""NewUsers"",
-            SUM(CASE WHEN (""Roles"" & @SellerRole) = @SellerRole THEN 1 ELSE 0 END) AS ""NewSellers""
+            CAST(""CreatedOnUtc"" AS DATE)::timestamp AS ""DatePoint"",
+            COUNT(1)::INT AS ""NewUsers"",
+            COALESCE(SUM(CASE WHEN (""Roles"" & @SellerRole) = @SellerRole THEN 1 ELSE 0 END), 0)::INT AS ""NewSellers""
         FROM ""Users""
         WHERE (""Roles"" & @AdminRole) = 0
           AND ""CreatedOnUtc"" >= @CurrStart AND ""CreatedOnUtc"" < @CurrEnd
-        GROUP BY CAST(""CreatedOnUtc"" AS date)
+        GROUP BY CAST(""CreatedOnUtc"" AS DATE)
         ORDER BY ""DatePoint"" ASC;
     ";
 

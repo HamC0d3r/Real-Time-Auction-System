@@ -11,3 +11,5 @@ export { ModerateAuctionsPage } from "./components/auctions/ModerateAuctionsPage
 export * from "./api";
 export { ManageCategoriesPage } from "./components/categories/ManageCategoriesPage";
 export { AccessManagementPage } from "./components/access/AccessManagementPage";
+export { SeedDataPage } from "./components/seed-data/SeedDataPage";
+export type * from "./types/seed.types";

@@ -58,5 +58,6 @@ export const ROUTES = {
     DISPUTES: "/admin/disputes",
     CATEGORIES: "/admin/categories",
     ACCESS: "/admin/access",
+    SEED_DATA: "/admin/developer/seed-data",
   },
 } as const;
