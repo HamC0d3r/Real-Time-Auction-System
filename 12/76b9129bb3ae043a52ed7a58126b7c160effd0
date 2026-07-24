@@ -1,0 +1,104 @@
+src/MazadZone.Infrastructure/Repositories/Queries/BidderQueries.cs
+  s_204836e8be067b::t_2d6e15ed6f1346 53-54
+  s_204836e8be067b::t_d2cd05af1bf2c8 55
+src/MazadZone.Infrastructure/Repositories/Queries/SellerDashboardQueries.cs
+  s_204836e8be067b::t_319b4ee863c65b 134-135,138,140-144,146,148-151,153-156,158-161,163-166,168,170-216
+  s_204836e8be067b::t_f7c4613d0e3983 219-221,224,226,228-257
+  s_204836e8be067b::t_831b40a2602c1e 23,25,27-44,46-58,60-61,63,65-66,68,71-74,76,78-131,217,258
+  s_204836e8be067b::t_d044d35459a8a3 132-133
+  s_204836e8be067b::t_094d7935f0433e 218
+  s_204836e8be067b::t_6c94ab428d5625 259-261
+src/MazadZone.Infrastructure/Repositories/Queries/DisputeQueries.cs
+  s_204836e8be067b::t_b68bbb776ede85 357-363
+  s_204836e8be067b::t_a35ebb5201922d 71,74
+  s_204836e8be067b::t_1135f001653d44 75
+  s_204836e8be067b::t_d27d137001c56d 355-356
+src/MazadZone.Infrastructure/Repositories/Queries/CategoryQueries.cs
+  s_204836e8be067b::t_37fc892455e758 78-81,169,271
+  s_204836e8be067b::t_3253dc37e1335b 130
+  s_204836e8be067b::t_de4347f6b92a94 149-150,249,251-252,254
+  s_204836e8be067b::t_090e20f8880995 221,234
+  s_204836e8be067b::t_db1dfe43df35b1 20,22,111,113-114,116
+  s_204836e8be067b::t_3580ee60923199 23,59,61-62,64
+  s_204836e8be067b::t_0d289e76706f06 19,21,24,39,41-42,44
+  s_204836e8be067b::t_678f18d90d3dd5 34,53,105,205,247,307,323,336
+  s_204836e8be067b::t_3f8d9ec36bb4fa 16-18
+  s_204836e8be067b::t_62945497fcb6ac 25-26
+  s_204836e8be067b::t_99af048e67b7d8 32-33
+  s_204836e8be067b::t_47c0b1caafa344 35
+  s_204836e8be067b::t_27f4b70bfbaf1d 52
+  s_204836e8be067b::t_db73ed287e1d5b 54-55
+  s_204836e8be067b::t_c2369280f64e07 104
+  s_204836e8be067b::t_6e4037c2152779 127-129
+  s_204836e8be067b::t_3a94c349abbbd7 131-133
+  s_204836e8be067b::t_db61c6fec24bf9 146-148
+  s_204836e8be067b::t_576a21d26642cc 170-172
+  s_204836e8be067b::t_041d5cce8c1600 206
+  s_204836e8be067b::t_2c2b2be7e54ef3 272-274
+  s_204836e8be067b::t_4762d2fd554899 308
+src/MazadZone.Infrastructure/Repositories/Queries/DisputeTypeQueries.cs
+  s_204836e8be067b::t_6e7891e3b64e0d 42-44
+  s_204836e8be067b::t_bc58b1a3bb8bdd 26-28
+src/MazadZone.Infrastructure/Repositories/Queries/OrderQueries.cs
+  s_204836e8be067b::t_b0baef4a913f43 184
+  s_204836e8be067b::t_17312783e0780c 58-66,98,142
+  s_204836e8be067b::t_c8c96c26b9344a 57,131-139
+  s_204836e8be067b::t_aaf10faa9363c4 88-95
+  s_204836e8be067b::t_3e0a6e309c9fb8 54-56
+  s_204836e8be067b::t_4da0e6a44a0e7c 67
+  s_204836e8be067b::t_444556410f3899 85-87
+  s_204836e8be067b::t_4cc9618d0526a6 96-97
+  s_204836e8be067b::t_ba968b0132939e 140-141
+  s_204836e8be067b::t_c436585359eb93 143-145
+src/MazadZone.Application/Features/Categories/Queries/GetCategoryTree/GetCategoryTreeQueryHandler.cs
+  s_204836e8be067b::t_cf9883929a34ee 3-4,7-9,12,14-17,21,26-28,30-31,33-34,36
+  s_204836e8be067b::t_3ff68558c7d82d 29
+src/MazadZone.Application/MazadZone.Application.csproj
+  s_204836e8be067b::t_dd4fd9fddd3d2e 11
+src/MazadZone.Application/Features/Categories/Queries/GetCategoryTree/GetCategoryTreeLogs.cs
+  s_204836e8be067b::t_5ff505d5c36028 12-17
+src/MazadZone.Infrastructure/Repositories/Queries/SellerQueries.cs
+  s_204836e8be067b::t_147fcae13c3394 90,107
+  s_204836e8be067b::t_234482cce822d7 45,50
+  s_204836e8be067b::t_ab798dfd17f68b 16,110,114-118,120-122,125-130
+src/MazadZone.Application/Common/Logging/MazadLogEvents.cs
+  s_204836e8be067b::t_f12341c64fc6d4 11
+src/MazadZone.Infrastructure/Repositories/Queries/AuctionQueries.cs
+  s_204836e8be067b::t_e2dc321628eaa4 457-477
+  s_204836e8be067b::t_cfe70afbb4758a 340,345,351-354
+  s_204836e8be067b::t_f372ee0983e38b 410-412
+src/MazadZone.Application/Features/Auctions/Queries/GetAuctions/GetAuctionsHandler.cs
+  s_204836e8be067b::t_bdd84a21dafd4e 18
+  s_204836e8be067b::t_3927295bfb2b30 4,9,16-17,19-20,43
+src/MazadZone.Infrastructure/Repositories/Queries/UserQueries.cs
+  s_204836e8be067b::t_c4c4fb66db7bdc 353,373
+  s_204836e8be067b::t_d684940deea308 274,280
+  s_204836e8be067b::t_92ca13043cb422 59-60
+  s_204836e8be067b::t_53ae855fd10fc9 94-95
+  s_204836e8be067b::t_6ea758ac00a145 96
+  s_204836e8be067b::t_86642696d1acf7 39-40
+  s_204836e8be067b::t_531cd8e350c526 211,234
+  s_204836e8be067b::t_3781d13b6eba5a 309,322
+  s_204836e8be067b::t_ae3dc72782b89c 41
+  s_204836e8be067b::t_c4904aafabf53d 61
+  s_204836e8be067b::t_e33a459a08d016 116,121
+src/MazadZone.Infrastructure/Repositories/ResilientRepository.cs
+  s_204836e8be067b::t_66932560a4a1e1 4-5,9,16,18-21,25,28,32-33,37-61
+  s_204836e8be067b::t_d79c995ce0fbd6 62-64
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "1276b9129bb3ae043a52ed7a58126b7c160effd0",
+  "prompts": {},
+  "sessions": {
+    "s_204836e8be067b": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_06b8903f7ffe3CUW24pck94YQO",
+        "model": "deepseek-v4-flash-free"
+      },
+      "human_author": "khaled0x1 <120220612151@st.ahu.edu.jo>"
+    }
+  }
+}
