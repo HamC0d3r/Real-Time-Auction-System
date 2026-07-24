@@ -55,7 +55,7 @@ export function SimilarItems({ auctionId, category, subcategory }: SimilarItemsP
     return map;
   }, [similarAuctions]);
 
-  const viewAllHref = `${ROUTES.AUCTIONS.LIST}?category=${encodeURIComponent(category)}&subcategory=${encodeURIComponent(subcategory)}`;
+  const viewAllHref = `${ROUTES.AUCTIONS.LIST}?category=${encodeURIComponent(category)}&subcategory=${encodeURIComponent(subcategory)}&status=Active`;
 
   if (!isVisible) {
     return <div ref={containerRef} className="mt-16 h-20" />;

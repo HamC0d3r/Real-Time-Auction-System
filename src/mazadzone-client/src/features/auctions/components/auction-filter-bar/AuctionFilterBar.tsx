@@ -182,16 +182,22 @@ export function AuctionFilterBar({
   const handleCategoryChange = (val: string) => {
     setCategory(val);
     setSubcategory("all");
+    const nextStatus = val !== "all" && status === "all" ? AuctionStatus.ACTIVE : status;
+    if (status !== nextStatus) setStatus(nextStatus);
     triggerFilterChange({
       category: val !== "all" ? (val as AuctionCategory) : undefined,
       subcategory: undefined,
+      status: nextStatus as AuctionStatus,
     });
   };
 
   const handleSubcategoryChange = (val: string) => {
     setSubcategory(val);
+    const nextStatus = val !== "all" && status === "all" ? AuctionStatus.ACTIVE : status;
+    if (status !== nextStatus) setStatus(nextStatus);
     triggerFilterChange({
       subcategory: val !== "all" ? (val as AuctionSubcategory) : undefined,
+      status: nextStatus as AuctionStatus,
     });
   };
 

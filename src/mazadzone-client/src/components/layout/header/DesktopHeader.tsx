@@ -187,6 +187,7 @@ export const DesktopBottomRow = ({
     const params = new URLSearchParams();
     params.set("category", category);
     params.set("subcategory", subcategory);
+    params.set("status", "Active");
     router.push(`${ROUTES.AUCTIONS.LIST}?${params.toString()}`);
   };
 

@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 namespace  MazadZone.Infrastructure.Repositories.Queries;
 
 using System.Collections.Generic;
@@ -14,68 +15,70 @@ using Polly;
 
 public class DisputeQueries : ResilientRepository, IDisputeQueries
 {
-    public DisputeQueries(ISqlConnectionFactory sqlFactory, IAsyncPolicy resiliencePolicy)
-        : base(sqlFactory, resiliencePolicy) { }
+    public DisputeQueries(ISqlConnectionFactory sqlFactory, IAsyncPolicy resiliencePolicy, ILogger<DisputeQueries> logger)
+        : base(sqlFactory, resiliencePolicy, logger) { }
 
     public async Task<DisputeDetailsDto?> GetDetailsByIdAsync(DisputeId disputeId, CancellationToken ct)
     {
         // 1. We use ALIASES (AS) so every column has a unique, predictable name
         var mainSql = @"
         SELECT
-            d.Id, 
-            CASE d.Status
+            d.""Id"", 
+            CASE d.""Status""
                 WHEN 1 THEN 'Open'
                 WHEN 2 THEN 'UnderReview'
                 WHEN 3 THEN 'Resolved'
                 ELSE 'Unknown'
-            END AS Status, 
+            END AS ""Status"", 
 
-            dt.Name AS DisputeType, 
-            d.Title, 
-            d.Description,
+            dt.""Name"" AS ""DisputeType"", 
+            d.""Title"", 
+            d.""Description"",
             
             -- Auction Info Aliases
-            a.Id AS AuctionId, 
-            i.Title AS AuctionTitle, 
-            a.EndTime, 
-            o.TotalAmount AS FinalPrice,
-            (SELECT ImageUrl From ""ItemImages"" WHERE ItemId = i.Id AND IsMain = true LIMIT 1) AS MainImageUrl,
+            a.""Id"" AS ""AuctionId"", 
+            i.""Title"" AS ""AuctionTitle"", 
+            a.""EndTime"", 
+            o.""TotalAmount"" AS ""FinalPrice"",
+            (SELECT ImageUrl From ""ItemImages"" WHERE ItemId = i.""Id"" AND IsMain = true LIMIT 1) AS ""MainImageUrl"",
             
             -- Bidder Info Aliases
-            bidder.Id AS BidderId, 
-            CONCAT(bidder.FirstName, ' ', bidder.LastName) AS BidderName, 
-            bidder.Email AS BidderEmail,
+            bidder.""Id"" AS ""BidderId"", 
+            CONCAT(bidder.""FirstName"", ' ', bidder.""LastName"") AS ""BidderName"", 
+            bidder.""Email"" AS ""BidderEmail"",
 
             -- Seller Info Aliases
-            seller.Id AS SellerId, 
-            CONCAT(seller.FirstName, ' ', seller.LastName) AS SellerName, 
-            seller.Email AS SellerEmail
+            seller.""Id"" AS ""SellerId"", 
+            CONCAT(seller.""FirstName"", ' ', seller.""LastName"") AS ""SellerName"", 
+            seller.""Email"" AS ""SellerEmail""
 
         FROM ""Disputes"" d 
-        LEFT JOIN ""DisputeTypes"" dt ON d.DisputeTypeId = dt.Id
-        LEFT JOIN ""Orders"" o ON d.OrderId = o.Id
-        LEFT JOIN ""Auctions"" a ON o.AuctionId = a.Id
-        LEFT JOIN ""Items"" i ON a.Id = i.AuctionId
-        LEFT JOIN ""Users"" bidder ON o.BidderId = bidder.Id
-        LEFT JOIN ""Users"" seller ON a.SellerId = seller.Id
-        WHERE d.Id = @DisputeId
+        LEFT JOIN ""DisputeTypes"" dt ON d.""DisputeTypeId"" = dt.""Id""
+        LEFT JOIN ""Orders"" o ON d.""OrderId"" = o.""Id""
+        LEFT JOIN ""Auctions"" a ON o.""AuctionId"" = a.""Id""
+        LEFT JOIN ""Items"" i ON a.""Id"" = i.""AuctionId""
+        LEFT JOIN ""Users"" bidder ON o.""BidderId"" = bidder.""Id""
+        LEFT JOIN ""Users"" seller ON a.""SellerId"" = seller.""Id""
+        WHERE d.""Id"" = @DisputeId
     ";
 
         var imagesSql = @"
-        SELECT ImageUrl AS Path, AltText 
+        SELECT ImageUrl AS ""Path"", AltText 
         FROM ""DisputeImages""
         WHERE DisputeId = @DisputeId;
     ";
 
-        return await ExecuteResilientAsync(async connection =>
+        return await ExecuteResilientAsync(async (connection, ct) =>
         {
             // STEP 1: Query the main row as a 'dynamic' object
-            var row = await connection.QueryFirstOrDefaultAsync<dynamic>(mainSql, new { DisputeId = disputeId.Value });
+            var row = await connection.QueryFirstOrDefaultAsync<dynamic>(
+                new CommandDefinition(mainSql, new { DisputeId = disputeId.Value }, cancellationToken: ct));
 
             if (row is null) return null;
 
             // STEP 2: Query the attachments directly into your DTO
-            var attachments = await connection.QueryAsync<DisputeAttachmentDto>(imagesSql, new { DisputeId = disputeId.Value });
+            var attachments = await connection.QueryAsync<DisputeAttachmentDto>(
+                new CommandDefinition(imagesSql, new { DisputeId = disputeId.Value }, cancellationToken: ct));
 
             // STEP 3: Manually map the dynamic row directly into your strict records
             // STEP 3: Manually map the dynamic row directly into your strict records
@@ -116,7 +119,7 @@ public class DisputeQueries : ResilientRepository, IDisputeQueries
 
                 Attachments: attachments?.ToList() ?? new List<DisputeAttachmentDto>()
             );
-        });
+        }, ct);
     }
 
     public async Task<PagedList<DisputeListItemDto>> GetFilteredDisputesAsync(DisputeFilterParams filters, CancellationToken ct)
@@ -126,11 +129,11 @@ public class DisputeQueries : ResilientRepository, IDisputeQueries
     // 1. Build the shared FROM and WHERE clauses to be used by both COUNT and SELECT
     var filterConditions = new StringBuilder(@"
     FROM ""Disputes"" d
-    JOIN ""DisputeTypes"" dt ON d.DisputeTypeId = dt.Id
-    JOIN ""Orders"" o ON d.OrderId = o.Id
-    JOIN ""Auctions"" a ON o.AuctionId = a.Id
-    JOIN ""Users"" bidder ON o.BidderId = bidder.Id
-    JOIN ""Users"" seller ON a.SellerId = seller.Id
+    JOIN ""DisputeTypes"" dt ON d.""DisputeTypeId"" = dt.""Id""
+    JOIN ""Orders"" o ON d.""OrderId"" = o.""Id""
+    JOIN ""Auctions"" a ON o.""AuctionId"" = a.""Id""
+    JOIN ""Users"" bidder ON o.""BidderId"" = bidder.""Id""
+    JOIN ""Users"" seller ON a.""SellerId"" = seller.""Id""
     WHERE 1 = 1 ");
 
     // 2. Conditionally append filters
@@ -138,11 +141,11 @@ public class DisputeQueries : ResilientRepository, IDisputeQueries
     {
         // Searches across Bidder Name, Seller Name, and Category
         filterConditions.Append(@" AND (
-        bidder.FirstName ILIKE @Search OR 
-        bidder.LastName ILIKE @Search OR 
-        seller.FirstName ILIKE @Search OR 
-        seller.LastName ILIKE @Search OR
-        dt.Name ILIKE @Search)");
+        bidder.""FirstName"" ILIKE @Search OR 
+        bidder.""LastName"" ILIKE @Search OR 
+        seller.""FirstName"" ILIKE @Search OR 
+        seller.""LastName"" ILIKE @Search OR
+        dt.""Name"" ILIKE @Search)");
 
         parameters.Add("Search", $"%{filters.SearchTerm}%");
     }
@@ -155,26 +158,26 @@ public class DisputeQueries : ResilientRepository, IDisputeQueries
 
         if (isDefinedName && Enum.TryParse<DisputeStatus>(filters.Status, ignoreCase: true, out var statusEnum))
         {
-            filterConditions.Append(" AND d.Status = @Status ");
+            filterConditions.Append(" AND d.\"Status\" = @Status ");
             parameters.Add("Status", (int)statusEnum);
         }
     }
 
     if (filters.CategoryId.HasValue)
     {
-        filterConditions.Append(" AND d.DisputeTypeId = @CategoryId ");
+        filterConditions.Append(" AND d.\"DisputeTypeId\" = @CategoryId ");
         parameters.Add("CategoryId", filters.CategoryId.Value);
     }
 
     if (filters.FromDate.HasValue)
     {
-        filterConditions.Append(" AND d.CreatedAtUtc >= @FromDate ");
+        filterConditions.Append(" AND d.\"CreatedAtUtc\" >= @FromDate ");
         parameters.Add("FromDate", filters.FromDate.Value);
     }
 
     if (filters.ToDate.HasValue)
     {
-        filterConditions.Append(" AND d.CreatedAtUtc <= @ToDate ");
+        filterConditions.Append(" AND d.\"CreatedAtUtc\" <= @ToDate ");
         parameters.Add("ToDate", filters.ToDate.Value);
     }
 
@@ -184,17 +187,17 @@ public class DisputeQueries : ResilientRepository, IDisputeQueries
     // 4. Build Data Query String
     var dataSqlBuilder = new StringBuilder($@"
     SELECT 
-        d.Id,
-        CONCAT(bidder.FirstName, ' ', bidder.LastName) AS BidderName,
-        CONCAT(seller.FirstName, ' ', seller.LastName) AS SellerName,
-        dt.Name AS Category,
-        CASE d.Status
+        d.""Id"",
+        CONCAT(bidder.""FirstName"", ' ', bidder.""LastName"") AS ""BidderName"",
+        CONCAT(seller.""FirstName"", ' ', seller.""LastName"") AS ""SellerName"",
+        dt.""Name"" AS ""Category"",
+        CASE d.""Status""
             WHEN 1 THEN 'Open'
             WHEN 2 THEN 'UnderReview'
             WHEN 3 THEN 'Resolved'
             ELSE 'Unknown'
-        END AS Status,
-        d.CreatedAtUtc AS SubmittedDate
+        END AS ""Status"",
+        d.""CreatedAtUtc"" AS ""SubmittedDate""
     {filterConditions}");
 
     // Apply Safe Sorting
@@ -219,7 +222,7 @@ public class DisputeQueries : ResilientRepository, IDisputeQueries
     }
 
     // 5. Combine commands or stream multi-results
-    return await ExecuteResilientAsync(async connection =>
+    return await ExecuteResilientAsync(async (connection, ct) =>
     {
         if (!filters.IsExport)
         {
@@ -241,7 +244,7 @@ public class DisputeQueries : ResilientRepository, IDisputeQueries
 
             return new PagedList<DisputeListItemDto>(items, 1, items.Count, items.Count);
         }
-    });
+    }, ct);
 }
 
    public async Task<IReadOnlyList<RawDisputeBreakdown>> GetOpenDisputesBreakdownAsync(
@@ -254,24 +257,24 @@ public class DisputeQueries : ResilientRepository, IDisputeQueries
     var sql = @"
         WITH BreakdownData AS (
             SELECT 
-                dt.Name AS DisputeTypeName,
-                SUM(CASE WHEN d.Id IS NOT NULL AND d.CreatedAtUtc >= @CurrStart AND d.CreatedAtUtc < @CurrEnd THEN 1 ELSE 0 END) AS CurrentCases,
-                SUM(CASE WHEN d.Id IS NOT NULL AND d.CreatedAtUtc >= @PrevStart AND d.CreatedAtUtc < @PrevEnd THEN 1 ELSE 0 END) AS PreviousCases
+                dt.""Name"" AS ""DisputeTypeName"",
+                SUM(CASE WHEN d.""Id"" IS NOT NULL AND d.""CreatedAtUtc"" >= @CurrStart AND d.""CreatedAtUtc"" < @CurrEnd THEN 1 ELSE 0 END) AS ""CurrentCases"",
+                SUM(CASE WHEN d.""Id"" IS NOT NULL AND d.""CreatedAtUtc"" >= @PrevStart AND d.""CreatedAtUtc"" < @PrevEnd THEN 1 ELSE 0 END) AS ""PreviousCases""
             FROM ""DisputeTypes"" dt
-            LEFT JOIN ""Disputes"" d ON dt.Id = d.DisputeTypeId AND d.Status = @OpenStatus
-            GROUP BY dt.Name
+            LEFT JOIN ""Disputes"" d ON dt.""Id"" = d.""DisputeTypeId"" AND d.""Status"" = @OpenStatus
+            GROUP BY dt.""Name""
             HAVING 
-                SUM(CASE WHEN d.Id IS NOT NULL AND d.CreatedAtUtc >= @CurrStart AND d.CreatedAtUtc < @CurrEnd THEN 1 ELSE 0 END) > 0
+                SUM(CASE WHEN d.""Id"" IS NOT NULL AND d.""CreatedAtUtc"" >= @CurrStart AND d.""CreatedAtUtc"" < @CurrEnd THEN 1 ELSE 0 END) > 0
                 OR 
-                SUM(CASE WHEN d.Id IS NOT NULL AND d.CreatedAtUtc >= @PrevStart AND d.CreatedAtUtc < @PrevEnd THEN 1 ELSE 0 END) > 0
+                SUM(CASE WHEN d.""Id"" IS NOT NULL AND d.""CreatedAtUtc"" >= @PrevStart AND d.""CreatedAtUtc"" < @PrevEnd THEN 1 ELSE 0 END) > 0
         ),
         RankedData AS (
             SELECT 
                 DisputeTypeName,
                 CurrentCases,
                 PreviousCases,
-                ROW_NUMBER() OVER(ORDER BY CurrentCases DESC, DisputeTypeName ASC) AS Rnk
-            FROM BreakdownData
+                ROW_NUMBER() OVER(ORDER BY CurrentCases DESC, DisputeTypeName ASC) AS ""Rnk""
+            FROM ""BreakdownData""
         )
         
         SELECT 
@@ -285,9 +288,9 @@ public class DisputeQueries : ResilientRepository, IDisputeQueries
                 DisputeTypeName,
                 CurrentCases,
                 PreviousCases,
-                false AS IsOtherBucket,
-                Rnk AS SortOrder
-            FROM RankedData
+                false AS ""IsOtherBucket"",
+                Rnk AS ""SortOrder""
+            FROM ""RankedData""
             WHERE Rnk <= @Limit
     ";
 
@@ -298,12 +301,12 @@ public class DisputeQueries : ResilientRepository, IDisputeQueries
 
             -- Aggregate everything else into 'Other'
             SELECT 
-                'Other' AS DisputeTypeName,
-                SUM(CurrentCases) AS CurrentCases,
-                SUM(PreviousCases) AS PreviousCases,
-                true AS IsOtherBucket,
-                @Limit + 1 AS SortOrder
-            FROM RankedData
+                'Other' AS ""DisputeTypeName"",
+                SUM(CurrentCases) AS ""CurrentCases"",
+                SUM(PreviousCases) AS ""PreviousCases"",
+                true AS ""IsOtherBucket"",
+                @Limit + 1 AS ""SortOrder""
+            FROM ""RankedData""
             WHERE Rnk > @Limit
             HAVING COUNT(*) > 0 
         ";
@@ -314,7 +317,7 @@ public class DisputeQueries : ResilientRepository, IDisputeQueries
         ORDER BY SortOrder ASC;
     ";
 
-    return await ExecuteResilientAsync(async connection =>
+    return await ExecuteResilientAsync(async (connection, ct) =>
     {
         var parameters = new
         {
@@ -330,40 +333,40 @@ public class DisputeQueries : ResilientRepository, IDisputeQueries
         var result = await connection.QueryAsync<RawDisputeBreakdown>(command);
 
         return result.ToList().AsReadOnly();
-    });
+    }, ct);
 }
 
     public async Task<IReadOnlyList<DisputeListItemDto>> ExportSelectedDisputesAsync(IEnumerable<Guid> disputeIds, CancellationToken ct)
     {
         var sql = @"
     SELECT 
-        d.Id,
-        CONCAT(bidder.FirstName, ' ', bidder.LastName) AS BidderName,
-        CONCAT(seller.FirstName, ' ', seller.LastName) AS SellerName,
-        dt.Name AS Category,
-        CASE d.Status
+        d.""Id"",
+        CONCAT(bidder.""FirstName"", ' ', bidder.""LastName"") AS ""BidderName"",
+        CONCAT(seller.""FirstName"", ' ', seller.""LastName"") AS ""SellerName"",
+        dt.""Name"" AS ""Category"",
+        CASE d.""Status""
             WHEN 1 THEN 'Open'
             WHEN 2 THEN 'UnderReview'
             WHEN 3 THEN 'Resolved'
             ELSE 'Unknown'
-        END AS Status,
-        d.CreatedAtUtc AS SubmittedDate
+        END AS ""Status"",
+        d.""CreatedAtUtc"" AS ""SubmittedDate""
     FROM ""Disputes"" d
-    JOIN ""DisputeTypes"" dt ON d.DisputeTypeId = dt.Id
-    JOIN ""Orders"" o ON d.OrderId = o.Id
-    JOIN ""Auctions"" a ON o.AuctionId = a.Id
-    JOIN ""Users"" bidder ON o.BidderId = bidder.Id
-    JOIN ""Users"" seller ON a.SellerId = seller.Id
-    WHERE d.Id IN @DisputeIds
-    ORDER BY d.CreatedAtUtc DESC"; // Default safe sorting for exports
+    JOIN ""DisputeTypes"" dt ON d.""DisputeTypeId"" = dt.""Id""
+    JOIN ""Orders"" o ON d.""OrderId"" = o.""Id""
+    JOIN ""Auctions"" a ON o.""AuctionId"" = a.""Id""
+    JOIN ""Users"" bidder ON o.""BidderId"" = bidder.""Id""
+    JOIN ""Users"" seller ON a.""SellerId"" = seller.""Id""
+    WHERE d.""Id"" IN @DisputeIds
+    ORDER BY d.""CreatedAtUtc"" DESC"; // Default safe sorting for exports
 
-        return await ExecuteResilientAsync(async connection =>
+        return await ExecuteResilientAsync(async (connection, ct) =>
         {
             var command = new CommandDefinition(sql, new { DisputeIds = disputeIds }, cancellationToken: ct);
             var result = await connection.QueryAsync<DisputeListItemDto>(command);
 
             return result.ToList().AsReadOnly();
-        });
+        }, ct);
     }
 
 }

@@ -7,7 +7,7 @@ import { AuctionCard, AuctionCardSkeleton } from "./auction-card";
 import { AuctionFilterBar } from "./auction-filter-bar";
 import { AuctionPagination } from "./auction-pagination";
 import { useGetAuctions } from "../api";
-import { AuctionFilters } from "../types/auction.types";
+import { AuctionFilters, AuctionStatus } from "../types/auction.types";
 import { PlaceBidButton } from "@/features/bidding";
 
 /**
@@ -33,6 +33,7 @@ export function AuctionsPage() {
     });
     if (!f.page) f.page = 1;
     if (!f.pageSize) f.pageSize = 12;
+    if (!f.status) f.status = AuctionStatus.ACTIVE;
     return f as AuctionFilters;
   }, [searchParams]);
 

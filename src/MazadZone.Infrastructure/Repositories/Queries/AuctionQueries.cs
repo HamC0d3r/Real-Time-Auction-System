@@ -337,31 +337,21 @@ public partial class AuctionQueries(
 
     public async Task<PagedList<AuctionsListDto>> SearchAuctionsAsync(AuctionQueryParameters parameters, CancellationToken ct)
     {
-        var query = _context.Auctions.Include(a => a.Item).AsNoTracking().AsQueryable();
-
+        var query = _context.Auctions.AsNoTracking().AsQueryable();
 
         if (!string.IsNullOrEmpty(parameters.SearchTerm))
         {
-
-            var searchTermLower = parameters.SearchTerm.ToLowerInvariant();
-            var matchingCategoryIds = await _context.Categories
-                .Select(c => new { c.Id, Name = EF.Property<string>(c, "Name") })
-                .ToListAsync(ct);
-            var filteredCategoryIds = matchingCategoryIds
-                .Where(c => c.Name.Contains(searchTermLower, StringComparison.OrdinalIgnoreCase))
-                .Select(c => c.Id)
-                .ToList();
-
             query = query.Where(a => EF.Functions.Like(a.Item.Title, $"%{parameters.SearchTerm}%") ||
-                                     EF.Functions.Like(a.Item.Description, $"%{parameters.SearchTerm}%") ||
-                                     filteredCategoryIds.Contains(a.Item.CategoryId));
+                                     EF.Functions.Like(a.Item.Description, $"%{parameters.SearchTerm}%"));
         }
 
         if (parameters.CategoryId.HasValue)
         {
             var categoryId = parameters.CategoryId.Value;
-            query = query.Where(a => a.Item.CategoryId == categoryId ||
-                                     _context.Categories.Any(c => c.Id == a.Item.CategoryId && c.ParentCategoryId == categoryId));
+
+            var targetIds = await GetDescendantCategoryIdsAsync(categoryId, ct);
+
+            query = query.Where(a => targetIds.Contains(a.Item.CategoryId));
         }
 
 
@@ -416,17 +406,10 @@ public partial class AuctionQueries(
 
         if (!string.IsNullOrEmpty(parameters.Condition))
         {
-
             var conditionTerm = parameters.Condition.ToLowerInvariant();
-            var matchingItemIds = await _context.Set<Item>()
-                .Select(i => new { i.Id, Condition = EF.Property<string>(i, "Condition") })
-                .ToListAsync(ct);
-            var filteredItemIds = matchingItemIds
-                .Where(i => i.Condition != null &&
-                            i.Condition.Contains(conditionTerm, StringComparison.OrdinalIgnoreCase))
-                .Select(i => i.Id)
-                .ToList();
-            query = query.Where(a => filteredItemIds.Contains(a.Item.Id));
+            query = query.Where(a => EF.Functions.Like(
+                EF.Property<string>(a.Item, "Condition"),
+                $"%{conditionTerm}%"));
         }
 
         var totalCount = await query.CountAsync(ct);
@@ -469,6 +452,27 @@ public partial class AuctionQueries(
         )).ToList();
 
         return new PagedList<AuctionsListDto>(items, parameters.Page, parameters.PageSize, totalCount);
+    }
+
+    private async Task<IReadOnlyList<CategoryId>> GetDescendantCategoryIdsAsync(CategoryId categoryId, CancellationToken ct)
+    {
+        var sql = $@"
+            WITH RECURSIVE cat_tree AS (
+                SELECT ""Id""
+                FROM ""Categories""
+                WHERE ""Id"" = {{0}}
+                UNION ALL
+                SELECT c.""Id""
+                FROM ""Categories"" c
+                INNER JOIN cat_tree ct ON c.""ParentCategoryId"" = ct.""Id""
+            )
+            SELECT ""Id"" FROM cat_tree";
+
+        var ids = await _context.Database
+            .SqlQueryRaw<Guid>(sql, categoryId.Value)
+            .ToListAsync(ct);
+
+        return ids.Select(CategoryId.From).ToList().AsReadOnly();
     }
 
 }

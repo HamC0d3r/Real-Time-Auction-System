@@ -105,6 +105,7 @@ export function Header() {
     setIsMobileMenuOpen(false);
     const params = new URLSearchParams();
     params.set("category", category);
+    params.set("status", "Active");
     router.push(`${ROUTES.AUCTIONS.LIST}?${params.toString()}`);
   };
 

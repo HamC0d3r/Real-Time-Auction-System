@@ -8,6 +8,7 @@ public static partial class MazadLogEvents
         public const int ResourceDeleted = 9003;
         public const int ResourceCreated = 9004;
         public const int ResourceUpdated = 9005;
+        public const int CacheHit = 9006;
     }
 
     public static class System

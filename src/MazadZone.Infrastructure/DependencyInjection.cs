@@ -96,9 +96,9 @@ public static class DependencyInjection
         var options = new ResilienceOptions();
         configuration.GetSection(ResilienceOptions.SectionName).Bind(options);
 
-        // 1. Define Retry Policy
+        // 1. Define Retry Policy — exclude cancellation exceptions so cancelled requests fail fast
         var retryPolicy = Policy
-            .Handle<Exception>()
+            .Handle<Exception>(ex => ex is not OperationCanceledException and not TaskCanceledException)
             .WaitAndRetryAsync(options.RetryCount, retryAttempt =>
                 TimeSpan.FromSeconds(Math.Pow(options.BaseDelaySeconds, retryAttempt)),
                 (exception, timeSpan, retryCount, context) =>

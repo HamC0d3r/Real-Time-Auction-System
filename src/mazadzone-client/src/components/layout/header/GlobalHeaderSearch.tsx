@@ -151,7 +151,7 @@ export function GlobalHeaderSearch({
       } else if (type === "auction") {
         router.push(ROUTES.AUCTIONS.DETAIL((item as SearchAuctionResult).id));
       } else {
-        router.push(`${ROUTES.AUCTIONS.LIST}?category=${encodeURIComponent((item as SearchCategoryResult).name)}`);
+        router.push(`${ROUTES.AUCTIONS.LIST}?category=${encodeURIComponent((item as SearchCategoryResult).name)}&status=Active`);
       }
     }
   };

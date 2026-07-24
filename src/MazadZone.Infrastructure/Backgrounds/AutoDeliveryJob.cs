@@ -34,7 +34,7 @@ public class AutoDeliveryJob : IJob
         const string sql = @"
             SELECT ""Id"" 
             FROM ""Orders"" 
-            WHERE Status = @Status
+            WHERE ""Status"" = @Status
             LIMIT @BatchSize;";
 
         using var connection = sqlConnectionFactory.CreateConnection();

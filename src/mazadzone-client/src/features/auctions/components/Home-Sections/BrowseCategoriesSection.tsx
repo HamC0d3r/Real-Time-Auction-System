@@ -72,7 +72,7 @@ export function BrowseCategoriesSection() {
           {CATEGORIES_DATA.map((category) => (
             <Link
               key={category.id}
-              href={`${ROUTES.AUCTIONS.LIST}?category=${encodeURIComponent(category.filterValue)}`}
+              href={`${ROUTES.AUCTIONS.LIST}?category=${encodeURIComponent(category.filterValue)}&status=Active`}
               className="group flex items-center justify-between p-4 bg-white dark:bg-card rounded-2xl border border-white dark:border-border/55 hover:border-[#1A1A1A]/10 dark:hover:border-primary/50 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer"
             >
               <div className="flex items-center gap-4 flex-1">

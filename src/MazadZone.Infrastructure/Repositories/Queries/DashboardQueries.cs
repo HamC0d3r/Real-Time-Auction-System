@@ -28,20 +28,20 @@ public class DashboardQueries : IDashboardQueries
         var sql = @"
             -- CURRENT PERIOD
             SELECT 
-                (SELECT COUNT(1) FROM ""Auctions"" WHERE CreatedOnUtc >= @CurrStart AND CreatedOnUtc < @CurrEnd) AS TotalAuctions,
-                (SELECT COUNT(1) FROM ""Auctions"" WHERE Status = 2 AND CreatedOnUtc >= @CurrStart AND CreatedOnUtc < @CurrEnd) AS LiveAuctions,
-                (SELECT COUNT(1) FROM ""Auctions"" WHERE EndTime > @UtcNow AND EndTime <= (@UtcNow + INTERVAL '24 hours')) AS EndingWithin24h,
-                (SELECT COUNT(1) FROM ""Orders"" WHERE Status = 4 AND CreatedOnUtc >= @CurrStart AND CreatedOnUtc < @CurrEnd) AS CompletedOrders,
-                (SELECT COUNT(1) FROM ""Disputes"" WHERE Status = 1 AND CreatedAtUtc >= @CurrStart AND CreatedAtUtc < @CurrEnd) AS OpenDisputes;
+                (SELECT COUNT(1) FROM ""Auctions"" WHERE ""CreatedOnUtc"" >= @CurrStart AND ""CreatedOnUtc"" < @CurrEnd) AS ""TotalAuctions"",
+                (SELECT COUNT(1) FROM ""Auctions"" WHERE ""Status"" = 2 AND ""CreatedOnUtc"" >= @CurrStart AND ""CreatedOnUtc"" < @CurrEnd) AS ""LiveAuctions"",
+                (SELECT COUNT(1) FROM ""Auctions"" WHERE ""EndTime"" > @UtcNow AND ""EndTime"" <= (@UtcNow + INTERVAL '24 hours')) AS ""EndingWithin24h"",
+                (SELECT COUNT(1) FROM ""Orders"" WHERE ""Status"" = 4 AND ""CreatedOnUtc"" >= @CurrStart AND ""CreatedOnUtc"" < @CurrEnd) AS ""CompletedOrders"",
+                (SELECT COUNT(1) FROM ""Disputes"" WHERE ""Status"" = 1 AND ""CreatedAtUtc"" >= @CurrStart AND ""CreatedAtUtc"" < @CurrEnd) AS ""OpenDisputes"";
 
             -- PREVIOUS PERIOD
             SELECT 
-                (SELECT COUNT(1) FROM ""Auctions"" WHERE CreatedOnUtc >= @PrevStart AND CreatedOnUtc < @PrevEnd) AS TotalAuctions,
-                (SELECT COUNT(1) FROM ""Auctions"" WHERE Status = 2 AND CreatedOnUtc >= @PrevStart AND CreatedOnUtc < @PrevEnd) AS LiveAuctions,
+                (SELECT COUNT(1) FROM ""Auctions"" WHERE ""CreatedOnUtc"" >= @PrevStart AND ""CreatedOnUtc"" < @PrevEnd) AS ""TotalAuctions"",
+                (SELECT COUNT(1) FROM ""Auctions"" WHERE ""Status"" = 2 AND ""CreatedOnUtc"" >= @PrevStart AND ""CreatedOnUtc"" < @PrevEnd) AS ""LiveAuctions"",
                 -- For the previous period 'Ending within 24h', we compare to the snapshot time of the previous period
-                (SELECT COUNT(1) FROM ""Auctions"" WHERE EndTime > @PrevUtcNow AND EndTime <= (@PrevUtcNow + INTERVAL '24 hours')) AS EndingWithin24h,
-                (SELECT COUNT(1) FROM ""Orders"" WHERE Status = 4 AND CreatedOnUtc >= @PrevStart AND CreatedOnUtc < @PrevEnd) AS CompletedOrders,
-                (SELECT COUNT(1) FROM ""Disputes"" WHERE Status = 1 AND CreatedAtUtc >= @PrevStart AND CreatedAtUtc < @PrevEnd) AS OpenDisputes;
+                (SELECT COUNT(1) FROM ""Auctions"" WHERE ""EndTime"" > @PrevUtcNow AND ""EndTime"" <= (@PrevUtcNow + INTERVAL '24 hours')) AS ""EndingWithin24h"",
+                (SELECT COUNT(1) FROM ""Orders"" WHERE ""Status"" = 4 AND ""CreatedOnUtc"" >= @PrevStart AND ""CreatedOnUtc"" < @PrevEnd) AS ""CompletedOrders"",
+                (SELECT COUNT(1) FROM ""Disputes"" WHERE ""Status"" = 1 AND ""CreatedAtUtc"" >= @PrevStart AND ""CreatedAtUtc"" < @PrevEnd) AS ""OpenDisputes"";
         ";
 
         using var connection = _sqlConnectionFactory.CreateConnection();
@@ -68,29 +68,29 @@ public class DashboardQueries : IDashboardQueries
         var sql = @"
             -- 1. Get the Overall Totals
             SELECT 
-                (SELECT COUNT(1) FROM Auctions WHERE CreatedOnUtc >= @CurrStart AND CreatedOnUtc < @CurrEnd) AS CurrTotalAuctions,
-                (SELECT COUNT(1) FROM Auctions WHERE CreatedOnUtc >= @PrevStart AND CreatedOnUtc < @PrevEnd) AS PrevTotalAuctions,
+                (SELECT COUNT(1) FROM ""Auctions"" WHERE ""CreatedOnUtc"" >= @CurrStart AND ""CreatedOnUtc"" < @CurrEnd) AS ""CurrTotalAuctions"",
+                (SELECT COUNT(1) FROM ""Auctions"" WHERE ""CreatedOnUtc"" >= @PrevStart AND ""CreatedOnUtc"" < @PrevEnd) AS ""PrevTotalAuctions"",
                 
-                (SELECT COUNT(1) FROM Bids WHERE PlacedAtUtc >= @CurrStart AND PlacedAtUtc < @CurrEnd) AS CurrTotalBids,
-                (SELECT COUNT(1) FROM Bids WHERE PlacedAtUtc >= @PrevStart AND PlacedAtUtc < @PrevEnd) AS PrevTotalBids;
+                (SELECT COUNT(1) FROM ""Bids"" WHERE ""PlacedAtUtc"" >= @CurrStart AND ""PlacedAtUtc"" < @CurrEnd) AS ""CurrTotalBids"",
+                (SELECT COUNT(1) FROM ""Bids"" WHERE ""PlacedAtUtc"" >= @PrevStart AND ""PlacedAtUtc"" < @PrevEnd) AS ""PrevTotalBids"";
 
             -- 2. Get Daily Auctions for the current period
             SELECT 
-                CAST(CreatedOnUtc AS DATE) AS DatePoint,
-                COUNT(1) AS Count
-            FROM Auctions
-            WHERE CreatedOnUtc >= @CurrStart AND CreatedOnUtc < @CurrEnd
-            GROUP BY CAST(CreatedOnUtc AS DATE)
-            ORDER BY DatePoint ASC;
+                CAST(""CreatedOnUtc"" AS ""DATE"") AS ""DatePoint"",
+                COUNT(1) AS ""Count""
+            FROM ""Auctions""
+            WHERE ""CreatedOnUtc"" >= @CurrStart AND ""CreatedOnUtc"" < @CurrEnd
+            GROUP BY CAST(""CreatedOnUtc"" AS ""DATE"")
+            ORDER BY ""DatePoint"" ASC;
 
             -- 3. Get Daily Bids for the current period
             SELECT 
-                CAST(PlacedAtUtc AS DATE) AS DatePoint,
-                COUNT(1) AS Count
-            FROM Bids
-            WHERE PlacedAtUtc >= @CurrStart AND PlacedAtUtc < @CurrEnd
-            GROUP BY CAST(PlacedAtUtc AS DATE)
-            ORDER BY DatePoint ASC;
+                CAST(""PlacedAtUtc"" AS ""DATE"") AS ""DatePoint"",
+                COUNT(1) AS ""Count""
+            FROM ""Bids""
+            WHERE ""PlacedAtUtc"" >= @CurrStart AND ""PlacedAtUtc"" < @CurrEnd
+            GROUP BY CAST(""PlacedAtUtc"" AS ""DATE"")
+            ORDER BY ""DatePoint"" ASC;
         ";
 
         using var connection = _sqlConnectionFactory.CreateConnection();
