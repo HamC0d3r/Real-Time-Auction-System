@@ -17,7 +17,7 @@ export interface UseModerateUsersFilters {
 export async function fetchModerateUsers(filters: UseModerateUsersFilters) {
   const isAsc = filters.sortOrder ? filters.sortOrder === "asc" : (filters.sortBy === "name" ? true : false);
 
-  const response = await api.get<PagedListOfUserDto>("/users/users", {
+  const response = await api.get<PagedListOfUserDto>("/users", {
     params: {
       SearchTerm: filters.search || undefined,
       Role: filters.role !== "All Roles" ? filters.role : undefined,
@@ -48,7 +48,7 @@ export async function activateUserApi(userId: string): Promise<void> {
 }
 
 export async function bulkActivateUsersApi(userIds: string[]): Promise<void> {
-  await api.put("/users/users/bulk-activate", { userIds });
+  await api.put("/users/bulk-activate", { userIds });
 }
 
 export async function bulkSuspendUsersApi(userIds: string[], reason: string, until?: string): Promise<void> {

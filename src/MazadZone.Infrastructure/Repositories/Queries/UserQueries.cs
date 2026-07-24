@@ -65,7 +65,7 @@ public class UserQueries : ResilientRepository, IUserQueries
         const string sql = @"
             SELECT 
                 u.Id,
-                u.FirstName + ' ' + u.LastName AS FullName,
+                CONCAT(u.FirstName, ' ', u.LastName) AS FullName,
                 u.Email,
                 u.PhoneNumber,
                 bv.NationalId AS NationalId,
@@ -81,10 +81,10 @@ public class UserQueries : ResilientRepository, IUserQueries
                 END AS VerificationStatus,
                 bv.ExtractedFullName,
                 bv.RejectionReason AS VerificationRejectionReason
-            FROM Users u
-            LEFT JOIN Bidders b ON b.Id = u.Id
-            LEFT JOIN BidderVerifications bv ON bv.BidderId = b.Id
-            JOIN BidderAddresses ba ON ba.BidderId = b.Id
+            FROM ""Users"" u
+            LEFT JOIN ""Bidders"" b ON b.Id = u.Id
+            LEFT JOIN ""BidderVerifications"" bv ON bv.BidderId = b.Id
+            JOIN ""BidderAddresses"" ba ON ba.BidderId = b.Id
             WHERE u.Id = @UserId;
             ";
 
@@ -105,7 +105,7 @@ public class UserQueries : ResilientRepository, IUserQueries
                 Brand,
                 IsDefault,
                 CreatedOnUtc
-            FROM PaymentMethods
+            FROM ""PaymentMethods""
             WHERE UserId = @UserId
             ORDER BY IsDefault DESC, CreatedOnUtc DESC;
         ";
@@ -128,33 +128,31 @@ public class UserQueries : ResilientRepository, IUserQueries
         if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
         {
             filterConditions.Append(@" 
-        AND (FirstName LIKE @Search 
-             OR LastName LIKE @Search 
-             OR Email LIKE @Search 
-             OR PhoneNumber LIKE @Search)");
+        AND (FirstName ILIKE @Search 
+             OR LastName ILIKE @Search 
+             OR Email ILIKE @Search 
+             OR PhoneNumber ILIKE @Search)");
             parameters.Add("Search", $"%{filter.SearchTerm}%");
         }
 
-        // 💡 Change filter.JoinedDate to filter.ValidJoinedDate
         if (filter.ValidJoinedDate.HasValue)
         {
-            // 💡 Access the DateTime value from ValidJoinedDate instead
             var startDate = filter.ValidJoinedDate.Value.Date;
             var endDate = startDate.AddDays(1);
 
-            filterConditions.Append(" AND Users.CreatedOnUtc >= @StartDate AND Users.CreatedOnUtc < @EndDate");
+            filterConditions.Append(@" AND ""Users"".CreatedOnUtc >= @StartDate AND ""Users"".CreatedOnUtc < @EndDate");
             parameters.Add("StartDate", startDate);
             parameters.Add("EndDate", endDate);
         }
 
         // 2. Build Count Query String
-        var countSql = $"SELECT COUNT(1) FROM Users {filterConditions}";
+        var countSql = $@"SELECT COUNT(1) FROM ""Users"" {filterConditions}";
 
         // 3. Build Data Query String
         var dataSqlBuilder = new StringBuilder($@"
     SELECT 
-        Users.Id,
-        (FirstName + ' ' + LastName) AS FullName,
+        ""Users"".Id,
+        CONCAT(FirstName, ' ', LastName) AS FullName,
         Email,
         PhoneNumber,
         CASE 
@@ -163,13 +161,13 @@ public class UserQueries : ResilientRepository, IUserQueries
             WHEN (Roles & 1) = 1 THEN 'Bidder'
             ELSE 'None'
         END AS Role,
-        CASE Users.Status
+        CASE ""Users"".Status
             WHEN 1 THEN 'Active'
             WHEN 2 THEN 'Suspended'
             WHEN 3 THEN 'Banned'
             ELSE 'Unknown'
         END AS Status,
-        Users.CreatedOnUtc AS JoinedAt,
+        ""Users"".CreatedOnUtc AS JoinedAt,
         LastLogin,
         CASE bv.Status 
             WHEN 1 THEN 'Pending' 
@@ -180,20 +178,20 @@ public class UserQueries : ResilientRepository, IUserQueries
         bv.NationalId,
         bv.ExtractedFullName,
         bv.RejectionReason AS VerificationRejectionReason
-    FROM Users
-    LEFT JOIN Bidders b ON b.Id = Users.Id
-    LEFT JOIN BidderVerifications bv ON bv.BidderId = b.Id
+    FROM ""Users""
+    LEFT JOIN ""Bidders"" b ON b.Id = ""Users"".Id
+    LEFT JOIN ""BidderVerifications"" bv ON bv.BidderId = b.Id
     {filterConditions}");
 
         // Apply Sorting Rules
         var sortColumn = filter.SortBy?.ToLower() switch
         {
-            "fullname" => "(FirstName + ' ' + LastName)",
-            "joineddate" => "Users.CreatedOnUtc",
+            "fullname" => "CONCAT(FirstName, ' ', LastName)",
+            "joineddate" => @"""Users"".CreatedOnUtc",
             "lastlogin" => "LastLogin",
             "role" => "Roles",
-            "status" => "Users.Status",
-            _ => "Users.CreatedOnUtc"
+            "status" => @"""Users"".Status",
+            _ => @"""Users"".CreatedOnUtc"
         };
         var sortDirection = filter.IsAsc ? "ASC" : "DESC";
         dataSqlBuilder.Append($" ORDER BY {sortColumn} {sortDirection}");
@@ -201,7 +199,7 @@ public class UserQueries : ResilientRepository, IUserQueries
         // Apply Pagination Limits if not exporting
         if (!filter.IsExport)
         {
-            dataSqlBuilder.Append(" OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY");
+            dataSqlBuilder.Append(" LIMIT @PageSize OFFSET @Offset");
             parameters.Add("Offset", (filter.PageNumber - 1) * filter.PageSize);
             parameters.Add("PageSize", filter.PageSize);
         }
@@ -237,8 +235,8 @@ public class UserQueries : ResilientRepository, IUserQueries
     {
         var sql = @"
     SELECT 
-        Users.Id,
-        (FirstName + ' ' + LastName) AS FullName,
+        ""Users"".Id,
+        CONCAT(FirstName, ' ', LastName) AS FullName,
         Email,
         PhoneNumber,
         CASE 
@@ -247,13 +245,13 @@ public class UserQueries : ResilientRepository, IUserQueries
             WHEN (Roles & 1) = 1 THEN 'Bidder'
             ELSE 'None'
         END AS Role,
-        CASE Users.Status
+        CASE ""Users"".Status
             WHEN 1 THEN 'Active'
             WHEN 2 THEN 'Suspended'
             WHEN 3 THEN 'Banned'
             ELSE 'Unknown'
         END AS Status,
-        Users.CreatedOnUtc AS JoinedAt,
+        ""Users"".CreatedOnUtc AS JoinedAt,
         LastLogin,
         CASE bv.Status 
             WHEN 1 THEN 'Pending' 
@@ -264,11 +262,11 @@ public class UserQueries : ResilientRepository, IUserQueries
         bv.NationalId,
         bv.ExtractedFullName,
         bv.RejectionReason AS VerificationRejectionReason
-    FROM Users
-    LEFT JOIN Bidders b ON b.Id = Users.Id
-    LEFT JOIN BidderVerifications bv ON bv.BidderId = b.Id
-    WHERE Users.Id IN @UserIds
-    ORDER BY Users.CreatedOnUtc DESC"; // Default safe sorting for exports
+    FROM ""Users""
+    LEFT JOIN ""Bidders"" b ON b.Id = ""Users"".Id
+    LEFT JOIN ""BidderVerifications"" bv ON bv.BidderId = b.Id
+    WHERE ""Users"".Id IN @UserIds
+    ORDER BY ""Users"".CreatedOnUtc DESC"; // Default safe sorting for exports
 
         return await ExecuteResilientAsync(async connection =>
         {
@@ -300,7 +298,7 @@ public class UserQueries : ResilientRepository, IUserQueries
             
             SUM(CASE WHEN CreatedOnUtc >= @PrevStart AND CreatedOnUtc < @PrevEnd AND Status != 3 THEN 1 ELSE 0 END) AS PreviousPeriodGoodAccounts,
             SUM(CASE WHEN CreatedOnUtc >= @PrevStart AND CreatedOnUtc < @PrevEnd THEN 1 ELSE 0 END) AS PreviousPeriodTotalAccounts
-        FROM Users
+        FROM ""Users""
         WHERE (Roles & 4) = 0 
         AND CreatedOnUtc <= @CurrEnd;
     ";
@@ -334,18 +332,18 @@ public class UserQueries : ResilientRepository, IUserQueries
             
             SUM(CASE WHEN CreatedOnUtc >= @PrevStart AND CreatedOnUtc < @PrevEnd THEN 1 ELSE 0 END) AS PrevTotalUsers,
             SUM(CASE WHEN CreatedOnUtc >= @PrevStart AND CreatedOnUtc < @PrevEnd AND (Roles & @SellerRole) = @SellerRole THEN 1 ELSE 0 END) AS PrevTotalSellers
-        FROM Users
+        FROM ""Users""
         WHERE (Roles & @AdminRole) = 0; -- Exclude Admins
 
         -- 2. Get the Daily Grouped Data for the requested period
         SELECT 
-            CAST(CreatedOnUtc AS DATE) AS DatePoint,
+            CAST(CreatedOnUtc AS date) AS DatePoint,
             COUNT(1) AS NewUsers,
             SUM(CASE WHEN (Roles & @SellerRole) = @SellerRole THEN 1 ELSE 0 END) AS NewSellers
-        FROM Users
+        FROM ""Users""
         WHERE (Roles & @AdminRole) = 0
           AND CreatedOnUtc >= @CurrStart AND CreatedOnUtc < @CurrEnd
-        GROUP BY CAST(CreatedOnUtc AS DATE)
+        GROUP BY CAST(CreatedOnUtc AS date)
         ORDER BY DatePoint ASC;
     ";
 

@@ -29,12 +29,25 @@ export { auctionKeys };
 
 const CATEGORY_TREE_KEY = ["categories", "tree"] as const;
 
+function normalizeName(str: string): string {
+  return str
+    .toLowerCase()
+    .replace(/\band\b/g, "&")
+    .replace(/[^a-z0-9]/g, "");
+}
+
 async function resolveCategoryId(
   queryClient: ReturnType<typeof useQueryClient>,
   category?: string,
   subcategory?: string,
 ): Promise<string | undefined> {
-  if (!category || (category as string) === "all") return undefined;
+  if (!category || category === "all") return undefined;
+
+  const isCategoryGuid = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(category);
+  const isSubcategoryGuid = subcategory && /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(subcategory);
+
+  if (isSubcategoryGuid) return subcategory;
+  if (isCategoryGuid && (!subcategory || subcategory === "all")) return category;
 
   const cached = queryClient.getQueryData<CategoryDto[]>(CATEGORY_TREE_KEY);
   const tree: CategoryDto[] = cached ?? await queryClient.fetchQuery({
@@ -43,27 +56,45 @@ async function resolveCategoryId(
     staleTime: 60 * 60 * 1000,
   });
 
-  const matchedCat = tree.find(
-    (c) => c.name.toLowerCase() === category.toLowerCase()
-  );
-  if (!matchedCat) return undefined;
+  if (!tree || tree.length === 0) {
+    return isCategoryGuid ? category : undefined;
+  }
 
-  if (!subcategory || (subcategory as string) === "all") {
+  const catNorm = normalizeName(category);
+
+  // Find matching root or any category in the tree
+  let matchedCat = tree.find((c) => {
+    if (c.id === category) return true;
+    const cNorm = normalizeName(c.name);
+    return cNorm === catNorm || cNorm.includes(catNorm) || catNorm.includes(cNorm);
+  });
+
+  if (!matchedCat) {
+    // Try matching tokens (e.g. "Tech" or "Electronics")
+    const tokens = category.toLowerCase().split(/\s+(?:and|&)\s+|\s+/).filter(Boolean);
+    matchedCat = tree.find((c) => {
+      const cLower = c.name.toLowerCase();
+      return tokens.some((token) => token.length > 2 && cLower.includes(token));
+    });
+  }
+
+  if (!matchedCat) {
+    return isCategoryGuid ? category : undefined;
+  }
+
+  if (!subcategory || subcategory === "all") {
     return matchedCat.id;
   }
 
   const subList = matchedCat.subCategories || matchedCat.subcategories || matchedCat.children || [];
-  const subQuery = subcategory.toLowerCase();
+  const subNorm = normalizeName(subcategory);
   const matchedSub = subList.find((s) => {
-    const sName = s.name.toLowerCase();
-    if (sName === subQuery) return true;
-    if (sName.includes(subQuery)) return true;
-    if (subQuery.includes(sName)) return true;
-    if (subQuery.startsWith("other") && sName.startsWith("other")) return true;
-    return false;
+    if (s.id === subcategory) return true;
+    const sNorm = normalizeName(s.name);
+    return sNorm === subNorm || sNorm.includes(subNorm) || subNorm.includes(sNorm);
   });
 
-  return matchedSub?.id;
+  return matchedSub?.id || matchedCat.id;
 }
 
 export function useGetAuctions(filters?: AuctionFilters) {

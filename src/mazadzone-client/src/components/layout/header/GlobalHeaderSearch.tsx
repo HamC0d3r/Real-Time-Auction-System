@@ -89,7 +89,7 @@ export function GlobalHeaderSearch({
 
         if (isAdmin) {
           fetches.push(
-            api.get<{ items: SearchUserResult[] }>("/users/users", { params: { SearchTerm: query, PageSize: 5 } })
+            api.get<{ items: SearchUserResult[] }>("/users", { params: { SearchTerm: query, PageSize: 5 } })
           );
         }
 

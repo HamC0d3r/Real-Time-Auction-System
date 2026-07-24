@@ -39,31 +39,31 @@ public class DisputeQueries : ResilientRepository, IDisputeQueries
             i.Title AS AuctionTitle, 
             a.EndTime, 
             o.TotalAmount AS FinalPrice,
-            (SELECT ImageUrl From ItemImages WHERE ItemId = i.Id AND IsMain = true LIMIT 1) AS MainImageUrl,
+            (SELECT ImageUrl From ""ItemImages"" WHERE ItemId = i.Id AND IsMain = true LIMIT 1) AS MainImageUrl,
             
             -- Bidder Info Aliases
             bidder.Id AS BidderId, 
-            bidder.FirstName + ' ' + bidder.LastName AS BidderName, 
+            CONCAT(bidder.FirstName, ' ', bidder.LastName) AS BidderName, 
             bidder.Email AS BidderEmail,
 
             -- Seller Info Aliases
             seller.Id AS SellerId, 
-            seller.FirstName + ' ' + seller.LastName AS SellerName, 
+            CONCAT(seller.FirstName, ' ', seller.LastName) AS SellerName, 
             seller.Email AS SellerEmail
 
-        FROM Disputes d 
-        LEFT JOIN DisputeTypes dt ON d.DisputeTypeId = dt.Id
-        LEFT JOIN Orders o ON d.OrderId = o.Id
-        LEFT JOIN Auctions a ON o.AuctionId = a.Id
-        LEFT JOIN Items i ON a.Id = i.AuctionId
-        LEFT JOIN Users bidder ON o.BidderId = bidder.Id
-        LEFT JOIN Users seller ON a.SellerId = seller.Id
+        FROM ""Disputes"" d 
+        LEFT JOIN ""DisputeTypes"" dt ON d.DisputeTypeId = dt.Id
+        LEFT JOIN ""Orders"" o ON d.OrderId = o.Id
+        LEFT JOIN ""Auctions"" a ON o.AuctionId = a.Id
+        LEFT JOIN ""Items"" i ON a.Id = i.AuctionId
+        LEFT JOIN ""Users"" bidder ON o.BidderId = bidder.Id
+        LEFT JOIN ""Users"" seller ON a.SellerId = seller.Id
         WHERE d.Id = @DisputeId
     ";
 
         var imagesSql = @"
         SELECT ImageUrl AS Path, AltText 
-        FROM DisputeImages
+        FROM ""DisputeImages""
         WHERE DisputeId = @DisputeId;
     ";
 
@@ -125,12 +125,12 @@ public class DisputeQueries : ResilientRepository, IDisputeQueries
 
     // 1. Build the shared FROM and WHERE clauses to be used by both COUNT and SELECT
     var filterConditions = new StringBuilder(@"
-    FROM Disputes d
-    JOIN DisputeTypes dt ON d.DisputeTypeId = dt.Id
-    JOIN Orders o ON d.OrderId = o.Id
-    JOIN Auctions a ON o.AuctionId = a.Id
-    JOIN Users bidder ON o.BidderId = bidder.Id
-    JOIN Users seller ON a.SellerId = seller.Id
+    FROM ""Disputes"" d
+    JOIN ""DisputeTypes"" dt ON d.DisputeTypeId = dt.Id
+    JOIN ""Orders"" o ON d.OrderId = o.Id
+    JOIN ""Auctions"" a ON o.AuctionId = a.Id
+    JOIN ""Users"" bidder ON o.BidderId = bidder.Id
+    JOIN ""Users"" seller ON a.SellerId = seller.Id
     WHERE 1 = 1 ");
 
     // 2. Conditionally append filters
@@ -138,11 +138,11 @@ public class DisputeQueries : ResilientRepository, IDisputeQueries
     {
         // Searches across Bidder Name, Seller Name, and Category
         filterConditions.Append(@" AND (
-        bidder.FirstName LIKE @Search OR 
-        bidder.LastName LIKE @Search OR 
-        seller.FirstName LIKE @Search OR 
-        seller.LastName LIKE @Search OR
-        dt.Name LIKE @Search)");
+        bidder.FirstName ILIKE @Search OR 
+        bidder.LastName ILIKE @Search OR 
+        seller.FirstName ILIKE @Search OR 
+        seller.LastName ILIKE @Search OR
+        dt.Name ILIKE @Search)");
 
         parameters.Add("Search", $"%{filters.SearchTerm}%");
     }
@@ -185,8 +185,8 @@ public class DisputeQueries : ResilientRepository, IDisputeQueries
     var dataSqlBuilder = new StringBuilder($@"
     SELECT 
         d.Id,
-        (bidder.FirstName + ' ' + bidder.LastName) AS BidderName,
-        (seller.FirstName + ' ' + seller.LastName) AS SellerName,
+        CONCAT(bidder.FirstName, ' ', bidder.LastName) AS BidderName,
+        CONCAT(seller.FirstName, ' ', seller.LastName) AS SellerName,
         dt.Name AS Category,
         CASE d.Status
             WHEN 1 THEN 'Open'
@@ -202,8 +202,8 @@ public class DisputeQueries : ResilientRepository, IDisputeQueries
     {
         "category" => "dt.Name",
         "status" => "d.Status",
-        "biddername" => "BidderName",
-        "sellername" => "SellerName",
+        "biddername" => "CONCAT(bidder.FirstName, ' ', bidder.LastName)",
+        "sellername" => "CONCAT(seller.FirstName, ' ', seller.LastName)",
         _ => "d.CreatedAtUtc" // Default sort
     };
 
@@ -213,7 +213,7 @@ public class DisputeQueries : ResilientRepository, IDisputeQueries
     // Apply Pagination Limits if not exporting
     if (!filters.IsExport)
     {
-        dataSqlBuilder.Append(" OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY");
+        dataSqlBuilder.Append(" LIMIT @PageSize OFFSET @Offset");
         parameters.Add("Offset", (filters.PageNumber - 1) * filters.PageSize);
         parameters.Add("PageSize", filters.PageSize);
     }
@@ -257,8 +257,8 @@ public class DisputeQueries : ResilientRepository, IDisputeQueries
                 dt.Name AS DisputeTypeName,
                 SUM(CASE WHEN d.Id IS NOT NULL AND d.CreatedAtUtc >= @CurrStart AND d.CreatedAtUtc < @CurrEnd THEN 1 ELSE 0 END) AS CurrentCases,
                 SUM(CASE WHEN d.Id IS NOT NULL AND d.CreatedAtUtc >= @PrevStart AND d.CreatedAtUtc < @PrevEnd THEN 1 ELSE 0 END) AS PreviousCases
-            FROM DisputeTypes dt
-            LEFT JOIN Disputes d ON dt.Id = d.DisputeTypeId AND d.Status = @OpenStatus
+            FROM ""DisputeTypes"" dt
+            LEFT JOIN ""Disputes"" d ON dt.Id = d.DisputeTypeId AND d.Status = @OpenStatus
             GROUP BY dt.Name
             HAVING 
                 SUM(CASE WHEN d.Id IS NOT NULL AND d.CreatedAtUtc >= @CurrStart AND d.CreatedAtUtc < @CurrEnd THEN 1 ELSE 0 END) > 0
@@ -285,7 +285,7 @@ public class DisputeQueries : ResilientRepository, IDisputeQueries
                 DisputeTypeName,
                 CurrentCases,
                 PreviousCases,
-                CAST(0 AS BIT) AS IsOtherBucket, -- FIX: Explicitly cast to BIT
+                false AS IsOtherBucket,
                 Rnk AS SortOrder
             FROM RankedData
             WHERE Rnk <= @Limit
@@ -301,7 +301,7 @@ public class DisputeQueries : ResilientRepository, IDisputeQueries
                 'Other' AS DisputeTypeName,
                 SUM(CurrentCases) AS CurrentCases,
                 SUM(PreviousCases) AS PreviousCases,
-                CAST(1 AS BIT) AS IsOtherBucket, -- FIX: Explicitly cast to BIT
+                true AS IsOtherBucket,
                 @Limit + 1 AS SortOrder
             FROM RankedData
             WHERE Rnk > @Limit
@@ -338,8 +338,8 @@ public class DisputeQueries : ResilientRepository, IDisputeQueries
         var sql = @"
     SELECT 
         d.Id,
-        bidder.FirstName + ' ' + bidder.LastName AS BidderName,
-        seller.FirstName + ' ' + seller.LastName AS SellerName,
+        CONCAT(bidder.FirstName, ' ', bidder.LastName) AS BidderName,
+        CONCAT(seller.FirstName, ' ', seller.LastName) AS SellerName,
         dt.Name AS Category,
         CASE d.Status
             WHEN 1 THEN 'Open'
@@ -348,12 +348,12 @@ public class DisputeQueries : ResilientRepository, IDisputeQueries
             ELSE 'Unknown'
         END AS Status,
         d.CreatedAtUtc AS SubmittedDate
-    FROM Disputes d
-    JOIN DisputeTypes dt ON d.DisputeTypeId = dt.Id
-    JOIN Orders o ON d.OrderId = o.Id
-    JOIN Auctions a ON o.AuctionId = a.Id
-    JOIN Users bidder ON o.BidderId = bidder.Id
-    JOIN Users seller ON a.SellerId = seller.Id
+    FROM ""Disputes"" d
+    JOIN ""DisputeTypes"" dt ON d.DisputeTypeId = dt.Id
+    JOIN ""Orders"" o ON d.OrderId = o.Id
+    JOIN ""Auctions"" a ON o.AuctionId = a.Id
+    JOIN ""Users"" bidder ON o.BidderId = bidder.Id
+    JOIN ""Users"" seller ON a.SellerId = seller.Id
     WHERE d.Id IN @DisputeIds
     ORDER BY d.CreatedAtUtc DESC"; // Default safe sorting for exports
 

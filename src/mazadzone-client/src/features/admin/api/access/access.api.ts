@@ -17,7 +17,7 @@ export async function createAdminUserApi(data: CreateAdminUserCommand): Promise<
  * Endpoint: GET /api/v1/users/users
  */
 export async function fetchAdminUsersApi(): Promise<UserDto[]> {
-  const response = await api.get<PagedListOfUserDto>("/users/users", {
+  const response = await api.get<PagedListOfUserDto>("/users", {
     params: {
       PageNumber: 1,
       PageSize: 99, // Fetch a large batch to ensure we capture all administrators

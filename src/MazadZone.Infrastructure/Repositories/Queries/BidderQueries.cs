@@ -18,7 +18,7 @@ public class BidderQueries : ResilientRepository, IBidderQueries
         var query = @"
         SELECT 
     b.Id,
-    u.FirstName + ' ' + u.LastName AS FullName,
+    CONCAT(u.FirstName, ' ', u.LastName) AS FullName,
     u.Email,
     u.PhoneNumber,
 
@@ -43,10 +43,10 @@ public class BidderQueries : ResilientRepository, IBidderQueries
     COALESCE(b.AuctionParticipatedCount, 0) AS AuctionParticipatedCount,
     COALESCE(b.AuctionsWonCount, 0) AS AuctionsWonCount,
     COALESCE(b.CompletedPurchasesCount, 0) AS CompletedPurchasesCount
-FROM Bidders b
-JOIN Users u ON b.Id = u.Id -- Added missing ON condition
-LEFT JOIN BidderVerifications bv ON b.Id = bv.BidderId
-JOIN BidderAddresses ba ON b.Id = ba.BidderId
+FROM ""Bidders"" b
+JOIN ""Users"" u ON b.Id = u.Id
+LEFT JOIN ""BidderVerifications"" bv ON b.Id = bv.BidderId
+JOIN ""BidderAddresses"" ba ON b.Id = ba.BidderId
 WHERE b.Id = @bidderId;";
 
         return await ExecuteResilientAsync(connection =>

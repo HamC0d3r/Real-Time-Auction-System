@@ -78,7 +78,7 @@ export async function fetchAddresses(userId?: string): Promise<Address[]> {
 
   let primaryAddress: Address | null = null;
   try {
-    const response = await api.get<ProfileSettingsDto>(`/users/users/${activeUserId}/profile-settings`);
+    const response = await api.get<ProfileSettingsDto>(`/users/${activeUserId}/profile-settings`);
     primaryAddress = mapProfileSettingsToDefaultAddress(response.data);
   } catch (error) {
     console.error("Failed to load primary address from backend profile settings:", error);
@@ -123,6 +123,6 @@ export async function fetchProfileSettings(userId?: string): Promise<ProfileSett
     throw new Error("User is not authenticated");
   }
 
-  const response = await api.get<ProfileSettingsDto>(`/users/users/${activeUserId}/profile-settings`);
+  const response = await api.get<ProfileSettingsDto>(`/users/${activeUserId}/profile-settings`);
   return response.data;
 }

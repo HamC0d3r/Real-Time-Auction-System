@@ -8,7 +8,7 @@ public static class GetUsers
 {
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/users", HandleAsync)
+        app.MapGet("", HandleAsync)
            .RequireAuthorization(Policies.AdminOnly) // Listing all users is typically an admin-only feature
            .WithSummary("Get paginated users list")
            .WithDescription("Retrieves a paginated, filtered, and sorted list of users.")

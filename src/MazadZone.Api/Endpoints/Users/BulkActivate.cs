@@ -9,7 +9,7 @@ public static class BulkActivate
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
         // Using PUT to a collection-level sub-resource
-        app.MapPut("/users/bulk-activate", HandleAsync)
+        app.MapPut("/bulk-activate", HandleAsync)
            .RequireAuthorization(Policies.AdminOnly)
            .WithSummary("Bulk activate multiple user accounts")
            .WithDescription("Reactivates multiple previously suspended or inactive user accounts. Returns a 409 Conflict if any user in the batch is already active (transaction aborted).")

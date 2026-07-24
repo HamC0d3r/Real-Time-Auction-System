@@ -14,12 +14,12 @@ public class DisputeTypeQueries : ResilientRepository ,IDisputeTypeQueries
     {
         var sql = @"
         SELECT 
-            [Id],
-            [Name],
-            [Description],
-            [IsActive]
-        FROM [DisputeTypes]
-        WHERE IsActive=1
+            ""Id"",
+            ""Name"",
+            ""Description"",
+            ""IsActive""
+        FROM ""DisputeTypes""
+        WHERE ""IsActive"" = true
         ";
 
         return (await ExecuteResilientAsync(connection =>
@@ -30,12 +30,12 @@ public class DisputeTypeQueries : ResilientRepository ,IDisputeTypeQueries
     {
         var sql = @"
         SELECT 
-         [Id],
-         [Name],
-         [Description],
-         [IsActive]
-      FROM [DisputeTypes]
-      WHERE Id = @DisputeTypeId";
+         ""Id"",
+         ""Name"",
+         ""Description"",
+         ""IsActive""
+      FROM ""DisputeTypes""
+      WHERE ""Id"" = @DisputeTypeId";
 
         return await ExecuteResilientAsync(connection =>
                   connection.QueryFirstOrDefaultAsync<DisputeTypeDto>(sql, new { DisputeTypeId = id.Value }));

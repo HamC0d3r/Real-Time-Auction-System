@@ -28,20 +28,20 @@ public class DashboardQueries : IDashboardQueries
         var sql = @"
             -- CURRENT PERIOD
             SELECT 
-                (SELECT COUNT(1) FROM Auctions WHERE CreatedOnUtc >= @CurrStart AND CreatedOnUtc < @CurrEnd) AS TotalAuctions,
-                (SELECT COUNT(1) FROM Auctions WHERE Status = 2 AND CreatedOnUtc >= @CurrStart AND CreatedOnUtc < @CurrEnd) AS LiveAuctions,
-                (SELECT COUNT(1) FROM Auctions WHERE EndTime > @UtcNow AND EndTime <= DATEADD(hour, 24, @UtcNow)) AS EndingWithin24h,
-                (SELECT COUNT(1) FROM Orders WHERE Status = 4 AND CreatedOnUtc >= @CurrStart AND CreatedOnUtc < @CurrEnd) AS CompletedOrders,
-                (SELECT COUNT(1) FROM Disputes WHERE Status = 1 AND CreatedAtUtc >= @CurrStart AND CreatedAtUtc < @CurrEnd) AS OpenDisputes;
+                (SELECT COUNT(1) FROM ""Auctions"" WHERE CreatedOnUtc >= @CurrStart AND CreatedOnUtc < @CurrEnd) AS TotalAuctions,
+                (SELECT COUNT(1) FROM ""Auctions"" WHERE Status = 2 AND CreatedOnUtc >= @CurrStart AND CreatedOnUtc < @CurrEnd) AS LiveAuctions,
+                (SELECT COUNT(1) FROM ""Auctions"" WHERE EndTime > @UtcNow AND EndTime <= (@UtcNow + INTERVAL '24 hours')) AS EndingWithin24h,
+                (SELECT COUNT(1) FROM ""Orders"" WHERE Status = 4 AND CreatedOnUtc >= @CurrStart AND CreatedOnUtc < @CurrEnd) AS CompletedOrders,
+                (SELECT COUNT(1) FROM ""Disputes"" WHERE Status = 1 AND CreatedAtUtc >= @CurrStart AND CreatedAtUtc < @CurrEnd) AS OpenDisputes;
 
             -- PREVIOUS PERIOD
             SELECT 
-                (SELECT COUNT(1) FROM Auctions WHERE CreatedOnUtc >= @PrevStart AND CreatedOnUtc < @PrevEnd) AS TotalAuctions,
-                (SELECT COUNT(1) FROM Auctions WHERE Status = 2 AND CreatedOnUtc >= @PrevStart AND CreatedOnUtc < @PrevEnd) AS LiveAuctions,
+                (SELECT COUNT(1) FROM ""Auctions"" WHERE CreatedOnUtc >= @PrevStart AND CreatedOnUtc < @PrevEnd) AS TotalAuctions,
+                (SELECT COUNT(1) FROM ""Auctions"" WHERE Status = 2 AND CreatedOnUtc >= @PrevStart AND CreatedOnUtc < @PrevEnd) AS LiveAuctions,
                 -- For the previous period 'Ending within 24h', we compare to the snapshot time of the previous period
-                (SELECT COUNT(1) FROM Auctions WHERE EndTime > @PrevUtcNow AND EndTime <= DATEADD(hour, 24, @PrevUtcNow)) AS EndingWithin24h,
-                (SELECT COUNT(1) FROM Orders WHERE Status = 4 AND CreatedOnUtc >= @PrevStart AND CreatedOnUtc < @PrevEnd) AS CompletedOrders,
-                (SELECT COUNT(1) FROM Disputes WHERE Status = 1 AND CreatedAtUtc >= @PrevStart AND CreatedAtUtc < @PrevEnd) AS OpenDisputes;
+                (SELECT COUNT(1) FROM ""Auctions"" WHERE EndTime > @PrevUtcNow AND EndTime <= (@PrevUtcNow + INTERVAL '24 hours')) AS EndingWithin24h,
+                (SELECT COUNT(1) FROM ""Orders"" WHERE Status = 4 AND CreatedOnUtc >= @PrevStart AND CreatedOnUtc < @PrevEnd) AS CompletedOrders,
+                (SELECT COUNT(1) FROM ""Disputes"" WHERE Status = 1 AND CreatedAtUtc >= @PrevStart AND CreatedAtUtc < @PrevEnd) AS OpenDisputes;
         ";
 
         using var connection = _sqlConnectionFactory.CreateConnection();

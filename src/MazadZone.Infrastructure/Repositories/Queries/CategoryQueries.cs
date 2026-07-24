@@ -110,60 +110,42 @@ public sealed class CategoryQueries : ResilientRepository, ICategoryQueries
 
     public async Task<IReadOnlyList<CategoryTreeResponse>> GetTreeAsync(CancellationToken ct)
     {
-        var connection = _connectionFactory.CreateConnection();
-
         const string sql = @"
        SELECT
             Id,
             Name,
             Description,
-            ParentCategoryId AS  ParentId 
+            ParentCategoryId AS ParentId 
         FROM ""Categories"" 
         WHERE IsDeleted = false";
 
         return await ExecuteResilientAsync(async connection =>
-    {
-        var flatList = await connection.QueryAsync<CategoryTreeResponse>(
-            new CommandDefinition(sql, cancellationToken: ct)
-        );
-
-        // 2. Pre-size the lists to optimize memory allocation boundaries
-        var flatNodes = flatList.ToList();
-        var dict = new Dictionary<Guid, CategoryNodeDto>(flatNodes.Count);
-        var rootNodes = new List<CategoryTreeResponse>();
-
-        // 3. Construct mutable middleman models to prevent record-sharing reference glitches
-        foreach (var flatNode in flatNodes)
         {
-            dict[flatNode.Id] = new CategoryNodeDto
-            {
-                Source = flatNode,
-                Children = new List<CategoryTreeResponse>()
-            };
-        }
+            var flatList = (await connection.QueryAsync<CategoryTreeResponse>(
+                new CommandDefinition(sql, cancellationToken: ct)
+            )).ToList();
 
-        // 4. Assemble relationships via lightning-fast pointer mapping references
-        foreach (var item in dict.Values)
-        {
-            var currentFlat = item.Source;
+            var nodeMap = flatList.ToDictionary(
+                n => n.Id, 
+                n => new CategoryTreeResponse(n.Id, n.Name, n.Description, n.ParentId)
+            );
 
-            // If it has a parent and that parent is present in our active dataset
-            if (currentFlat.ParentId.HasValue && dict.TryGetValue(currentFlat.ParentId.Value, out var parentNode))
+            var rootNodes = new List<CategoryTreeResponse>();
+
+            foreach (var node in nodeMap.Values)
             {
-                // Reconstruct the node state with its running compiled children links
-                var fullyBuiltNode = currentFlat with { Children = item.Children };
-                parentNode.Children.Add(fullyBuiltNode);
+                if (node.ParentId.HasValue && nodeMap.TryGetValue(node.ParentId.Value, out var parentNode))
+                {
+                    parentNode.Children.Add(node);
+                }
+                else if (!node.ParentId.HasValue)
+                {
+                    rootNodes.Add(node);
+                }
             }
-            else if (!currentFlat.ParentId.HasValue)
-            {
-                // Root elements map out directly to our response stack tracking
-                var fullyBuiltRoot = currentFlat with { Children = item.Children };
-                rootNodes.Add(fullyBuiltRoot);
-            }
-        }
 
-        return rootNodes;
-    });
+            return rootNodes;
+        });
     }
 
     public async Task<IReadOnlyList<CategoryStatResponse>> GetCategoryStatisticsAsync(

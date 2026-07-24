@@ -22,7 +22,7 @@ public sealed class SellerQueries : ResilientRepository, ISellerQueries
     const string sql = @"
         SELECT 
             u.Id, 
-            u.FirstName + ' ' + u.LastName AS FullName,
+            CONCAT(u.FirstName, ' ', u.LastName) AS FullName,
             u.Email,
             u.PhoneNumber,
             s.IsVerified,
@@ -34,10 +34,10 @@ public sealed class SellerQueries : ResilientRepository, ISellerQueries
             COALESCE(b.TotalPidsPlaced, 0) AS TotalBidsPlaced, 
             COALESCE(b.AuctionParticipatedCount, 0) AS AuctionParticipatedCount,
             COALESCE(b.AuctionsWonCount, 0) AS AuctionsWonCount,
-            (SELECT COUNT(o.Id) FROM Orders o JOIN Auctions a ON o.AuctionId = a.Id WHERE a.SellerId = u.Id AND o.Status >= 2) AS CompletedPurchasesCount
-        FROM Users u 
-        JOIN Sellers s ON u.Id = s.Id
-        LEFT JOIN Bidders b ON u.Id = b.Id 
+            (SELECT COUNT(o.Id) FROM ""Orders"" o JOIN ""Auctions"" a ON o.AuctionId = a.Id WHERE a.SellerId = u.Id AND o.Status >= 2) AS CompletedPurchasesCount
+        FROM ""Users"" u 
+        JOIN ""Sellers"" s ON u.Id = s.Id
+        LEFT JOIN ""Bidders"" b ON u.Id = b.Id 
         WHERE u.Id = @SellerId;
     ";
 
@@ -59,31 +59,31 @@ public sealed class SellerQueries : ResilientRepository, ISellerQueries
         const string sql = @"
         -- 1. Total Feedback Count
         SELECT COUNT(f.Id)
-        FROM Orders o
-        JOIN Feedbacks f ON o.Id = f.OrderId
-        JOIN Auctions a ON o.AuctionId = a.Id
+        FROM ""Orders"" o
+        JOIN ""Feedbacks"" f ON o.Id = f.OrderId
+        JOIN ""Auctions"" a ON o.AuctionId = a.Id
         WHERE a.SellerId = @SellerId;
 
         -- 2. Paginated Data
         SELECT 
             o.Id,
-            u.FirstName + ' ' + u.LastName AS AuthorName,
+            CONCAT(u.FirstName, ' ', u.LastName) AS AuthorName,
             f.Rating,
             f.Comment,
             f.Reply,
             f.CreatedAtUtc AS CreatedAt,
             a.Id AS AuctionId,
             it.Title AS AuctionTitle,
-            (SELECT img.ImageUrl FROM ItemImages img WHERE img.ItemId = it.Id AND img.isMain = true LIMIT 1) AS AuctionImageUrl,
+            (SELECT img.ImageUrl FROM ""ItemImages"" img WHERE img.ItemId = it.Id AND img.isMain = true LIMIT 1) AS AuctionImageUrl,
             u.Id AS AuthorId
-        FROM Orders o
-        JOIN Feedbacks f ON o.Id = f.OrderId
-        JOIN Users u ON o.BidderId = u.Id 
-        JOIN Auctions a ON o.AuctionId = a.Id
-        JOIN Items it ON it.AuctionId = a.Id
+        FROM ""Orders"" o
+        JOIN ""Feedbacks"" f ON o.Id = f.OrderId
+        JOIN ""Users"" u ON o.BidderId = u.Id 
+        JOIN ""Auctions"" a ON o.AuctionId = a.Id
+        JOIN ""Items"" it ON it.AuctionId = a.Id
         WHERE a.SellerId = @SellerId
         ORDER BY f.CreatedAtUtc DESC
-        OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+        LIMIT @PageSize OFFSET @Offset;
     ";
 
         return await ExecuteResilientAsync(async connection =>
@@ -113,13 +113,13 @@ public sealed class SellerQueries : ResilientRepository, ISellerQueries
         const string sql = @"
             SELECT
                 u.Id,
-                u.FirstName + ' ' + u.LastName AS FullName,
+                CONCAT(u.FirstName, ' ', u.LastName) AS FullName,
                 u.Email,
                 u.PhoneNumber,
                 u.CreatedOnUtc AS JoinedOn
-            FROM Sellers s
-            JOIN Users u ON u.Id = s.Id
-            WHERE s.IsVerified = 0
+            FROM ""Sellers"" s
+            JOIN ""Users"" u ON u.Id = s.Id
+            WHERE s.IsVerified = false
             ORDER BY JoinedOn
             ";
 

@@ -7,7 +7,7 @@ public static class GetProfileSettings
 {
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/users/{id}/profile-settings", HandleAsync)
+        app.MapGet("/{id}/profile-settings", HandleAsync)
            .RequireAuthorization() // Uncomment to restrict to authenticated users
            .WithSummary("Get user profile settings")
            .WithDescription("Retrieves the profile configuration and settings for a given user account.")

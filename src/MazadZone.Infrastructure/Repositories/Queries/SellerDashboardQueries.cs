@@ -24,10 +24,10 @@ public class SellerDashboardQueries : ResilientRepository, ISellerDashboardQueri
         using var connection = _connectionFactory.CreateConnection();
 
         // Stats
-        const string activeSql = "SELECT COUNT(1) FROM Auctions WHERE SellerId = @SellerId AND Status = @ActiveStatus";
-        const string pendingSql = "SELECT COUNT(1) FROM Auctions WHERE SellerId = @SellerId AND Status = @PendingStatus";
-        const string soldSql = "SELECT COUNT(1) FROM Auctions a WHERE a.SellerId = @SellerId AND a.Status = @EndedStatus AND EXISTS (SELECT 1 FROM Bids b WHERE b.AuctionId = a.Id)";
-        const string unsoldSql = "SELECT COUNT(1) FROM Auctions a WHERE a.SellerId = @SellerId AND a.Status = @EndedStatus AND NOT EXISTS (SELECT 1 FROM Bids b WHERE b.AuctionId = a.Id)";
+        const string activeSql = @"SELECT COUNT(1) FROM ""Auctions"" WHERE SellerId = @SellerId AND Status = @ActiveStatus";
+        const string pendingSql = @"SELECT COUNT(1) FROM ""Auctions"" WHERE SellerId = @SellerId AND Status = @PendingStatus";
+        const string soldSql = @"SELECT COUNT(1) FROM ""Auctions"" a WHERE a.SellerId = @SellerId AND a.Status = @EndedStatus AND EXISTS (SELECT 1 FROM ""Bids"" b WHERE b.AuctionId = a.Id)";
+        const string unsoldSql = @"SELECT COUNT(1) FROM ""Auctions"" a WHERE a.SellerId = @SellerId AND a.Status = @EndedStatus AND NOT EXISTS (SELECT 1 FROM ""Bids"" b WHERE b.AuctionId = a.Id)";
 
         var active = await connection.ExecuteScalarAsync<int>(new CommandDefinition(activeSql, new { SellerId = sellerId.Value, ActiveStatus = (int)AuctionStatus.Active }, cancellationToken: cancellationToken));
         var pending = await connection.ExecuteScalarAsync<int>(new CommandDefinition(pendingSql, new { SellerId = sellerId.Value, PendingStatus = (int)AuctionStatus.Pending }, cancellationToken: cancellationToken));
@@ -60,7 +60,7 @@ public class SellerDashboardQueries : ResilientRepository, ISellerDashboardQueri
 
         if (!string.IsNullOrWhiteSpace(filter?.SearchTerm))
         {
-            whereClause.Append(" AND it.Title LIKE @SearchTerm");
+            whereClause.Append(" AND it.Title ILIKE @SearchTerm");
         }
 
         if (filter?.DateFrom.HasValue == true)
@@ -73,7 +73,7 @@ public class SellerDashboardQueries : ResilientRepository, ISellerDashboardQueri
             whereClause.Append(" AND a.EndTime <= @DateTo");
         }
 
-        var countSql = $"SELECT COUNT(1) FROM Auctions a INNER JOIN Items it ON it.AuctionId = a.Id {whereClause}";
+        var countSql = $@"SELECT COUNT(1) FROM ""Auctions"" a INNER JOIN ""Items"" it ON it.AuctionId = a.Id {whereClause}";
         
         string orderBy = filter?.SortBy?.ToLower() switch
         {
@@ -89,21 +89,21 @@ public class SellerDashboardQueries : ResilientRepository, ISellerDashboardQueri
                       "CASE " +
                       $"  WHEN a.Status = {(int)AuctionStatus.Pending} THEN 'Pending' " +
                       $"  WHEN a.Status = {(int)AuctionStatus.Active} THEN 'Active' " +
-                      $"  WHEN a.Status = {(int)AuctionStatus.Ended} AND EXISTS (SELECT 1 FROM Bids b2 WHERE b2.AuctionId = a.Id) THEN 'Sold' " +
+                      $"  WHEN a.Status = {(int)AuctionStatus.Ended} AND EXISTS (SELECT 1 FROM \"\"Bids\"\" b2 WHERE b2.AuctionId = a.Id) THEN 'Sold' " +
                       $"  WHEN a.Status = {(int)AuctionStatus.Ended} THEN 'Unsold' " +
                       $"  WHEN a.Status = {(int)AuctionStatus.Cancelled} THEN 'Cancelled' " +
                       "  ELSE 'Unknown' " +
                       "END AS Status, " +
-                      "(SELECT COUNT(1) FROM Bids b WHERE b.AuctionId = a.Id) AS BidsCount, " +
-                      "COALESCE((SELECT b.Amount FROM Bids b WHERE b.AuctionId = a.Id ORDER BY b.PlacedAtUtc DESC LIMIT 1), a.StartBidAmount) AS LastBidAmount, " +
+                      "(SELECT COUNT(1) FROM \"\"Bids\"\" b WHERE b.AuctionId = a.Id) AS BidsCount, " +
+                      "COALESCE((SELECT b.Amount FROM \"\"Bids\"\" b WHERE b.AuctionId = a.Id ORDER BY b.PlacedAtUtc DESC LIMIT 1), a.StartBidAmount) AS LastBidAmount, " +
                       "a.EndTime AS EndDateUtc, " +
-                      "(SELECT img.ImageUrl FROM ItemImages img WHERE img.ItemId = it.Id AND img.isMain = true LIMIT 1) AS ThumbnailUrl " +
-                      "FROM Auctions a " +
-                      "INNER JOIN Items it ON it.AuctionId = a.Id " +
-                      "LEFT JOIN Categories c ON c.Id = it.CategoryId " +
+                      "(SELECT img.ImageUrl FROM \"\"ItemImages\"\" img WHERE img.ItemId = it.Id AND img.isMain = true LIMIT 1) AS ThumbnailUrl " +
+                      "FROM \"\"Auctions\"\" a " +
+                      "INNER JOIN \"\"Items\"\" it ON it.AuctionId = a.Id " +
+                      "LEFT JOIN \"\"Categories\"\" c ON c.Id = it.CategoryId " +
                       whereClause +
                       $" ORDER BY {orderBy} {dir} " +
-                      " OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+                      " LIMIT @PageSize OFFSET @Offset";
 
         var parameters = new 
         { 
@@ -147,7 +147,7 @@ public class SellerDashboardQueries : ResilientRepository, ISellerDashboardQueri
 
         if (!string.IsNullOrWhiteSpace(filter?.SearchTerm))
         {
-            whereClause.Append(" AND it.Title LIKE @SearchTerm");
+            whereClause.Append(" AND it.Title ILIKE @SearchTerm");
         }
 
         if (filter?.DateFrom.HasValue == true)
@@ -160,7 +160,7 @@ public class SellerDashboardQueries : ResilientRepository, ISellerDashboardQueri
             whereClause.Append(" AND o.CreatedOnUtc <= @DateTo");
         }
 
-        var countSql = $"SELECT COUNT(1) FROM Orders o INNER JOIN Auctions a ON o.AuctionId = a.Id INNER JOIN Items it ON it.AuctionId = a.Id {whereClause}";
+        var countSql = $@"SELECT COUNT(1) FROM ""Orders"" o INNER JOIN ""Auctions"" a ON o.AuctionId = a.Id INNER JOIN ""Items"" it ON it.AuctionId = a.Id {whereClause}";
 
         string orderBy = filter?.SortBy?.ToLower() switch
         {
@@ -185,14 +185,14 @@ public class SellerDashboardQueries : ResilientRepository, ISellerDashboardQueri
                 END AS OrderStatus, 
                 o.CreatedOnUtc AS OrderDateUtc, 
                 o.TotalAmount, 
-                u.FirstName + ' ' + u.LastName AS BidderName 
-            FROM Orders o 
-            INNER JOIN Auctions a ON o.AuctionId = a.Id 
-            INNER JOIN Items it ON it.AuctionId = a.Id 
-            INNER JOIN Users u ON o.BidderId = u.Id 
+                CONCAT(u.FirstName, ' ', u.LastName) AS BidderName 
+            FROM ""Orders"" o 
+            INNER JOIN ""Auctions"" a ON o.AuctionId = a.Id 
+            INNER JOIN ""Items"" it ON it.AuctionId = a.Id 
+            INNER JOIN ""Users"" u ON o.BidderId = u.Id 
             {whereClause} 
             ORDER BY {orderBy} {dir} 
-            OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+            LIMIT @PageSize OFFSET @Offset";
 
         var parameters = new 
         { 
@@ -237,9 +237,9 @@ public class SellerDashboardQueries : ResilientRepository, ISellerDashboardQueri
                 COALESCE(SUM(p.PlatformFee), 0) AS TotalPlatformFees,
                 COALESCE(SUM(p.NetAmount), 0) AS TotalNetProfit,
                 COUNT(o.Id) AS CompletedOrdersCount
-            FROM Payments p
-            INNER JOIN Orders o ON p.OrderId = o.Id
-            INNER JOIN Auctions a ON o.AuctionId = a.Id
+            FROM ""Payments"" p
+            INNER JOIN ""Orders"" o ON p.OrderId = o.Id
+            INNER JOIN ""Auctions"" a ON o.AuctionId = a.Id
             {whereClause}
         ";
 
